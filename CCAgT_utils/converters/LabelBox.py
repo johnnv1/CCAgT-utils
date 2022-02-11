@@ -51,12 +51,6 @@ class LabelBox_Annotations():
 
         # Get image names
 
-        # Generate int ids for images
-
-        # Generate int ids for annotations
-
-        # Transform satellite to polygon
-
     def to_CCAgT(self) -> CCAgT_Annotations:
         self.df = self.__prepare_data(self.raw_dataframe)
 

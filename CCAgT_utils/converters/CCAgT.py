@@ -26,3 +26,11 @@ class CCAgT_Annotations():
     # TODO: convert to COCO
 
     # TODO: Describe / stats of the dataset or of the data splitted
+
+    # TODO: Join annotations of overlapped nuclei
+
+    # TODO: Transform satellite to polygon
+
+    # TODO: Generate int ids for images
+
+    # TODO: Generate int ids for annotations
