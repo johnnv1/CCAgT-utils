@@ -1,10 +1,16 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import TypeVar
 
 from CCAgT_utils.utils import basename
 
 FILENAME_SEP = '_'
+
+LIST_OF_DICTS = TypeVar('LIST_OF_DICTS', List[Dict[str, Any]], None)
 
 
 class FILENAME_ITEM(Enum):
