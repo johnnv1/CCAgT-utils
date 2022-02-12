@@ -1,0 +1,72 @@
+[
+    {
+        "color": [
+            21,
+            62,
+            125
+        ],
+        "name": "Nucleus",
+        "id": 1,
+        "labelbox_schemaId": "<Unique ID for category Nucleus>"
+    },
+    {
+        "color": [
+            114,
+            67,
+            144
+        ],
+        "name": "Cluster",
+        "id": 2,
+        "labelbox_schemaId": "<Unique ID for category Cluster>"
+    },
+    {
+        "color": [
+            254,
+            166,
+            0
+        ],
+        "name": "Satellite",
+        "id": 3,
+        "labelbox_schemaId": "<Unique ID for category Satellite>"
+    },
+    {
+        "color": [
+            26,
+            167,
+            238
+        ],
+        "name": "Nucleus_out_of_focus",
+        "id": 4,
+        "labelbox_schemaId": "<Unique ID for category Nucleus_out_of_focus>"
+    },
+    {
+        "color": [
+            39,
+            91,
+            82
+        ],
+        "name": "Overlapped_Nuclei",
+        "id": 5,
+        "labelbox_schemaId": "<Unique ID for category Overlapped_nuclei>"
+    },
+    {
+        "color": [
+            5,
+            207,
+            192
+        ],
+        "name": "non-viable_nucleus",
+        "id": 6,
+        "labelbox_schemaId": "<Unique ID for category Non-viable_nucleus>"
+    },
+    {
+        "color": [
+            255,
+            0,
+            0
+        ],
+        "name": "Leukocyte_Nucleus",
+        "id": 7,
+        "labelbox_schemaId": "<Unique ID for category leukocyte>"
+    }
+]
