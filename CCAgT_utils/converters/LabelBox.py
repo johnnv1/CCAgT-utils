@@ -16,7 +16,8 @@ class LabelBox_Annotations():
     def __init__(self,
                  raw_labelbox: list[dict[str, Any]] | None,
                  categories_map: list[dict[str, Any]] | None = None) -> None:
-        if raw_labelbox is None:
+
+        if raw_labelbox is None or not isinstance(raw_labelbox, list):
             raise ValueError('Expected a list of dictionary that represents raw labelbox data!')
 
         self.raw_labelbox = raw_labelbox
