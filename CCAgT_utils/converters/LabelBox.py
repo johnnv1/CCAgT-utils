@@ -57,7 +57,6 @@ class LabelBox_Annotations():
             else:
                 return False
 
-        print(df_duplicated)
         # Check the labels that has review
         df_duplicated['have_review'] = df_duplicated.apply(lambda row: hasreview(row['Reviews']), axis=1)
 
@@ -150,6 +149,5 @@ class LabelBox_Annotations():
 
         self.df = self.__prepare_data(self.raw_dataframe)
 
-        # TODO: Convert the df to CCAgT dataframe format
         CCAgT_anns = CCAgT_Annotations(self.df)
         return CCAgT_anns
