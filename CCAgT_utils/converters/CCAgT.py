@@ -4,14 +4,19 @@ import pandas as pd
 
 
 class CCAgT_Annotations():
-    def __init__(self, df: pd.DataFrame | None = None) -> None:
+    def __init__(self, df: pd.DataFrame) -> None:
 
-        if df is not None:
-            self.__check_and_instance_dataframe(df)
+        self.__check_and_instance_dataframe(df)
 
     def __check_and_instance_dataframe(self, df: pd.DataFrame) -> None:
-        # TODO
-        raise NotImplementedError
+        need_to_have = {'image_name', 'geometry', 'category_id'}
+        if isinstance(df, pd.DataFrame):
+            if need_to_have.issubset(set(df.columns)):
+                self.df = df
+            else:
+                raise KeyError(f'The dataframe must have the columns: {need_to_have}')
+        else:
+            raise TypeError('Need to be a pandas dataframe!')
 
     # TODO: Get slide ID
 
