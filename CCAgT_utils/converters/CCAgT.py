@@ -104,7 +104,7 @@ class CCAgT_Annotations():
         return col.cat.codes + 1
 
     def delete_by_area(self,
-                       helper: CCAgT_Helper,
+                       helper: Categories_Helper,
                        ignore_categories: set[int] = set({})) -> pd.DataFrame:
         if 'area' not in self.df.columns:
             self.df['area'] = self.geometries_area()
@@ -126,7 +126,7 @@ class CCAgT_Annotations():
     # TODO: Join annotations of overlapped nuclei
 
 
-class CCAgT_Helper():
+class Categories_Helper():
 
     def __init__(self,
                  raw_helper: list[dict[str, Any]]) -> None:
