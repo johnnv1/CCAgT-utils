@@ -109,11 +109,24 @@ class CCAgT_Annotations():
         if 'area' not in self.df.columns:
             self.df['area'] = self.geometries_area()
 
+        categories_at_df = self.df['category_id'].unique()
+
         for category_id, min_area in helper.min_area_by_category_id.items():
-            if category_id in ignore_categories:
+            if category_id in ignore_categories or category_id not in categories_at_df:
                 continue
-            cleaned_by_area = self.df[(self.df['category_id'] == category_id) & (self.df['area'] >= min_area)]
-            self.df = self.df[self.df['category_id'] != category_id].append(cleaned_by_area)
+
+            df_filtered = self.df[self.df['category_id'] == category_id]
+            length_before = df_filtered.shape[0]
+
+            cleaned_by_area = df_filtered[df_filtered['area'] >= min_area]
+
+            length_after = cleaned_by_area.shape[0]
+            dif = length_before - length_after
+
+            if dif > 0:
+                self.df = self.df[self.df['category_id'] != category_id].append(cleaned_by_area)
+
+                print(f'ATTENTION | The category with id {category_id} have been removed {dif} items.')
 
         return self.df
 
@@ -136,10 +149,10 @@ class Categories_Helper():
 
         self.raw_helper = raw_helper
 
-    @property
+    @ property
     def min_area_by_category_id(self) -> dict[int, int]:
         return {int(x['id']): int(x['minimal_area']) for x in self.raw_helper}
 
-    @property
+    @ property
     def name_by_category_id(self) -> dict[int, str]:
         return {int(x['id']): str(x['name']) for x in self.raw_helper}
