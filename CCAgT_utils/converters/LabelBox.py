@@ -14,7 +14,7 @@ from CCAgT_utils.utils import basename
 class LabelBox_Annotations():
 
     def __init__(self,
-                 raw_labelbox: list[dict[str, Any]] | None,
+                 raw_labelbox: list[dict[str, Any]],
                  categories_map: list[dict[str, Any]] | None = None) -> None:
 
         if raw_labelbox is None or not isinstance(raw_labelbox, list):
