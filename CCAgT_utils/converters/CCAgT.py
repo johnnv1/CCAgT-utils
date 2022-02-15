@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 import pandas as pd
 from shapely.geometry import box
@@ -101,7 +103,19 @@ class CCAgT_Annotations():
         col = col.astype('category')
         return col.cat.codes + 1
 
-    # TODO: Remove annotations by the minimal area
+    def delete_by_area(self,
+                       helper: CCAgT_Helper,
+                       ignore_categories: set[int] = set({})) -> pd.DataFrame:
+        if 'area' not in self.df.columns:
+            self.df['area'] = self.geometries_area()
+
+        for category_id, min_area in helper.min_area_by_category_id.items():
+            if category_id in ignore_categories:
+                continue
+            cleaned_by_area = self.df[(self.df['category_id'] == category_id) & (self.df['area'] >= min_area)]
+            self.df = self.df[self.df['category_id'] != category_id].append(cleaned_by_area)
+
+        return self.df
 
     # TODO: Split data into train validation and test
 
@@ -110,3 +124,22 @@ class CCAgT_Annotations():
     # TODO: Describe / stats of the dataset or of the data splitted
 
     # TODO: Join annotations of overlapped nuclei
+
+
+class CCAgT_Helper():
+
+    def __init__(self,
+                 raw_helper: list[dict[str, Any]]) -> None:
+
+        if not isinstance(raw_helper, list):
+            raise ValueError('Expected a list of dictionary that represents raw helper data!')
+
+        self.raw_helper = raw_helper
+
+    @property
+    def min_area_by_category_id(self) -> dict[int, int]:
+        return {int(x['id']): int(x['minimal_area']) for x in self.raw_helper}
+
+    @property
+    def name_by_category_id(self) -> dict[int, str]:
+        return {int(x['id']): str(x['name']) for x in self.raw_helper}
