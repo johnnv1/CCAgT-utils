@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Any
 
+import networkx as nx
 import numpy as np
 import pandas as pd
 from shapely.geometry import box
@@ -35,10 +36,11 @@ class CCAgT_Annotations():
 
     def satellite_point_to_polygon(self,
                                    satellite_geo: pd.Series,
-                                   area_size: int = 80,
-                                   resolution: int = 4) -> pd.Series:
+                                   area_size: int = 90,
+                                   resolution: int = 4,
+                                   tolerance: float = 0.3) -> pd.Series:
         diameter = np.sqrt(area_size / np.pi)
-        return satellite_geo.apply(lambda x: x.buffer(distance=diameter, resolution=resolution))
+        return satellite_geo.apply(lambda x: x.buffer(distance=diameter, resolution=resolution).simplify(tolerance=tolerance))
 
     def fit_geometries_to_image_boundary(self,
                                          width: int | None = None,
@@ -129,6 +131,47 @@ class CCAgT_Annotations():
                 print(f'ATTENTION | The category with id {category_id} have been removed {dif} items.')
 
         return self.df
+
+    def join_overlapped_nuclei(self,
+                               overlapped_nuclei_id: int = 5) -> pd.DataFrame:
+
+        # TODO: Just use the columns that will be used, to use less memory
+        df_overlapped_nuclei = self.df[self.df['category_id'] == overlapped_nuclei_id]
+        df_overlapped_nuclei = df_overlapped_nuclei.reset_index().rename(columns={'index': 'old_index'})
+
+        df_overlapped_nuclei_grouped = df_overlapped_nuclei.groupby('image_name')
+
+        def get_intersections(geo: Polygon, df: pd.DataFrame) -> list[int]:
+            idx_that_intersect = []
+            for _, row_B in df.iterrows():
+                if geo.intersects(row_B['geometry']):
+                    idx_that_intersect.append(row_B['old_index'])
+            return idx_that_intersect
+
+        out = pd.DataFrame()
+        for x, gp_df in df_overlapped_nuclei_grouped:
+            qtd_of_geometries = gp_df.shape[0]
+            # Find geomtries with intersection
+            intersected_by = gp_df['geometry'].apply(lambda geo: get_intersections(geo, gp_df))
+            if len(intersected_by) >= 0:
+                gp_df['intersected_by'] = intersected_by
+
+                # Compute the geometries groups
+                G = nx.Graph()
+                gp_df = gp_df.explode('intersected_by')
+                G.add_edges_from(gp_df[['old_index', 'intersected_by']].to_numpy().tolist())
+                coneected_items = list(nx.connected_components(G))
+
+                print(f'Item {x} has these groups {coneected_items} of geometries with intersection')
+                print(f'\tFrom {qtd_of_geometries} will be generated {len(coneected_items)} geometries')
+
+                raise NotImplementedError
+                # Compute the union of the geometries that have intersection
+                for con in coneected_items:
+                    ...
+                    # TODO: union geometries and remove original geometry
+            out = out.append(gp_df)
+        return out
 
     # TODO: Split data into train validation and test
 
