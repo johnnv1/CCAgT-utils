@@ -39,4 +39,4 @@ repos:
     hooks:
     -   id: mypy
         additional_dependencies: [types-all]
-        exclude: ^data/tests/
+        exclude: ^data | tests/
