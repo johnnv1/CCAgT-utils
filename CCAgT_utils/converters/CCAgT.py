@@ -132,46 +132,78 @@ class CCAgT_Annotations():
 
         return self.df
 
-    def join_overlapped_nuclei(self,
-                               overlapped_nuclei_id: int = 5) -> pd.DataFrame:
+    @staticmethod
+    def find_intersecting_geometries(geo: Polygon,
+                                     geo_idx: int,
+                                     df: pd.DataFrame) -> list[int] | np.nan:
+        """Based on a geometry, search in the dataframe for others
+        geometries that intersect with the geometry passed as parameter.
 
-        # TODO: Just use the columns that will be used, to use less memory
-        df_overlapped_nuclei = self.df[self.df['category_id'] == overlapped_nuclei_id]
-        df_overlapped_nuclei = df_overlapped_nuclei.reset_index().rename(columns={'index': 'old_index'})
+        Parameters
+        ----------
+        geo : Polygon
+            A shapely polygon used to check with which others geometries
+            has intersection.
+        df : pd.DataFrame
+            A dataframe with the data for the same tile/image of the
+            geometry passed as parameter.
 
-        df_overlapped_nuclei_grouped = df_overlapped_nuclei.groupby('image_name')
+        Returns
+        -------
+        list[int]
+            A list with the indexes of each geometry that intersects with
+            the geometry passed as parameter
+        """
+        intersecting_idx = []
+        for idx, row in df.iterrows():
+            if idx == geo_idx:
+                continue
+            if geo.intersects(row['geometry']):
+                intersecting_idx.append(idx)
 
-        def get_intersections(geo: Polygon, df: pd.DataFrame) -> list[int]:
-            idx_that_intersect = []
-            for _, row_B in df.iterrows():
-                if geo.intersects(row_B['geometry']):
-                    idx_that_intersect.append(row_B['old_index'])
-            return idx_that_intersect
+        if len(intersecting_idx) == 0:
+            return np.nan
+        else:
+            return intersecting_idx
 
-        out = pd.DataFrame()
-        for x, gp_df in df_overlapped_nuclei_grouped:
-            qtd_of_geometries = gp_df.shape[0]
-            # Find geomtries with intersection
-            intersected_by = gp_df['geometry'].apply(lambda geo: get_intersections(geo, gp_df))
-            if len(intersected_by) >= 0:
-                gp_df['intersected_by'] = intersected_by
+    def find_overlapping_annotations(self,
+                                     category_id: int) -> dict[str, list[set[int]]]:
+        df = self.df[self.df['category_id'] == category_id]
+        df_groupped = df.groupby('image_name')
+
+        out = {}
+        for img_name, df_gp in df_groupped:
+            intersected_by = df_gp.apply(lambda row: self.find_intersecting_geometries(row['geometry'],
+                                                                                       row.name,
+                                                                                       df_gp), axis=1)
+
+            df_gp['intersected_by'] = intersected_by
+            if len(intersected_by) > 0:
+                df_gp_exploded = df_gp['intersected_by'].reset_index().explode('intersected_by')
+                df_gp_exploded = df_gp_exploded.dropna()
+
+                graph_connections = df_gp_exploded[['index', 'intersected_by']].to_numpy().tolist()
 
                 # Compute the geometries groups
                 G = nx.Graph()
-                gp_df = gp_df.explode('intersected_by')
-                G.add_edges_from(gp_df[['old_index', 'intersected_by']].to_numpy().tolist())
+                G.add_edges_from(graph_connections)
                 coneected_items = list(nx.connected_components(G))
 
-                print(f'Item {x} has these groups {coneected_items} of geometries with intersection')
-                print(f'\tFrom {qtd_of_geometries} will be generated {len(coneected_items)} geometries')
+            else:
+                coneected_items = []
 
-                raise NotImplementedError
-                # Compute the union of the geometries that have intersection
-                for con in coneected_items:
-                    ...
-                    # TODO: union geometries and remove original geometry
-            out = out.append(gp_df)
+            out[img_name] = coneected_items
         return out
+
+    def union_geometries(self,
+                         groups_by_image: dict[str, list[set[int]]]) -> pd.DataFrame:
+
+        raise NotImplementedError
+        # Compute the union of the geometries that have intersection
+        for img_name, groups in groups_by_image.items():
+            for group in groups:
+                # TODO: union geometries and remove original geometry
+                pass
 
     # TODO: Split data into train validation and test
 
