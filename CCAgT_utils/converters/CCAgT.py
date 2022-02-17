@@ -129,7 +129,7 @@ class CCAgT_Annotations():
             if dif > 0:
                 self.df = self.df[self.df['category_id'] != category_id].append(cleaned_by_area)
 
-                print(f'ATTENTION | The category with id {category_id} have been removed {dif} items.')
+                print(f'ATTENTION | {dif} items has been removed from category with id {category_id}')
 
         return self.df
 
