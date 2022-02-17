@@ -19,9 +19,7 @@ def test_labelbox_to_dataFrame():
 
 def test_init_without_raw():
     with pytest.raises(ValueError):
-        lb_ann = LabelBox_Annotations(raw_labelbox=None)
-
-        del lb_ann
+        LabelBox_Annotations(raw_labelbox=None)
 
 
 def test_instance_categories_map():
