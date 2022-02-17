@@ -57,10 +57,16 @@ def test_satellite_point_to_polygon():
     ccagt_ann = CCAgT_Annotations(df)
     df['geo_type'] = ccagt_ann.geometries_type()
     sat_series = df.loc[(df['category_id'] == 3) & (df['geo_type'] == 'Point'), 'geometry']
-    sat_series_pol = ccagt_ann.satellite_point_to_polygon(sat_series)
+    area_size = 70
+    resolution = 4
+    tolerance = 0.3
+    sat_series_pol = ccagt_ann.satellite_point_to_polygon(sat_series,
+                                                          area_size=area_size,
+                                                          resolution=resolution,
+                                                          tolerance=tolerance)
 
-    diameter = np.sqrt(90 / np.pi)
-    assert sat_series_pol.to_numpy()[0].equals(Point(1, 1).buffer(diameter, 4).simplify(0.3))
+    diameter = np.sqrt(area_size / np.pi)
+    assert sat_series_pol.to_numpy()[0].equals(Point(1, 1).buffer(diameter, resolution).simplify(tolerance))
 
 # TODO: test for CCAgT_Annotations.fit_geometries_to_image_boundary
 # TODO: test for CCAgT_Annotations.geometries_area
