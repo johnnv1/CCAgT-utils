@@ -68,9 +68,22 @@ def test_satellite_point_to_polygon():
     diameter = np.sqrt(area_size / np.pi)
     assert sat_series_pol.to_numpy()[0].equals(Point(1, 1).buffer(diameter, resolution).simplify(tolerance))
 
+
+def test_geometries_area():
+    df = pd.DataFrame([{'image_name': 'C_xxx', 'geometry': Polygon([(0, 0), (0, 10), (10, 10), (10, 0)]), 'category_id': 3}])
+
+    ccagt_ann = CCAgT_Annotations(df)
+
+    assert ccagt_ann.geometries_area().to_numpy().tolist() == [100]
+
+
+def test_generate_ids():
+    df = pd.DataFrame([{'image_name': 'A_xxx', 'geometry': Point(1, 1), 'category_id': 3}])
+    ccagt_ann = CCAgT_Annotations(df)
+
+    assert ccagt_ann.generate_ids(df['image_name']).to_numpy().tolist() == [1]
+
 # TODO: test for CCAgT_Annotations.fit_geometries_to_image_boundary
-# TODO: test for CCAgT_Annotations.geometries_area
-# TODO: test for CCAgT_Annotations.generate_ids
 # TODO: test for CCAgT_Annotations.delete_by_area
 # TODO: test for CCAgT_Annotations.find_intersecting_geometries
 # TODO: test for CCAgT_Annotations.find_overlapping_annotations
