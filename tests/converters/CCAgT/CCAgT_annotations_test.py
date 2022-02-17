@@ -39,7 +39,7 @@ def test_get_slide_id():
     df = pd.DataFrame([{'image_name': 'A_xxx', 'geometry': Point(1, 1), 'category_id': 3}])
     ccagt_ann = CCAgT_Annotations(df)
 
-    assert ccagt_ann.get_slide_id().to_numpy().tolist() == ['A']
+    assert ccagt_ann.get_slide_id().tolist() == ['A']
 
 
 def test_geometries_type():
@@ -49,7 +49,7 @@ def test_geometries_type():
 
     ccagt_ann = CCAgT_Annotations(df)
 
-    assert ccagt_ann.geometries_type().to_numpy().tolist() == ['Point', 'Polygon']
+    assert ccagt_ann.geometries_type().tolist() == ['Point', 'Polygon']
 
 
 def test_satellite_point_to_polygon():
@@ -74,14 +74,14 @@ def test_geometries_area():
 
     ccagt_ann = CCAgT_Annotations(df)
 
-    assert ccagt_ann.geometries_area().to_numpy().tolist() == [100]
+    assert ccagt_ann.geometries_area().tolist() == [100]
 
 
 def test_generate_ids():
     df = pd.DataFrame([{'image_name': 'A_xxx', 'geometry': Point(1, 1), 'category_id': 3}])
     ccagt_ann = CCAgT_Annotations(df)
 
-    assert ccagt_ann.generate_ids(df['image_name']).to_numpy().tolist() == [1]
+    assert ccagt_ann.generate_ids(df['image_name']).tolist() == [1]
 
 # TODO: test for CCAgT_Annotations.fit_geometries_to_image_boundary
 # TODO: test for CCAgT_Annotations.delete_by_area
