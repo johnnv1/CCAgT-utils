@@ -154,17 +154,15 @@ class CCAgT_Annotations():
             A list with the indexes of each geometry that intersects with
             the geometry passed as parameter
         """
-        intersecting_idx = []
-        for idx, row in df.iterrows():
-            if idx == geo_idx:
-                continue
-            if geo.intersects(row['geometry']):
-                intersecting_idx.append(idx)
+        o = df.apply(lambda row:
+                     np.nan if not geo.intersects(row['geometry']) or row.name == geo_idx
+                     else row.name,
+                     axis=1).dropna()
 
-        if len(intersecting_idx) == 0:
+        if o.shape[0] == 0:
             return np.nan
         else:
-            return intersecting_idx
+            return o.to_numpy(dtype=np.int16).tolist()
 
     def find_overlapping_annotations(self,
                                      category_id: int) -> dict[str, list[set[int]]]:
@@ -174,7 +172,7 @@ class CCAgT_Annotations():
         out = {}
         for img_name, df_gp in df_groupped:
             intersected_by = df_gp.apply(lambda row: self.find_intersecting_geometries(row['geometry'],
-                                                                                       row.name,
+                                                                                       int(row.name),
                                                                                        df_gp), axis=1)
 
             df_gp['intersected_by'] = intersected_by
