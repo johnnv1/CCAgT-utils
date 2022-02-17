@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 from shapely.geometry import box
 from shapely.geometry import Polygon
+from shapely.ops import unary_union
 
 from CCAgT_utils.CCAgT import slide_from_filename
 
@@ -194,14 +195,88 @@ class CCAgT_Annotations():
         return out
 
     def union_geometries(self,
-                         groups_by_image: dict[str, list[set[int]]]) -> pd.DataFrame:
+                         groups_by_image: dict[str, list[set[int]]],
+                         out_category_id: int | None = None
+                         ) -> pd.DataFrame:
+        """Based on a dict for each image, it will join the geometries,
+        so that each image can have a list of geometries groups. Each
+        geometries group will be merged to a single geometry.
 
-        raise NotImplementedError
-        # Compute the union of the geometries that have intersection
+        Attention: This function will reset the indexes numbers.
+
+        Parameters
+        ----------
+        groups_by_image : dict[str, list[set[int]]]
+            The keys need to match with the names that the column has
+            (`image_name`), and the list need to have groups (set) of
+            indexes that must be merged into a single geometry
+        out_category_id : int | None, optional
+            If will dessired to join multiple categories into one, and
+            create a "new" category, specify what will be the category id
+            for the outputs geometries, by default None.
+            If this is None, the original category will be used.
+
+        Returns
+        -------
+        pd.DataFrame
+            Will return the self.df after the modifications. So the old
+            geometries (before be merged) will be discarded and the new
+            geometries will be add. Also, the DataFrame indexes will be
+            reseted.
+
+        Raises
+        ------
+        ValueError
+            If the `out_category_id` is None and the group of
+            geometries have more than one category, will raise it
+        TypeError
+            If the type of the geometry after the union isn't equals a
+            `Polygon` will raise it
+        """
+
+        def __check_category_id(categories_ids: list[int]) -> int:
+            if len(categories_ids) > 1:
+                raise ValueError(f'The group of annotations <{group}> from {img_name} have more than one category\
+                        need to set the out_category_id parameter!')
+            else:
+                return categories_ids[0]
+
+        cat_id = out_category_id
+        out = pd.DataFrame()
         for img_name, groups in groups_by_image.items():
+            df_filtered = self.df[self.df['image_name'] == img_name]
+
             for group in groups:
-                # TODO: union geometries and remove original geometry
-                pass
+                df_filtered_by_group = df_filtered[df_filtered.index.isin(group)]
+
+                if out_category_id is None:
+                    cat_id = __check_category_id(df_filtered_by_group['category_id'].unique().tolist())
+
+                geometries_to_join = df_filtered_by_group['geometry'].to_numpy()
+
+                # To make sure it will dissolve everything into a singe polygon
+                geometries_to_join = [g.buffer(1).simplify(tolerance=0.3) for g in geometries_to_join]
+
+                geo = unary_union(geometries_to_join)
+
+                if geo.geom_type != 'Polygon':
+                    raise TypeError(f'Geometry shape is not a polygon. This is a {geo.geom_type}.')
+
+                df_filtered = df_filtered.drop(index=group, axis=0)
+                df_filtered = df_filtered.append({'image_name': img_name,
+                                                  'geometry': geo,
+                                                  'category_id': cat_id}, ignore_index=True)
+
+            out = out.append(df_filtered)
+
+        # Drop the annotation of all images that stay at the parameter
+        image_names_to_drop = list(groups_by_image.keys())
+        df_without_news = self.df[~self.df['image_name'].isin(image_names_to_drop)]
+
+        # Add the annotations that have been updates!
+        self.df = df_without_news.append(out).reset_index(drop=True)
+
+        return self.df
 
     # TODO: Split data into train validation and test
 
