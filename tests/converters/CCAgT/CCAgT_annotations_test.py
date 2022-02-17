@@ -3,12 +3,13 @@ from __future__ import annotations
 import pandas as pd
 import pytest
 from shapely.geometry import Point
+from shapely.geometry import Polygon
 
 from CCAgT_utils.converters.CCAgT import CCAgT_Annotations
 
 
 def test_init_class():
-    df = pd.DataFrame([{'image_name': 'A', 'geometry': Point(1, 1), 'category_id': 1}])
+    df = pd.DataFrame([{'image_name': 'A', 'geometry': Point(1, 1), 'category_id': 3}])
     ccagt_ann = CCAgT_Annotations(df)
 
     assert ccagt_ann.df.equals(df)
@@ -34,14 +35,24 @@ def test_init_wrong_data():
 
 
 def test_get_slide_id():
-    df = pd.DataFrame([{'image_name': 'A_xxx', 'geometry': Point(1, 1), 'category_id': 1}])
+    df = pd.DataFrame([{'image_name': 'A_xxx', 'geometry': Point(1, 1), 'category_id': 3}])
     ccagt_ann = CCAgT_Annotations(df)
 
     assert ccagt_ann.get_slide_id().to_numpy().tolist() == ['A']
 
+
+def test_geometries_type():
+    df = pd.DataFrame({'image_name': ['A_xxx', 'B_yyy'],
+                       'geometry': [Point(1, 1), Polygon([(0, 0), (2, 2), (2, 0), (1, 0)])],
+                       'category_id': [3, 2]})
+
+    ccagt_ann = CCAgT_Annotations(df)
+
+    assert ccagt_ann.geometries_type().to_numpy().tolist() == ['Point', 'Polygon']
+
+
 # TODO: test for CCAgT_Annotations.satellite_point_to_polygon
 # TODO: test for CCAgT_Annotations.fit_geometries_to_image_boundary
-# TODO: test for CCAgT_Annotations.geometries_type
 # TODO: test for CCAgT_Annotations.geometries_area
 # TODO: test for CCAgT_Annotations.generate_ids
 # TODO: test for CCAgT_Annotations.delete_by_area
