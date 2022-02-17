@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import numpy as np
 import pandas as pd
 import pytest
 from shapely.geometry import Point
@@ -51,7 +52,16 @@ def test_geometries_type():
     assert ccagt_ann.geometries_type().to_numpy().tolist() == ['Point', 'Polygon']
 
 
-# TODO: test for CCAgT_Annotations.satellite_point_to_polygon
+def test_satellite_point_to_polygon():
+    df = pd.DataFrame([{'image_name': 'A_xxx', 'geometry': Point(1, 1), 'category_id': 3}])
+    ccagt_ann = CCAgT_Annotations(df)
+    df['geo_type'] = ccagt_ann.geometries_type()
+    sat_series = df.loc[(df['category_id'] == 3) & (df['geo_type'] == 'Point'), 'geometry']
+    sat_series_pol = ccagt_ann.satellite_point_to_polygon(sat_series)
+
+    diameter = np.sqrt(90 / np.pi)
+    assert sat_series_pol.to_numpy()[0].equals(Point(1, 1).buffer(diameter, 4).simplify(0.3))
+
 # TODO: test for CCAgT_Annotations.fit_geometries_to_image_boundary
 # TODO: test for CCAgT_Annotations.geometries_area
 # TODO: test for CCAgT_Annotations.generate_ids
