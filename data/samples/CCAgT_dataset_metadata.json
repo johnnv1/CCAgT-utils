@@ -1,0 +1,100 @@
+{
+    "categories": [
+        {
+            "color": [
+                21,
+                62,
+                125
+            ],
+            "name": "Nucleus",
+            "id": 1,
+            "labelbox_schemaId": "<Unique ID for category Nucleus>",
+            "minimal_area": 500,
+            "supercategory": ""
+        },
+        {
+            "color": [
+                114,
+                67,
+                144
+            ],
+            "name": "Cluster",
+            "id": 2,
+            "labelbox_schemaId": "<Unique ID for category Cluster>",
+            "minimal_area": 50,
+            "supercategory": ""
+        },
+        {
+            "color": [
+                254,
+                166,
+                0
+            ],
+            "name": "Satellite",
+            "id": 3,
+            "labelbox_schemaId": "<Unique ID for category Satellite>",
+            "minimal_area": 50,
+            "supercategory": ""
+        },
+        {
+            "color": [
+                26,
+                167,
+                238
+            ],
+            "name": "Nucleus_out_of_focus",
+            "id": 4,
+            "labelbox_schemaId": "<Unique ID for category Nucleus_out_of_focus>",
+            "minimal_area": 500,
+            "supercategory": ""
+        },
+        {
+            "color": [
+                39,
+                91,
+                82
+            ],
+            "name": "Overlapped_Nuclei",
+            "id": 5,
+            "labelbox_schemaId": "<Unique ID for category Overlapped_nuclei>",
+            "minimal_area": 500,
+            "supercategory": ""
+        },
+        {
+            "color": [
+                5,
+                207,
+                192
+            ],
+            "name": "non-viable_nucleus",
+            "id": 6,
+            "labelbox_schemaId": "<Unique ID for category Non-viable_nucleus>",
+            "minimal_area": 200,
+            "supercategory": ""
+        },
+        {
+            "color": [
+                255,
+                0,
+                0
+            ],
+            "name": "Leukocyte_Nucleus",
+            "id": 7,
+            "labelbox_schemaId": "<Unique ID for category leukocyte>",
+            "minimal_area": 200,
+            "supercategory": ""
+        }
+    ],
+    "metadata": {
+        "university": {
+            "name": "Universidade Federal de Santa Catarina",
+            "link": "https://en.ufsc.br/",
+            "short_name": "UFSC"
+        },
+        "contributors": "João Gustavo Atkinson Amorim, André Victória Matias, Tainee Bottamedi, Vinícius Moreno Sanches, Ane Francyne Costa, Fabiana Botelho de Miranda Onofre, Alexandre Sherlley Casimiro Onofre, Aldo von Wangenheim",
+        "url": "http://dx.doi.org/10.17632/wg4bpm33hj.1",
+        "CEPSH_protocol_number": "57423616.3.0000.0121",
+        "description_template": "Contains {number_of_images} images (1600x1200 where each pixel is 0.111µmX0.111µm) from {number_of_slides} different slides, having at least one label per image. Have a total of {number_of_annotations} annotations. The images were obtained from examinations that were performed on women who were treated at the Gynecology and Colposcopy Outpatient Clinic of the University Hospital Professor Polydoro Ernani de São Thiago of Federal University of Santa Catarina (HU-UFSC). These women, presenting cytological alterations in the oncotic cytology of previous exams, were referred to the [Ane Francyne Costa](https://repositorio.ufsc.br/handle/123456789/191940) for a gynecological exam, colposcopy and biopsy. This research was approved by the UFSC Research Ethics Committee (CEPSH), protocol number 57423616.3.0000.0121. All participating patients were previously approached and informed about the study objectives. Those who agreed to participate signed an Informed Consent Form.",
+        "version": "sample of 2.1.1"
+    }
+}
