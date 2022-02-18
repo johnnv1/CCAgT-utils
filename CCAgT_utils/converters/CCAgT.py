@@ -15,6 +15,10 @@ from CCAgT_utils.converters.COCO import COCO_OD
 from CCAgT_utils.utils import get_traceback
 
 
+class MoreThanOneIDbyItemError(RuntimeError):
+    pass
+
+
 class CCAgT_Annotations():
     IMAGE_WIDTH: int = 1600
     IMAGE_HEIGHT: int = 1200
@@ -311,6 +315,13 @@ class CCAgT_Annotations():
             annotations_coco.extend(p.get())
 
         return annotations_coco
+
+    def image_id_by_name(self, image_name: str) -> int:
+        v = self.df.loc[self.df['image_name'] == image_name, 'image_id'].unique()
+        if len(v) > 1:
+            raise MoreThanOneIDbyItemError(f'The image: {image_name} have {len(v)} IDs')
+        else:
+            return int(v[0])
 
     # TODO: Split data into train validation and test
 
