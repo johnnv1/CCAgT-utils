@@ -267,7 +267,7 @@ class CCAgT_Annotations():
                 if geo.geom_type != 'Polygon':
                     raise TypeError(f'Geometry shape is not a polygon. This is a {geo.geom_type}.')
 
-                df_filtered = df_filtered.drop(index=group, axis=0)
+                df_filtered = df_filtered.drop(index=group, axis=0, errors='ignore')
                 df_filtered = df_filtered.append({'image_name': img_name,
                                                   'geometry': geo,
                                                   'category_id': cat_id}, ignore_index=True)
