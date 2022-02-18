@@ -88,3 +88,4 @@ def test_generate_ids():
 # TODO: test for CCAgT_Annotations.find_intersecting_geometries
 # TODO: test for CCAgT_Annotations.find_overlapping_annotations
 # TODO: test for CCAgT_Annotations.union_geometries
+# TODO: test for CCAgT_Annotations.to_OD_COCO
