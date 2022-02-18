@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import multiprocessing
 from typing import Any
 
 import networkx as nx
@@ -10,13 +11,16 @@ from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from CCAgT_utils.CCAgT import slide_from_filename
+from CCAgT_utils.converters.COCO import COCO_OD
+from CCAgT_utils.utils import get_traceback
 
 
 class CCAgT_Annotations():
     IMAGE_WIDTH: int = 1600
     IMAGE_HEIGHT: int = 1200
 
-    def __init__(self, df: pd.DataFrame) -> None:
+    def __init__(self,
+                 df: pd.DataFrame) -> None:
 
         self.__check_and_instance_dataframe(df)
 
@@ -102,7 +106,8 @@ class CCAgT_Annotations():
     def geometries_area(self) -> pd.Series:
         return self.df['geometry'].apply(lambda x: x.area)
 
-    def generate_ids(self, col: pd.Series) -> pd.Series:
+    def generate_ids(self,
+                     col: pd.Series) -> pd.Series:
         col = col.astype('category')
         return col.cat.codes + 1
 
@@ -278,13 +283,50 @@ class CCAgT_Annotations():
 
         return self.df
 
-    # TODO: Split data into train validation and test
+    def to_OD_COCO(self, decimals: int = 2) -> list[dict[str, Any]]:
 
-    # TODO: convert to COCO
+        cols = self.df.columns
+        if not all(c in cols for c in ['area', 'image_id']):
+            raise KeyError('The dataframe need to have the columns `area`, `image_id`!')
+
+        cpu_num = multiprocessing.cpu_count()
+
+        # To ensure that will have sequential index
+        self.df.reset_index(drop=True, inplace=True)
+        self.df.index = self.df.index + 1
+
+        # Split equals the annotations for the cpu quantity
+        ann_ids_splitted = np.array_split(self.df.index.tolist(), cpu_num)
+        print(f"Number of cores: {cpu_num}, annotations per core: {len(ann_ids_splitted[0])}")
+
+        workers = multiprocessing.Pool(processes=cpu_num)
+        processes = []
+        for ann_ids in ann_ids_splitted:
+            df_to_process = self.df.loc[self.df.index.isin(ann_ids), :]
+            p = workers.apply_async(single_core_to_OD_COCO, (df_to_process, decimals))
+            processes.append(p)
+
+        annotations_coco = []
+        for p in processes:
+            annotations_coco.extend(p.get())
+
+        return annotations_coco
+
+    # TODO: Split data into train validation and test
 
     # TODO: Describe / stats of the dataset or of the data splitted
 
-    # TODO: Join annotations of overlapped nuclei
+
+@get_traceback
+def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str, Any]]:
+    return df.apply(lambda row: {"id": row.name,
+                                 "image_id": row["image_id"],
+                                 "category_id": row["category_id"],
+                                 "bbox": COCO_OD.bounds_to_coco_bb(row["geometry"].bounds, decimals),
+                                 "segmentation": COCO_OD.polygon_to_coco_segment(row["geometry"], decimals),
+                                 "area": np.round(row["area"], decimals),
+                                 "iscrowd": 0},
+                    axis=1).to_numpy().tolist()
 
 
 class Categories_Helper():
@@ -297,10 +339,10 @@ class Categories_Helper():
 
         self.raw_helper = raw_helper
 
-    @ property
+    @property
     def min_area_by_category_id(self) -> dict[int, int]:
         return {int(x['id']): int(x['minimal_area']) for x in self.raw_helper}
 
-    @ property
+    @property
     def name_by_category_id(self) -> dict[int, str]:
         return {int(x['id']): str(x['name']) for x in self.raw_helper}
