@@ -1,3 +1,4 @@
+[![PyPI](https://img.shields.io/pypi/v/CCAgT-utils?color=blue&label=pypi%20version)](https://pypi.org/project/CCAgT-utils/)
 # CCAgT-utils
 
 CCAgT-utils it's a package to work with the **CCAgT dataset**: `Images of Cervical Cells with AgNOR Stain Technique`. The package will provide some customized codes for annotations format conversion, mask generation, plotting samples, etc.
