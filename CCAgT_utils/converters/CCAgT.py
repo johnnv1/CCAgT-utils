@@ -165,6 +165,7 @@ class CCAgT_Annotations():
             the geometry passed as parameter
         """
         o = df.apply(lambda row:
+                     np.nan if not row['geometry'].is_valid else
                      np.nan if not geo.intersects(row['geometry']) or row.name == geo_idx
                      else row.name,
                      axis=1).dropna()
@@ -258,18 +259,21 @@ class CCAgT_Annotations():
             for group in groups:
                 df_filtered_by_group = df_filtered[df_filtered.index.isin(group)]
 
+                if df_filtered_by_group.empty:
+                    continue
+
                 if out_category_id is None:
                     cat_id = __check_category_id(df_filtered_by_group['category_id'].unique().tolist())
 
                 geometries_to_join = df_filtered_by_group['geometry'].to_numpy()
 
-                # To make sure it will dissolve everything into a singe polygon
-                geometries_to_join = [g.buffer(1).simplify(tolerance=0.3) for g in geometries_to_join]
+                # To make sure it will intersect more than just touch bounds
+                geometries_to_join = [g.buffer(1) for g in geometries_to_join]
 
-                geo = unary_union(geometries_to_join)
+                geo = unary_union(geometries_to_join).simplify(tolerance=0.3)
 
-                if geo.geom_type != 'Polygon':
-                    raise TypeError(f'Geometry shape is not a polygon. This is a {geo.geom_type}.')
+                if geo.geom_type not in {'Polygon', 'MultiPolygon'}:
+                    raise TypeError(f'Geometry shape is not a polygon or MultiPolygon. This is a {geo.geom_type}.')
 
                 df_filtered = df_filtered.drop(index=group, axis=0, errors='ignore')
                 df_filtered = df_filtered.append({'image_name': img_name,
@@ -334,7 +338,7 @@ def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str
                                  "image_id": row["image_id"],
                                  "category_id": row["category_id"],
                                  "bbox": COCO_OD.bounds_to_coco_bb(row["geometry"].bounds, decimals),
-                                 "segmentation": COCO_OD.polygon_to_coco_segment(row["geometry"], decimals),
+                                 "segmentation": COCO_OD.geometry_to_coco_segment(row["geometry"], decimals),
                                  "area": np.round(row["area"], decimals),
                                  "iscrowd": 0},
                     axis=1).to_numpy().tolist()

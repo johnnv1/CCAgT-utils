@@ -3,6 +3,7 @@ from __future__ import annotations
 from itertools import chain
 
 import numpy as np
+from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
 
 
@@ -18,11 +19,23 @@ class COCO_OD():
         return [min_x, min_y, max_x - min_x, max_y - min_y]
 
     @staticmethod
-    def polygon_to_coco_segment(pol: Polygon,
-                                decimals: int = 2) -> list[list[float]]:
+    def geometry_to_coco_segment(geo: Polygon | MultiPolygon,
+                                 decimals: int = 2) -> list[list[float]]:
         # polygon of shapely is a class
-        # polygon or segmentation at coco is a list of [x0, y0, x1, y1 ...]
-        list_of_points = list(zip(*pol.exterior.coords.xy))
-        pol = list(chain(*list_of_points))
-        pol = list(np.around(np.array(pol), decimals))
-        return [pol]
+        # polygon or segmentation at coco is a list of [[x0, y0, x1, y1 ...]]
+
+        def coco_pol(geometry: Polygon, decimals: int = decimals) -> list[float]:
+            list_of_points = list(zip(*geometry.exterior.coords.xy))
+            geometry = list(chain(*list_of_points))
+            geometry = list(np.around(np.array(geometry), decimals))
+            return geometry
+
+        if geo.geom_type == 'Polygon':
+            return [coco_pol(geo)]
+        elif geo.geom_type == 'MultiPolygon':
+            o = []
+            for g in geo.geoms:
+                o.append(coco_pol(g))
+            return o
+        else:
+            raise TypeError(f'Geometry shape is not a polygon or MultiPolygon. This is a {geo.geom_type}.')
