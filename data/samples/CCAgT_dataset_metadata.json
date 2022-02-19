@@ -21,7 +21,7 @@
             "name": "Cluster",
             "id": 2,
             "labelbox_schemaId": "<Unique ID for category Cluster>",
-            "minimal_area": 50,
+            "minimal_area": 20,
             "supercategory": ""
         },
         {
@@ -33,7 +33,7 @@
             "name": "Satellite",
             "id": 3,
             "labelbox_schemaId": "<Unique ID for category Satellite>",
-            "minimal_area": 50,
+            "minimal_area": 20,
             "supercategory": ""
         },
         {
