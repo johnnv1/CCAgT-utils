@@ -5,7 +5,7 @@ updates:
     schedule:
       interval: "weekly"
       day: "sunday"
-    versioning-strategy: increase
+    versioning-strategy: auto
     target-branch: "main"
     labels:
       - "pip dependencies"
