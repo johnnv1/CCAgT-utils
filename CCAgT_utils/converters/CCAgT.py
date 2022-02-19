@@ -305,7 +305,7 @@ class CCAgT_Annotations():
 
         # Split equals the annotations for the cpu quantity
         ann_ids_splitted = np.array_split(self.df.index.tolist(), cpu_num)
-        print(f"Number of cores: {cpu_num}, annotations per core: {len(ann_ids_splitted[0])}")
+        print(f'Number of cores: {cpu_num}, annotations per core: {len(ann_ids_splitted[0])}')
 
         workers = multiprocessing.Pool(processes=cpu_num)
         processes = []
@@ -334,13 +334,13 @@ class CCAgT_Annotations():
 
 @get_traceback
 def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str, Any]]:
-    return df.apply(lambda row: {"id": row.name,
-                                 "image_id": row["image_id"],
-                                 "category_id": row["category_id"],
-                                 "bbox": COCO_OD.bounds_to_coco_bb(row["geometry"].bounds, decimals),
-                                 "segmentation": COCO_OD.geometry_to_coco_segment(row["geometry"], decimals),
-                                 "area": np.round(row["area"], decimals),
-                                 "iscrowd": 0},
+    return df.apply(lambda row: {'id': row.name,
+                                 'image_id': row['image_id'],
+                                 'category_id': row['category_id'],
+                                 'bbox': COCO_OD.bounds_to_coco_bb(row['geometry'].bounds, decimals),
+                                 'segmentation': COCO_OD.geometry_to_coco_segment(row['geometry'], decimals),
+                                 'area': np.round(row['area'], decimals),
+                                 'iscrowd': 0},
                     axis=1).to_numpy().tolist()
 
 

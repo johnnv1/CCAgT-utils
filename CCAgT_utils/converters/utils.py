@@ -52,12 +52,12 @@ def open_and_read_json(path):
 
 def __build_description(template: str, df: pd.Dataframe) -> str:
     img_quantity = len(df['image_id'].unique())
-    slide_quantity = len(df["slide_id"].unique())
+    slide_quantity = len(df['slide_id'].unique())
     annotations_quantity = df.shape[0]
 
-    o = template.replace("{number_of_images}", str(img_quantity))
-    o = o.replace("{number_of_slides}", str(slide_quantity))
-    o = o.replace("{number_of_annotations}", str(annotations_quantity))
+    o = template.replace('{number_of_images}', str(img_quantity))
+    o = o.replace('{number_of_slides}', str(slide_quantity))
+    o = o.replace('{number_of_annotations}', str(annotations_quantity))
 
     return o
 
@@ -112,28 +112,28 @@ def labelbox_to_OD_COCO(raw_path: str,
 
     desc = __build_description(dataset_helper['metadata']['description_template'], df)
 
-    info_coco = {"year": datetime.now().strftime("%Y"),
-                 "version": dataset_helper['metadata']['version'],
-                 "description": desc,
-                 "contributor": dataset_helper['metadata']['contributors'],
-                 "url": dataset_helper['metadata']['url'],
-                 "date_created": datetime.now().strftime("%Y-%m-%d")}
+    info_coco = {'year': datetime.now().strftime('%Y'),
+                 'version': dataset_helper['metadata']['version'],
+                 'description': desc,
+                 'contributor': dataset_helper['metadata']['contributors'],
+                 'url': dataset_helper['metadata']['url'],
+                 'date_created': datetime.now().strftime('%Y-%m-%d')}
 
-    categories_coco = [{'supercategory': None if it['supercategory'] == "" else it['supercategory'],
+    categories_coco = [{'supercategory': None if it['supercategory'] == '' else it['supercategory'],
                         'name': it['name'],
                         'id': it['id']} for it in categories_helpper]
 
-    image_names = df["image_name"].unique().tolist()
+    image_names = df['image_name'].unique().tolist()
 
     images_coco = [{'file_name': img_name + image_extension,
                     'height': CCAgT_ann.IMAGE_HEIGHT,
                     'width': CCAgT_ann.IMAGE_WIDTH,
                     'id': CCAgT_ann.image_id_by_name(img_name)} for img_name in image_names]
 
-    CCAgT_coco = {"info": info_coco,
-                  "categories": categories_coco,
-                  "images": images_coco,
-                  "annotations": annotations_coco}
+    CCAgT_coco = {'info': info_coco,
+                  'categories': categories_coco,
+                  'images': images_coco,
+                  'annotations': annotations_coco}
 
     with open(out_path, 'w') as outfile:
         json.dump(CCAgT_coco, outfile)

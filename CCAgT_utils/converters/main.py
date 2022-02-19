@@ -18,29 +18,29 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     subparsers = parser.add_subparsers(dest='command')
 
-    lb_to_coco_parser = subparsers.add_parser('labelbox_to_COCO', help="Converter from Raw labelbox file to a COCO formart")
+    lb_to_coco_parser = subparsers.add_parser('labelbox_to_COCO', help='Converter from Raw labelbox file to a COCO formart')
     lb_to_coco_parser.add_argument('-t', '--target', help=('Define the target of the COCO format. Expected `object-detection`'
                                                            'or `OD`, `panoptic-segmentation` or `PD`, `instance-segmentation`'
                                                            ' or `IS`.'), required=True)
     lb_to_coco_parser.add_argument('-r',
-                                   '--raw-file', help="Path for the labelbox raw file. A JSON file is expected.",
+                                   '--raw-file', help='Path for the labelbox raw file. A JSON file is expected.',
                                    required=True, metavar='RAW_FILE_LABELBOX_PATH')
     lb_to_coco_parser.add_argument('-a',
-                                   '--aux-file', help=("Path for the categories auxiliary/helper file."
-                                                       " A JSON file is expected."),
+                                   '--aux-file', help=('Path for the categories auxiliary/helper file.'
+                                                       ' A JSON file is expected.'),
                                    required=True, metavar='HELPER_FILE_PATH')
     lb_to_coco_parser.add_argument('-o',
-                                   '--out-file', help="Path for the output file. A JSON file is expected.",
+                                   '--out-file', help='Path for the output file. A JSON file is expected.',
                                    default=os.path.join(os.getcwd(), 'CCAgT_COCO_format.json'),
                                    metavar='OUTPUT_PATH')
 
     lb_to_coco_parser.add_argument('-p',
-                                   '--out-precision', help="The number of digits (decimals), for the coords at output file",
+                                   '--out-precision', help='The number of digits (decimals), for the coords at output file',
                                    default=2,
                                    metavar='OUTPUT_PRECISION')
 
     lb_to_coco_parser.add_argument('-e', '--images-extension',
-                                   help="The extension of the filenames at COCO file. Example `.jpg`", default='')
+                                   help='The extension of the filenames at COCO file. Example `.jpg`', default='')
 
     help = subparsers.add_parser('help', help='Show help for a specific command.')
     help.add_argument('help_cmd', nargs='?', help='Command to show help for.')

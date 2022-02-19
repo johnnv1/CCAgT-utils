@@ -6,7 +6,7 @@ import traceback
 from typing import Callable
 from typing import TypeVar
 
-R = TypeVar("R")
+R = TypeVar('R')
 
 
 def basename(filename: str, with_extension: bool = False) -> str:

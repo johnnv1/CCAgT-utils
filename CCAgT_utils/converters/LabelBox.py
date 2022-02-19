@@ -31,7 +31,7 @@ class LabelBox_Annotations():
                                            categories_map: list[dict[str, Any]] | None) -> bool:
         if categories_map is None:
             if self.categories_map is None:
-                raise Exception("You need instantiate or pass as parameter the categories_map before!")
+                raise Exception('You need instantiate or pass as parameter the categories_map before!')
         elif isinstance(categories_map, list):
             if self.categories_map is not None:
                 print('The categories map will be overwrite!')
@@ -109,7 +109,7 @@ class LabelBox_Annotations():
         df_out = df.dropna(axis=0, subset=['geometry'])
 
         if df.shape != df_out.shape:
-            print(f"Some NaN geometries have been deleted! Original shape = {df.shape} | out shape = {df_out.shape}")
+            print(f'Some NaN geometries have been deleted! Original shape = {df.shape} | out shape = {df_out.shape}')
 
         return df_out
 
