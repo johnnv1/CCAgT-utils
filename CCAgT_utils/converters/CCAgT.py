@@ -12,6 +12,7 @@ from shapely.ops import unary_union
 
 from CCAgT_utils.CCAgT import slide_from_filename
 from CCAgT_utils.converters.COCO import COCO_OD
+from CCAgT_utils.utils import Categories_Helper
 from CCAgT_utils.utils import get_traceback
 
 
@@ -342,22 +343,3 @@ def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str
                                  'area': np.round(row['area'], decimals),
                                  'iscrowd': 0},
                     axis=1).to_numpy().tolist()
-
-
-class Categories_Helper():
-
-    def __init__(self,
-                 raw_helper: list[dict[str, Any]]) -> None:
-
-        if not isinstance(raw_helper, list):
-            raise ValueError('Expected a list of dictionary that represents raw helper data!')
-
-        self.raw_helper = raw_helper
-
-    @property
-    def min_area_by_category_id(self) -> dict[int, int]:
-        return {int(x['id']): int(x['minimal_area']) for x in self.raw_helper}
-
-    @property
-    def name_by_category_id(self) -> dict[int, str]:
-        return {int(x['id']): str(x['name']) for x in self.raw_helper}

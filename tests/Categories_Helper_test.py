@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from CCAgT_utils.converters.CCAgT import Categories_Helper
+from CCAgT_utils.utils import Categories_Helper
 
 
 def test_init_Categories_Helper():
