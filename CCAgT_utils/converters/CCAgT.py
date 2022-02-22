@@ -10,9 +10,9 @@ from shapely.geometry import box
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
+from CCAgT_utils import Categories
 from CCAgT_utils.CCAgT import slide_from_filename
 from CCAgT_utils.converters.COCO import COCO_OD
-from CCAgT_utils.utils import Categories_Helper
 from CCAgT_utils.utils import get_traceback
 
 
@@ -117,7 +117,7 @@ class CCAgT_Annotations():
         return col.cat.codes + 1
 
     def delete_by_area(self,
-                       helper: Categories_Helper,
+                       helper: Categories.Helper,
                        ignore_categories: set[int] = set({})) -> pd.DataFrame:
         if 'area' not in self.df.columns:
             self.df['area'] = self.geometries_area()

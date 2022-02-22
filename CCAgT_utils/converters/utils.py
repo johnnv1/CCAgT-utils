@@ -5,7 +5,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from CCAgT_utils.converters import CCAgT
+from CCAgT_utils import Categories
 from CCAgT_utils.converters.LabelBox import LabelBox_Annotations
 
 
@@ -104,7 +104,7 @@ def labelbox_to_OD_COCO(raw_path: str,
 
     print('\tDeleting annotations based on the minimal area settet at auxiliary file.'
           'Ignoring Satellite annotations (category id = 3)')
-    ccagt_helper = CCAgT.Categories_Helper(categories_helpper)
+    ccagt_helper = Categories.Helper(categories_helpper)
     df = CCAgT_ann.delete_by_area(ccagt_helper, ignore_categories={3})
 
     print('\tTransforming annotations from CCAgT format to COCO Object Detection Format...')
