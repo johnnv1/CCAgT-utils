@@ -6,6 +6,7 @@ from typing import Any
 import networkx as nx
 import numpy as np
 import pandas as pd
+import shapely.wkt
 from shapely.geometry import box
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
@@ -328,6 +329,12 @@ class CCAgT_Annotations():
         else:
             return int(v[0])
 
+    def to_parquet(self, filename: str, compression: str = 'gzip', **kwargs) -> None:
+        df_out = self.df.copy()
+        df_out['geometry'] = df_out['geometry'].apply(lambda x: x.wkt)
+
+        df_out.to_parquet(filename, compression=compression, **kwargs)
+
     # TODO: Split data into train validation and test
 
     # TODO: Describe / stats of the dataset or of the data splitted
@@ -343,3 +350,10 @@ def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str
                                  'area': np.round(row['area'], decimals),
                                  'iscrowd': 0},
                     axis=1).to_numpy().tolist()
+
+
+def read_parquet(filename: str, **kwargs) -> CCAgT_Annotations:
+    df = pd.read_parquet(filename, **kwargs)
+    df['geometry'] = df['geometry'].apply(lambda x: shapely.wkt.loads(x))
+
+    return CCAgT_Annotations(df)
