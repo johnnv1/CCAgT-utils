@@ -108,3 +108,37 @@ Example of use:
 ```console
 $ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.json -a ./data/samples/CCAgT_dataset_metadata.json -o ./data/samples/out/CCAgT.parquet.gzip -p True
 ```
+
+## visualization
+```console
+usage: CCAgT_visualization show [-h] -l LABELS_FILE -a HELPER_FILE_PATH
+                                [-t {image-with-boxes}]
+                                [-i IMAGES_NAMES [IMAGES_NAMES ...]]
+                                [-d DIR_PATH] [-s SHUFFLE_IMAGES]
+                                [-e IMAGE_EXTENSION]
+optional arguments:
+  -h, --help            show this help message and exit
+  -l LABELS_FILE, --labels-file LABELS_FILE
+                        Path for the CCAgT file with the labels.
+  -a HELPER_FILE_PATH, --aux-file HELPER_FILE_PATH
+                        Path for the categories auxiliary/helper file. A JSON
+                        file is expected.
+  -t {image-with-boxes}, --type {image-with-boxes}
+                        The type of plots desired.
+  -i IMAGES_NAMES [IMAGES_NAMES ...], --images-names IMAGES_NAMES [IMAGES_NAMES ...]
+                        Filenames of the images to plot. If nothing be passed,
+                        all images will be plotted
+  -d DIR_PATH, --dir-path DIR_PATH
+                        Path for a directory that have the images.
+  -s SHUFFLE_IMAGES, --shuffle-images SHUFFLE_IMAGES
+                        To shuffle the images order
+  -e IMAGE_EXTENSION, --image-extension IMAGE_EXTENSION
+                        Define the extension file of the images.
+```
+
+### Show images with boxes
+Example of use:
+
+```console
+$ CCAgT-visualization show -l ./data/samples/out/CCAgT.parquet.gzip -a ./data/samples/CCAgT_dataset_metadata.json -d ./data/samples/images
+```

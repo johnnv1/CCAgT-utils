@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import json
 from typing import Any
 
+from CCAgT_utils.errors import FileTypeError
 from CCAgT_utils.visualization import colors
 
 
@@ -35,3 +37,15 @@ class Helper():
             raise TypeError('Unexpected type of color, expected color into RGB list/tuple or HEX string!')
 
         return {int(x['id']): force_rgb(x['color']) for x in self.raw_helper}
+
+
+def read_json(filename: str, **kwargs) -> Helper:
+    if not filename.endswith('.json'):
+        raise FileTypeError('The auxiliary file is not a JSON file.')
+
+    with open(filename) as f:
+        dataset_helper = json.load(f)
+
+    categories_helpper = dataset_helper['categories']
+
+    return Helper(categories_helpper)

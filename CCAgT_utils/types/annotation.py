@@ -64,3 +64,9 @@ class BBox:
 
     def to_polygon(self):
         return Polygon(self.coords)
+
+
+def bounds_to_BBox(bounds: tuple[float], category_id: int) -> BBox:
+    b = tuple(int(i) for i in bounds)
+    min_x, min_y, max_x, max_y = b
+    return BBox(min_x, min_y, max_x - min_x, max_y - min_y, category_id)
