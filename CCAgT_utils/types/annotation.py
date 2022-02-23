@@ -21,11 +21,11 @@ class BBox:
 
     @property
     def x_end(self) -> int:
-        return self.x_init + self.width
+        return self.x_init + self.width - 1
 
     @property
     def y_end(self) -> int:
-        return self.y_init + self.height
+        return self.y_init + self.height - 1
 
     @property
     def upper_left_point(self) -> tuple[int, int]:
@@ -56,7 +56,8 @@ class BBox:
         return (list(_x), list(_y))
 
     def center_point(self) -> tuple[int, int]:
-        return (self.x_init + self.width // 2, self.y_init + self.height // 2)
+        return (self.x_init + (self.width - 1) // 2,
+                self.y_init + (self.height - 1) // 2)
 
     def area(self) -> int | float:
         return self.width * self.height
