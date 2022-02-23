@@ -44,4 +44,67 @@ For more explanations about the dataset, see the dataset pages, or their papers.
 
 
 # Examples of use
-TODO
+
+## Converter
+```console
+$ CCAgT-converter -h
+usage: CCAgT_converter [-h] [-V] {labelbox_to_COCO,labelbox_to_CCAgT,help}
+
+positional arguments:
+  {labelbox_to_COCO,labelbox_to_CCAgT,help}
+    labelbox_to_COCO    Converter from Raw labelbox file to a COCO formart
+    labelbox_to_CCAgT   Converter from Raw labelbox file to a CCAgT format.
+    help                Show help for a specific command.
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -V, --version         show program's version number and exit
+```
+
+### Labelbox to COCO format
+
+```console
+$ CCAgT-converter labelbox_to_COCO -h
+usage: CCAgT_converter labelbox_to_COCO [-h] -t TARGET -r RAW_FILE_LABELBOX_PATH -a HELPER_FILE_PATH [-e IMAGES_EXTENSION] [-o OUTPUT_PATH] [-p OUTPUT_PRECISION]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -t TARGET, --target TARGET
+                        Define the target of the COCO format. Expected `object-detection` or `OD`, `panoptic-segmentation` or `PD`, `instance-segmentation` or `IS`.
+  -r RAW_FILE_LABELBOX_PATH, --raw-file RAW_FILE_LABELBOX_PATH
+                        Path for the labelbox raw file. A JSON file is expected.
+  -a HELPER_FILE_PATH, --aux-file HELPER_FILE_PATH
+                        Path for the categories auxiliary/helper file. A JSON file is expected.
+  -e IMAGES_EXTENSION, --images-extension IMAGES_EXTENSION
+                        The extension of the filenames at COCO file. Example `.jpg`
+  -o OUTPUT_PATH, --out-file OUTPUT_PATH
+                        Path for the output file. A JSON file is expected.
+  -p OUTPUT_PRECISION, --out-precision OUTPUT_PRECISION
+                        The number of digits (decimals), for the coords at output file
+```
+
+### Labelbox to CCAgT format
+
+```console
+$ CCAgT-converter labelbox_to_CCAgT -h
+usage: CCAgT_converter labelbox_to_CCAgT [-h] -r RAW_FILE_LABELBOX_PATH -a HELPER_FILE_PATH [-e IMAGES_EXTENSION] [-o OUTPUT_PATH] [-p PREPROCESS]
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -r RAW_FILE_LABELBOX_PATH, --raw-file RAW_FILE_LABELBOX_PATH
+                        Path for the labelbox raw file. A JSON file is expected.
+  -a HELPER_FILE_PATH, --aux-file HELPER_FILE_PATH
+                        Path for the categories auxiliary/helper file. A JSON file is expected.
+  -e IMAGES_EXTENSION, --images-extension IMAGES_EXTENSION
+                        The extension of the filenames at COCO file. Example `.jpg`
+  -o OUTPUT_PATH, --out-file OUTPUT_PATH
+                        Path for the output file. A parquet file is expected.
+  -p PREPROCESS, --preprocess PREPROCESS
+                        Flag to define if want to run teh preprocessing steps
+```
+
+Example of use:
+
+```console
+$ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.json -a ./data/samples/CCAgT_dataset_metadata.json -o ./data/samples/out/CCAgT.parquet.gzip -p True
+```
