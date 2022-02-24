@@ -34,7 +34,7 @@ Each slide can have some differences in the stain coloration, at figure 1 can be
 
 In directory [./data/samples/images/](./data/samples/images/) can be seen the original images of each tile from different slides/patients. The dataset present a wide variety of colors, texture, nuclei format, and others for the cells nuclei, this variety depends on different factors as: Type of lesion, stain process, sample acquisition, sensor/microscopy setup for image acquisition and others.
 
-The dataset at version `1.x` has 3 categories annotated, and at version `2.x` will have 7 categories. But, the principal objective to help at diagnostic/prognostic of these samples is detect/identify/measure the Nucleolus Organizer Regions (NORs) inside each nucleus. The NORs (the black dots/parts inside the nuclei) were labeled as two different categories: Satellite and clusters.
+The dataset at version `1.x` has 3 categories annotated, and at version `2.x` will have 7 categories. But, the principal objective to help at diagnostic/prognostic of these samples is to detect/identify/measure the Nucleolus Organizer Regions (NORs) inside each nucleus. The NORs (the black dots/parts inside the nuclei) were labeled as two different categories: Satellite and clusters.
 
 At figure 2, has an example with two highlighted nuclei. The nucleus at left (black highlighted) it's a nucleus with three clusters. The nucleus at right side (gray highlighted) it's a nucleus with one cluster (the black dot at the top of the nuclei) and two satellites (the other two black dots).
 
@@ -65,16 +65,24 @@ optional arguments:
 
 ```console
 $ CCAgT-converter labelbox_to_COCO -h
-usage: CCAgT_converter labelbox_to_COCO [-h] -t TARGET -r RAW_FILE_LABELBOX_PATH -a HELPER_FILE_PATH [-e IMAGES_EXTENSION] [-o OUTPUT_PATH] [-p OUTPUT_PRECISION]
+usage: CCAgT_converter labelbox_to_COCO [-h] -t TARGET
+                                             -r RAW_FILE_LABELBOX_PATH
+                                             -a HELPER_FILE_PATH
+                                             [-e IMAGES_EXTENSION]
+                                             [-o OUTPUT_PATH]
+                                             [-p OUTPUT_PRECISION]
 
 optional arguments:
   -h, --help            show this help message and exit
   -t TARGET, --target TARGET
-                        Define the target of the COCO format. Expected `object-detection` or `OD`, `panoptic-segmentation` or `PD`, `instance-segmentation` or `IS`.
+                        Define the target of the COCO format. Expected `object-detection`
+                        or `OD`, `panoptic-segmentation` or `PD`, `instance-segmentation`
+                        or `IS`.
   -r RAW_FILE_LABELBOX_PATH, --raw-file RAW_FILE_LABELBOX_PATH
                         Path for the labelbox raw file. A JSON file is expected.
   -a HELPER_FILE_PATH, --aux-file HELPER_FILE_PATH
-                        Path for the categories auxiliary/helper file. A JSON file is expected.
+                        Path for the categories auxiliary/helper file. A JSON file
+                        is expected.
   -e IMAGES_EXTENSION, --images-extension IMAGES_EXTENSION
                         The extension of the filenames at COCO file. Example `.jpg`
   -o OUTPUT_PATH, --out-file OUTPUT_PATH
@@ -87,14 +95,19 @@ optional arguments:
 
 ```console
 $ CCAgT-converter labelbox_to_CCAgT -h
-usage: CCAgT_converter labelbox_to_CCAgT [-h] -r RAW_FILE_LABELBOX_PATH -a HELPER_FILE_PATH [-e IMAGES_EXTENSION] [-o OUTPUT_PATH] [-p PREPROCESS]
+usage: CCAgT_converter labelbox_to_CCAgT [-h] -r RAW_FILE_LABELBOX_PATH
+                                              -a HELPER_FILE_PATH
+                                              [-e IMAGES_EXTENSION]
+                                              [-o OUTPUT_PATH]
+                                              [-p PREPROCESS]
 
 optional arguments:
   -h, --help            show this help message and exit
   -r RAW_FILE_LABELBOX_PATH, --raw-file RAW_FILE_LABELBOX_PATH
                         Path for the labelbox raw file. A JSON file is expected.
   -a HELPER_FILE_PATH, --aux-file HELPER_FILE_PATH
-                        Path for the categories auxiliary/helper file. A JSON file is expected.
+                        Path for the categories auxiliary/helper file. A JSON file
+                        is expected.
   -e IMAGES_EXTENSION, --images-extension IMAGES_EXTENSION
                         The extension of the filenames at COCO file. Example `.jpg`
   -o OUTPUT_PATH, --out-file OUTPUT_PATH
@@ -106,7 +119,10 @@ optional arguments:
 Example of use:
 
 ```console
-$ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.json -a ./data/samples/CCAgT_dataset_metadata.json -o ./data/samples/out/CCAgT.parquet.gzip -p True
+$ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.json \
+                                    -a ./data/samples/CCAgT_dataset_metadata.json \
+                                    -o ./data/samples/out/CCAgT.parquet.gzip
+                                    -p True
 ```
 
 ## visualization
@@ -140,5 +156,8 @@ optional arguments:
 Example of use:
 
 ```console
-$ CCAgT-visualization show -l ./data/samples/out/CCAgT.parquet.gzip -a ./data/samples/CCAgT_dataset_metadata.json -d ./data/samples/images
+$ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.json \
+                                    -a ./data/samples/CCAgT_dataset_metadata.json \
+                                    -o ./data/samples/out/CCAgT.parquet.gzip \
+                                    -p True
 ```
