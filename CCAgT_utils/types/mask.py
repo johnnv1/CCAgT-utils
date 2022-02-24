@@ -13,6 +13,7 @@ from CCAgT_utils.visualization import colors
 
 @dataclass
 class Mask:
+    # FIXME: typing also can be a list[list[int]]
     categorical: np.ndarray
 
     def __post_init__(self):

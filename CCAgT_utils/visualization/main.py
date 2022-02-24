@@ -46,6 +46,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                              '--image-extension',
                              help='Define the extension file of the images.',
                              default='.jpg')
+    show_parser.add_argument('-r',
+                             '--look-recursive',
+                             help='Define if needs to look into the subdirectories of the --dir-path for find the images.',
+                             default=True)
 
     help = subparsers.add_parser('help', help='Show help for a specific command.')
     help.add_argument('help_cmd', nargs='?', help='Command to show help for.')
@@ -69,6 +73,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                                           args.dir_path,
                                           args.image_extension,
                                           args.images_names,
-                                          args.shuffle_images)
+                                          args.shuffle_images,
+                                          args.look_recursive)
 
     return 1

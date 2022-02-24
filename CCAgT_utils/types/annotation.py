@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import collections
 from dataclasses import dataclass
 
 from shapely.geometry import MultiPolygon
@@ -70,3 +71,13 @@ def bounds_to_BBox(bounds: tuple[float], category_id: int) -> BBox:
     b = tuple(int(i) for i in bounds)
     min_x, min_y, max_x, max_y = b
     return BBox(min_x, min_y, max_x - min_x, max_y - min_y, category_id)
+
+
+def count_BBox_categories(items: list[BBox],
+                          get_categories_name: dict[int, str]) -> dict[str, int]:
+    c: dict[str, int] = collections.defaultdict(int)
+    for bbox in items:
+        cat_name = get_categories_name[bbox.category_id]
+        c[cat_name] += 1
+
+    return c

@@ -47,6 +47,12 @@ def image_with_boxes(image: np.ndarray | PIL.Image.Image,
 
 
 def create_handles(get_color: dict[int, list[int] | list[float]],
-                   get_categories_name: dict[int, str]) -> list[patches.Patch]:
-    return [patches.Patch(color=c,
-                          label=get_categories_name[cat_id]) for cat_id, c in get_color.items()]
+                   get_categories_name: dict[int, str],
+                   selected_categories: list[int] = []) -> list[patches.Patch]:
+    if len(selected_categories) > 0:
+        categories_id = selected_categories
+    else:
+        categories_id = list(get_color.keys())
+
+    return [patches.Patch(color=get_color[cat_id],
+                          label=get_categories_name[cat_id]) for cat_id in categories_id]
