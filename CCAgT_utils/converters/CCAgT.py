@@ -175,18 +175,54 @@ class CCAgT_Annotations():
         if o.shape[0] == 0:
             return np.nan
         else:
-            return o.to_numpy(dtype=np.int16).tolist()
+            return o.to_numpy(dtype=np.int64).tolist()
+
+    def filter_by_category(self, categories_id: set[int]) -> pd.DataFrame:
+        return self.df[self.df['category_id'].isin(categories_id)]
+
+    @staticmethod
+    def has_intersecting_geometries(geo: Polygon,
+                                    geometries: pd.Series) -> bool:
+        for _, g in geometries.iteritems():
+            if geo.intersects(g):
+                return True
+        return False
+
+    def verify_if_intersects(self,
+                             base_categories_id: set[int],
+                             target_categories_id: set[int] | None) -> pd.DataFrame:
+        df_base = self.filter_by_category(base_categories_id)
+
+        if target_categories_id is None:
+            df_target = df_base.copy()
+        else:
+            df_target = self.filter_by_category(target_categories_id)
+
+        df_base_groupped_by_image = df_base.groupby('image_name')
+        out = pd.DataFrame()
+        for img_name, df_base_by_image in df_base_groupped_by_image:
+            df_target_geos = df_target.loc[df_target['image_name'] == img_name, 'geometry']
+
+            df_base_by_image['has_intersecting'] = df_base_by_image.apply(
+                lambda row: self.has_intersecting_geometries(row['geometry'], df_target_geos),
+                axis=1
+            )
+
+            out = pd.concat([out, df_base_by_image])
+
+        return out
 
     def find_overlapping_annotations(self,
-                                     category_id: int) -> dict[str, list[set[int]]]:
-        df = self.df[self.df['category_id'] == category_id]
+                                     categories_id: set[int]) -> dict[str, list[set[int]]]:
+        df = self.df[self.df['category_id'].isin(categories_id)]
+
         df_groupped = df.groupby('image_name')
 
         out = {}
         for img_name, df_gp in df_groupped:
             intersected_by = df_gp.apply(lambda row: self.find_intersecting_geometries(row['geometry'],
                                                                                        int(row.name),
-                                                                                       df_gp), axis=1)
+                                                                                       df_gp), axis=1).dropna()
 
             df_gp['intersected_by'] = intersected_by
             if len(intersected_by) > 0:
@@ -198,12 +234,10 @@ class CCAgT_Annotations():
                 # Compute the geometries groups
                 G = nx.Graph()
                 G.add_edges_from(graph_connections)
-                coneected_items = list(nx.connected_components(G))
+                connected_items = list(nx.connected_components(G))
 
-            else:
-                coneected_items = []
-
-            out[img_name] = coneected_items
+                if len(connected_items) > 0:
+                    out[img_name] = connected_items
         return out
 
     def union_geometries(self,

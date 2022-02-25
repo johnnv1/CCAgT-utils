@@ -65,7 +65,7 @@ def __prepare_data(CCAgT_ann: CCAgT_Annotations,
                    categories_helper_raw: list[dict[str, Any]],
                    image_extension: str):
     print('\tSearching overlapping and joining labels for overlapping annotations (category id = 5)...')
-    overlapping_annotations = CCAgT_ann.find_overlapping_annotations(category_id=5)
+    overlapping_annotations = CCAgT_ann.find_overlapping_annotations(categories_id={5})
     df = CCAgT_ann.union_geometries(overlapping_annotations)
 
     print('\tDefine the geometry type and transform Satellite (category id = 3) points into Polygons...')
@@ -90,10 +90,21 @@ def __prepare_data(CCAgT_ann: CCAgT_Annotations,
     df['image_id'] = CCAgT_ann.generate_ids(df['image_name'])
     df['slide_id'] = CCAgT_ann.get_slide_id()
 
-    print('\tDeleting annotations based on the minimal area settet at auxiliary file. Ignoring Satellite annotations'
-          '(category id = 3)')
+    print('\tDeleting annotations based on the minimal area settet at auxiliary file.')
     ccagt_helper = Categories.Helper(categories_helper_raw)
-    df = CCAgT_ann.delete_by_area(ccagt_helper, ignore_categories={3})
+    df = CCAgT_ann.delete_by_area(ccagt_helper)
+
+    print('\tSearching intersections of nuclei with NORs labels (category id in [1] and [2, 3])...')
+    df_base_intersects_target = CCAgT_ann.verify_if_intersects(base_categories_id={1}, target_categories_id={2, 3})
+    index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()
+    print(f'\t\tA total of {len(index_to_drop)} of nuclei (category id = 1) will be deleted.')
+    df.drop(index_to_drop, inplace=True)
+
+    print('\tSearching intersections of NORs with nuclei (normal and overlapped) labels (category id in [2, 3] and [1, 5])..')
+    df_base_intersects_target = CCAgT_ann.verify_if_intersects(base_categories_id={2, 3}, target_categories_id={1, 5})
+    index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()
+    print(f'\t\tA total of {len(index_to_drop)} of NORs (category id = [2, 3]) will be deleted.')
+    df.drop(index_to_drop, inplace=True)
 
 
 def labelbox_to_OD_COCO(raw_path: str,
