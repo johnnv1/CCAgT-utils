@@ -47,7 +47,7 @@ def labelbox_to_COCO(target: str,
     return 0
 
 
-def open_and_read_json(path):
+def open_and_read_json(path: str) -> Any:
     with open(path) as f:
         return json.load(f)
 
@@ -66,7 +66,7 @@ def __build_description(template: str, df: pd.Dataframe) -> str:
 
 def __prepare_data(CCAgT_ann: CCAgT_Annotations,
                    categories_helper_raw: list[dict[str, Any]],
-                   image_extension: str):
+                   image_extension: str) -> None:
     print('\tSearching overlapping and joining labels for overlapping annotations (category id = 5)...')
     overlapping_annotations = CCAgT_ann.find_overlapping_annotations(categories_id={5})
     df = CCAgT_ann.union_geometries(overlapping_annotations)
@@ -114,7 +114,7 @@ def labelbox_to_OD_COCO(raw_path: str,
                         aux_path: str,
                         out_path: str,
                         image_extension: str,
-                        decimals: int):
+                        decimals: int) -> int:
     print('Starting the conversion from label box to COCO Object Detection format...')
 
     print('\tLoading raw data...')
@@ -160,6 +160,8 @@ def labelbox_to_OD_COCO(raw_path: str,
 
     with open(out_path, 'w') as outfile:
         json.dump(CCAgT_coco, outfile)
+
+    return 0
 
 
 def labelbox_to_CCAgT(raw_path: str,

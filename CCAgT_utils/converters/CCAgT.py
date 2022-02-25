@@ -363,7 +363,7 @@ class CCAgT_Annotations():
         else:
             return int(v[0])
 
-    def to_parquet(self, filename: str, compression: str = 'gzip', **kwargs) -> None:
+    def to_parquet(self, filename: str, compression: str = 'gzip', **kwargs: Any) -> None:
         df_out = self.df.copy()
         df_out['geometry'] = df_out['geometry'].apply(lambda x: x.wkt)
 
@@ -386,7 +386,7 @@ def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str
                     axis=1).to_numpy().tolist()
 
 
-def read_parquet(filename: str, **kwargs) -> CCAgT_Annotations:
+def read_parquet(filename: str, **kwargs: Any) -> CCAgT_Annotations:
     df = pd.read_parquet(filename, **kwargs)
     df['geometry'] = df['geometry'].apply(lambda x: shapely.wkt.loads(x))
 
