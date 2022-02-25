@@ -14,6 +14,7 @@ from shapely.ops import unary_union
 from CCAgT_utils import Categories
 from CCAgT_utils.CCAgT import slide_from_filename
 from CCAgT_utils.converters.COCO import COCO_OD
+from CCAgT_utils.types.annotation import bounds_to_BBox
 from CCAgT_utils.utils import get_traceback
 
 
@@ -213,10 +214,15 @@ class CCAgT_Annotations():
         return out
 
     def find_overlapping_annotations(self,
-                                     categories_id: set[int]) -> dict[str, list[set[int]]]:
+                                     categories_id: set[int],
+                                     by_bbox: bool = False) -> dict[str, list[set[int]]]:
         df = self.df[self.df['category_id'].isin(categories_id)]
 
         df_groupped = df.groupby('image_name')
+
+        if by_bbox:
+            df['geometry'] = df.apply(lambda row: bounds_to_BBox(row['geometry'].bounds,
+                                                                 row['category_id']).to_polygon(), axis=1)
 
         out = {}
         for img_name, df_gp in df_groupped:
@@ -312,11 +318,11 @@ class CCAgT_Annotations():
                     raise TypeError(f'Geometry shape is not a polygon or MultiPolygon. This is a {geo.geom_type}.')
 
                 df_filtered = df_filtered.drop(index=group, axis=0, errors='ignore')
-                df_filtered = df_filtered.append({'image_name': img_name,
-                                                  'geometry': geo,
-                                                  'category_id': cat_id}, ignore_index=True)
+                df_filtered = pd.concat([df_filtered, pd.DataFrame([{'image_name': img_name,
+                                                                     'geometry': geo,
+                                                                     'category_id': cat_id}])])
 
-            out = out.append(df_filtered)
+            out = pd.concat([out, df_filtered])
 
         # Drop the annotation of all images that stay at the parameter
         image_names_to_drop = list(groups_by_image.keys())
