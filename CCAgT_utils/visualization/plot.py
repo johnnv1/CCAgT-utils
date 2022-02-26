@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import Any
+
 import matplotlib.pyplot as plt
 import numpy as np
 import PIL.Image
@@ -40,7 +42,7 @@ def image_with_boxes(image: np.ndarray | PIL.Image.Image,
                      boxes: list[BBox],
                      ax: plt.pyplot.Axes,
                      get_color: dict[int, list[int] | list[float]],
-                     **kwargs) -> plt.pyplot.Axes:
+                     **kwargs: Any) -> plt.pyplot.Axes:
     ax.imshow(image)
     ax = bbox(boxes, ax, get_color, **kwargs)
     ax.set_axis_off()
@@ -51,7 +53,7 @@ def mask_with_color(mask: Mask,
                     ax: plt.pyplot.Axes,
                     get_color: dict[int, list[int] | list[float]],
                     colorized: bool = False,
-                    **kwargs) -> plt.pyplot.Axes:
+                    **kwargs: Any) -> plt.pyplot.Axes:
     if colorized:
         msk_rgb = mask.colorized(get_color)
         ax.imshow(msk_rgb, **kwargs)

@@ -63,7 +63,7 @@ class BBox:
     def area(self) -> int | float:
         return self.width * self.height
 
-    def to_polygon(self):
+    def to_polygon(self) -> Polygon:
         return Polygon(self.coords)
 
 

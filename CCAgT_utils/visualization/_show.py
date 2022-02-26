@@ -27,7 +27,7 @@ def image_with_boxes(CCAgT_ann: CCAgT_Annotations,
                      CCAgT_helper: Categories.Helper,
                      dir_path: str,
                      images_extension: str,
-                     images_names: list = [],
+                     images_names: list[str] = [],
                      shuffle_images: bool = True,
                      look_recursive: bool = True) -> int:
 
@@ -86,7 +86,7 @@ def image_and_mask(CCAgT_ann: CCAgT_Annotations,
                    dir_mask_path: str,
                    images_extension: str,
                    masks_extension: str,
-                   images_names: list = [],
+                   images_names: list[str] = [],
                    shuffle_images: bool = True,
                    look_recursive: bool = True) -> int:
 

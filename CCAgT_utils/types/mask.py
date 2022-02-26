@@ -15,7 +15,7 @@ class Mask:
     # FIXME: typing also can be a list[list[int]]
     categorical: np.ndarray
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         self.categorical: np.ndarray = np.array(self.categorical, dtype=np.uint8)
 
         if not is_2d(self.categorical.shape):

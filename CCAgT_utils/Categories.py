@@ -29,7 +29,7 @@ class Helper():
 
     @property
     def colors_by_category_id(self) -> dict[int, list[int] | list[float]]:
-        def force_rgb(c: list | str) -> list[int] | list[float]:
+        def force_rgb(c: list[int] | list[float] | str) -> list[int] | list[float]:
             if isinstance(c, list):
                 if len(c) == 3:
                     return c
@@ -43,7 +43,7 @@ class Helper():
         return {int(x['id']): force_rgb(x['color']) for x in its}
 
 
-def read_json(filename: str, **kwargs) -> Helper:
+def read_json(filename: str, **kwargs: Any) -> Helper:
     if not filename.endswith('.json'):
         raise FileTypeError('The auxiliary file is not a JSON file.')
 
