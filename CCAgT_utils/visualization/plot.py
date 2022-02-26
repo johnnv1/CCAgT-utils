@@ -7,6 +7,7 @@ from matplotlib import patches
 from matplotlib import patheffects
 
 from CCAgT_utils.types.annotation import BBox
+from CCAgT_utils.types.mask import Mask
 
 
 def bbox(boxes: list[BBox],
@@ -42,6 +43,27 @@ def image_with_boxes(image: np.ndarray | PIL.Image.Image,
                      **kwargs) -> plt.pyplot.Axes:
     ax.imshow(image)
     ax = bbox(boxes, ax, get_color, **kwargs)
+    ax.set_axis_off()
+    return ax
+
+
+def mask_with_color(mask: Mask,
+                    ax: plt.pyplot.Axes,
+                    get_color: dict[int, list[int] | list[float]],
+                    colorized: bool = False,
+                    **kwargs) -> plt.pyplot.Axes:
+    if colorized:
+        msk_rgb = mask.colorized(get_color)
+        ax.imshow(msk_rgb, **kwargs)
+    else:
+        mask_categories = mask.unique_ids
+        ax.imshow(mask.categorical,
+                  cmap=mask.cmap(get_color),
+                  vmax=max(mask_categories),
+                  vmin=min(mask_categories),
+                  interpolation='nearest',
+                  **kwargs)
+
     ax.set_axis_off()
     return ax
 

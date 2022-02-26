@@ -28,7 +28,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                              '--type',
                              help='The type of plots desired.',
                              default='image-with-boxes',
-                             choices=['image-with-boxes'])
+                             choices=['image-with-boxes', 'image-and-mask'])
     show_parser.add_argument('-i',
                              '--images-names',
                              help='Filenames of the images to plot. If nothing be passed, all images will be plotted',
@@ -38,6 +38,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                              '--dir-path',
                              help='Path for a directory that have the images.',
                              default='./')
+    show_parser.add_argument('-m',
+                             '--dir-masks-path',
+                             help='Path for a directory that have the masks.',
+                             default='./')
     show_parser.add_argument('-s',
                              '--shuffle-images',
                              help='To shuffle the images order',
@@ -46,6 +50,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                              '--image-extension',
                              help='Define the extension file of the images.',
                              default='.jpg')
+    show_parser.add_argument('--mask-extension',
+                             help='Define the extension file of the masks.',
+                             default='.png')
     show_parser.add_argument('-r',
                              '--look-recursive',
                              help='Define if needs to look into the subdirectories of the --dir-path for find the images.',
@@ -75,5 +82,15 @@ def main(argv: Sequence[str] | None = None) -> int:
                                           args.images_names,
                                           args.shuffle_images,
                                           args.look_recursive)
+        elif args.type == 'image-and-mask':
+            return _show.image_and_mask(CCAgT_ann,
+                                        CCAgT_helper,
+                                        args.dir_path,
+                                        args.dir_masks_path,
+                                        args.image_extension,
+                                        args.mask_extension,
+                                        args.images_names,
+                                        args.shuffle_images,
+                                        args.look_recursive)
 
     return 1

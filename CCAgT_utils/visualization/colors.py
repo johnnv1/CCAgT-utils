@@ -6,6 +6,13 @@ def rgb_to_rgba(color: list[int] | list[float],
                 bytes_precision: int = 8) -> list[int] | list[float]:
 
     max_value = 2 ** bytes_precision - 1
+
+    if len(color) == 4:
+        if normalize and isinstance(color[0], int):
+            return [float(x / max_value) for x in color]
+
+        return color
+
     o = list(color) + [max_value]
 
     if normalize:

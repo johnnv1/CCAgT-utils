@@ -128,10 +128,13 @@ $ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.
 ## visualization
 ```console
 usage: CCAgT_visualization show [-h] -l LABELS_FILE -a HELPER_FILE_PATH
-                                [-t {image-with-boxes}]
+                                [-t {image-with-boxes,image-and-mask}]
                                 [-i IMAGES_NAMES [IMAGES_NAMES ...]]
-                                [-d DIR_PATH] [-s SHUFFLE_IMAGES]
-                                [-e IMAGE_EXTENSION]
+                                [-d DIR_PATH] [-m DIR_MASKS_PATH]
+                                [-s SHUFFLE_IMAGES] [-e IMAGE_EXTENSION]
+                                [--mask-extension MASK_EXTENSION]
+                                [-r LOOK_RECURSIVE]
+
 optional arguments:
   -h, --help            show this help message and exit
   -l LABELS_FILE, --labels-file LABELS_FILE
@@ -139,25 +142,41 @@ optional arguments:
   -a HELPER_FILE_PATH, --aux-file HELPER_FILE_PATH
                         Path for the categories auxiliary/helper file. A JSON
                         file is expected.
-  -t {image-with-boxes}, --type {image-with-boxes}
+  -t {image-with-boxes,image-and-mask}, --type {image-with-boxes,image-and-mask}
                         The type of plots desired.
   -i IMAGES_NAMES [IMAGES_NAMES ...], --images-names IMAGES_NAMES [IMAGES_NAMES ...]
                         Filenames of the images to plot. If nothing be passed,
                         all images will be plotted
   -d DIR_PATH, --dir-path DIR_PATH
                         Path for a directory that have the images.
+  -m DIR_MASKS_PATH, --dir-masks-path DIR_MASKS_PATH
+                        Path for a directory that have the masks.
   -s SHUFFLE_IMAGES, --shuffle-images SHUFFLE_IMAGES
                         To shuffle the images order
   -e IMAGE_EXTENSION, --image-extension IMAGE_EXTENSION
                         Define the extension file of the images.
+  --mask-extension MASK_EXTENSION
+                        Define the extension file of the masks.
+  -r LOOK_RECURSIVE, --look-recursive LOOK_RECURSIVE
+                        Define if needs to look into the subdirectories of the
+                        --dir-path for find the images.
 ```
 
 ### Show images with boxes
 Example of use:
 
 ```console
-$ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.json \
-                                    -a ./data/samples/CCAgT_dataset_metadata.json \
-                                    -o ./data/samples/out/CCAgT.parquet.gzip \
-                                    -p True
+$ CCAgT-visualization show -l ./data/samples/out/CCAgT.parquet.gzip\
+                           -a ./data/samples/CCAgT_dataset_metadata.json\
+                           -d ./data/samples/images/
+```
+
+### Show images and mask
+Example of use:
+
+```console
+$ CCAgT-visualization show -t image-and-mask\
+                           -l ./data/samples/out/CCAgT.parquet.gzip\
+                           -a ./data/samples/CCAgT_dataset_metadata.json\
+                           -d ./data/samples/images/
 ```
