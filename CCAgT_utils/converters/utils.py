@@ -9,10 +9,7 @@ import pandas as pd
 from CCAgT_utils import Categories
 from CCAgT_utils.converters.CCAgT import CCAgT_Annotations
 from CCAgT_utils.converters.LabelBox import LabelBox_Annotations
-
-
-class FileTypeError(RuntimeError):
-    pass
+from CCAgT_utils.errors import FileTypeError
 
 
 def labelbox_to_COCO(target: str,
