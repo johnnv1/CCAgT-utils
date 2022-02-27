@@ -124,13 +124,13 @@ def labelbox_to_OD_COCO(raw_path: str,
 
     print('\tConverting RAW data into CCAgT formart...')
     CCAgT_ann = lb_ann.to_CCAgT()
-    df = CCAgT_ann.df
 
     __prepare_data(CCAgT_ann, categories_helpper, image_extension)
 
     print('\tTransforming annotations from CCAgT format to COCO Object Detection Format...')
     annotations_coco = CCAgT_ann.to_OD_COCO(decimals=decimals)
-    desc = __build_description(dataset_helper['metadata']['description_template'], df)
+
+    desc = __build_description(dataset_helper['metadata']['description_template'], CCAgT_ann.df)
 
     info_coco = {'year': datetime.now().strftime('%Y'),
                  'version': dataset_helper['metadata']['version'],
@@ -143,7 +143,7 @@ def labelbox_to_OD_COCO(raw_path: str,
                         'name': it['name'],
                         'id': it['id']} for it in categories_helpper]
 
-    image_names = df['image_name'].unique().tolist()
+    image_names = CCAgT_ann.df['image_name'].unique().tolist()
 
     images_coco = [{'file_name': img_name,
                     'height': CCAgT_ann.IMAGE_HEIGHT,

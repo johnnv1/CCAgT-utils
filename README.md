@@ -44,80 +44,21 @@ For more explanations about the dataset, see the dataset pages, or their papers.
 
 
 # Examples of use
-
 ## Converter
+To use the dataset along different approaches, different “formats” are required. This module will provide the correct transformation between the format provided by the annotation tool (LabelBox) and the current state-of-the-art formats (e.g. COCO). It will also make it possible to work with the data in DataFrame format, which I consider to be the easiest way to perform the manipulation of these annotations. The annotations dataframe format is not recommended or built for use in any specific deep learning library or approach. It was built only for manipulation of the dataset, to facilitate conversions between different formats, perform analysis, and internal use of this library.
+
 ```console
-$ CCAgT-converter -h
-usage: CCAgT_converter [-h] [-V] {labelbox_to_COCO,labelbox_to_CCAgT,help}
-
-positional arguments:
-  {labelbox_to_COCO,labelbox_to_CCAgT,help}
-    labelbox_to_COCO    Converter from Raw labelbox file to a COCO formart
-    labelbox_to_CCAgT   Converter from Raw labelbox file to a CCAgT format.
-    help                Show help for a specific command.
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -V, --version         show program's version number and exit
+$ CCAgT-converter -h  # to show help message
 ```
 
 ### Labelbox to COCO format
-
 ```console
-$ CCAgT-converter labelbox_to_COCO -h
-usage: CCAgT_converter labelbox_to_COCO [-h] -t TARGET
-                                             -r RAW_FILE_LABELBOX_PATH
-                                             -a HELPER_FILE_PATH
-                                             [-e IMAGES_EXTENSION]
-                                             [-o OUTPUT_PATH]
-                                             [-p OUTPUT_PRECISION]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -t TARGET, --target TARGET
-                        Define the target of the COCO format. Expected `object-detection`
-                        or `OD`, `panoptic-segmentation` or `PD`, `instance-segmentation`
-                        or `IS`.
-  -r RAW_FILE_LABELBOX_PATH, --raw-file RAW_FILE_LABELBOX_PATH
-                        Path for the labelbox raw file. A JSON file is expected.
-  -a HELPER_FILE_PATH, --aux-file HELPER_FILE_PATH
-                        Path for the categories auxiliary/helper file. A JSON file
-                        is expected.
-  -e IMAGES_EXTENSION, --images-extension IMAGES_EXTENSION
-                        The extension of the filenames at COCO file. Example `.jpg`
-  -o OUTPUT_PATH, --out-file OUTPUT_PATH
-                        Path for the output file. A JSON file is expected.
-  -p OUTPUT_PRECISION, --out-precision OUTPUT_PRECISION
-                        The number of digits (decimals), for the coords at output file
+$ CCAgT-converter labelbox_to_COCO -t OD -r ./data/samples/sanitized_sample_labelbox.json
+                                         -a ./data/samples/CCAgT_dataset_metadata.json
+                                         -o ./data/samples/out/CCAgT_COCO_OD.json
 ```
 
 ### Labelbox to CCAgT format
-
-```console
-$ CCAgT-converter labelbox_to_CCAgT -h
-usage: CCAgT_converter labelbox_to_CCAgT [-h] -r RAW_FILE_LABELBOX_PATH
-                                              -a HELPER_FILE_PATH
-                                              [-e IMAGES_EXTENSION]
-                                              [-o OUTPUT_PATH]
-                                              [-p PREPROCESS]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -r RAW_FILE_LABELBOX_PATH, --raw-file RAW_FILE_LABELBOX_PATH
-                        Path for the labelbox raw file. A JSON file is expected.
-  -a HELPER_FILE_PATH, --aux-file HELPER_FILE_PATH
-                        Path for the categories auxiliary/helper file. A JSON file
-                        is expected.
-  -e IMAGES_EXTENSION, --images-extension IMAGES_EXTENSION
-                        The extension of the filenames at COCO file. Example `.jpg`
-  -o OUTPUT_PATH, --out-file OUTPUT_PATH
-                        Path for the output file. A parquet file is expected.
-  -p PREPROCESS, --preprocess PREPROCESS
-                        Flag to define if want to run teh preprocessing steps
-```
-
-Example of use:
-
 ```console
 $ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.json \
                                     -a ./data/samples/CCAgT_dataset_metadata.json \
@@ -126,45 +67,13 @@ $ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.
 ```
 
 ## visualization
-```console
-usage: CCAgT_visualization show [-h] -l LABELS_FILE -a HELPER_FILE_PATH
-                                [-t {image-with-boxes,image-and-mask}]
-                                [-i IMAGES_NAMES [IMAGES_NAMES ...]]
-                                [-d DIR_PATH] [-m DIR_MASKS_PATH]
-                                [-s SHUFFLE_IMAGES] [-e IMAGE_EXTENSION]
-                                [--mask-extension MASK_EXTENSION]
-                                [-r LOOK_RECURSIVE]
+Module responsible for assisting in the display or creation of figures from the dataset.
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -l LABELS_FILE, --labels-file LABELS_FILE
-                        Path for the CCAgT file with the labels.
-  -a HELPER_FILE_PATH, --aux-file HELPER_FILE_PATH
-                        Path for the categories auxiliary/helper file. A JSON
-                        file is expected.
-  -t {image-with-boxes,image-and-mask}, --type {image-with-boxes,image-and-mask}
-                        The type of plots desired.
-  -i IMAGES_NAMES [IMAGES_NAMES ...], --images-names IMAGES_NAMES [IMAGES_NAMES ...]
-                        Filenames of the images to plot. If nothing be passed,
-                        all images will be plotted
-  -d DIR_PATH, --dir-path DIR_PATH
-                        Path for a directory that have the images.
-  -m DIR_MASKS_PATH, --dir-masks-path DIR_MASKS_PATH
-                        Path for a directory that have the masks.
-  -s SHUFFLE_IMAGES, --shuffle-images SHUFFLE_IMAGES
-                        To shuffle the images order
-  -e IMAGE_EXTENSION, --image-extension IMAGE_EXTENSION
-                        Define the extension file of the images.
-  --mask-extension MASK_EXTENSION
-                        Define the extension file of the masks.
-  -r LOOK_RECURSIVE, --look-recursive LOOK_RECURSIVE
-                        Define if needs to look into the subdirectories of the
-                        --dir-path for find the images.
+```console
+usage: CCAgT-visualization -h  # to show help message
 ```
 
 ### Show images with boxes
-Example of use:
-
 ```console
 $ CCAgT-visualization show -l ./data/samples/out/CCAgT.parquet.gzip\
                            -a ./data/samples/CCAgT_dataset_metadata.json\
@@ -172,8 +81,6 @@ $ CCAgT-visualization show -l ./data/samples/out/CCAgT.parquet.gzip\
 ```
 
 ### Show images and mask
-Example of use:
-
 ```console
 $ CCAgT-visualization show -t image-and-mask\
                            -l ./data/samples/out/CCAgT.parquet.gzip\
