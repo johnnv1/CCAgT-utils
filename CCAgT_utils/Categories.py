@@ -39,7 +39,8 @@ class Helper():
                 if len(c) in {3, 4}:
                     return c
             elif isinstance(c, str):
-                return colors.hex_to_rgb(c)
+                if c.startswith('#'):
+                    return colors.hex_to_rgb(c)
 
             raise TypeError('Unexpected type of color, expected color into RGB list/tuple or HEX string!')
 
