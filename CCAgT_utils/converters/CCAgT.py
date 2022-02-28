@@ -11,15 +11,11 @@ from shapely.geometry import box
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
-from CCAgT_utils import Categories
 from CCAgT_utils.CCAgT import slide_from_filename
 from CCAgT_utils.converters.COCO import COCO_OD
+from CCAgT_utils.errors import MoreThanOneIDbyItemError
 from CCAgT_utils.types.annotation import bounds_to_BBox
 from CCAgT_utils.utils import get_traceback
-
-
-class MoreThanOneIDbyItemError(RuntimeError):
-    pass
 
 
 class CCAgT_Annotations():
@@ -45,6 +41,9 @@ class CCAgT_Annotations():
 
     def get_slide_id(self) -> pd.Series:
         return self.df['image_name'].apply(lambda x: slide_from_filename(x))
+
+    def geometries_type(self) -> pd.Series:
+        return self.df['geometry'].apply(lambda x: x.geom_type)
 
     def satellite_point_to_polygon(self,
                                    satellite_geo: pd.Series,
@@ -107,9 +106,6 @@ class CCAgT_Annotations():
 
         return self.df['geometry'].apply(lambda x: clip_to_extent(x))
 
-    def geometries_type(self) -> pd.Series:
-        return self.df['geometry'].apply(lambda x: x.geom_type)
-
     def geometries_area(self) -> pd.Series:
         return self.df['geometry'].apply(lambda x: x.area)
 
@@ -119,14 +115,14 @@ class CCAgT_Annotations():
         return col.cat.codes + 1
 
     def delete_by_area(self,
-                       helper: Categories.Helper,
+                       minimal_area: dict[int, int],
                        ignore_categories: set[int] = set({})) -> pd.DataFrame:
         if 'area' not in self.df.columns:
             self.df['area'] = self.geometries_area()
 
         categories_at_df = self.df['category_id'].unique()
 
-        for category_id, min_area in helper.min_area_by_category_id.items():
+        for category_id, min_area in minimal_area.items():
             if category_id in ignore_categories or category_id not in categories_at_df:
                 continue
 
@@ -216,7 +212,7 @@ class CCAgT_Annotations():
     def find_overlapping_annotations(self,
                                      categories_id: set[int],
                                      by_bbox: bool = False) -> dict[str, list[set[int]]]:
-        df = self.df[self.df['category_id'].isin(categories_id)]
+        df = self.df[self.df['category_id'].isin(categories_id)].copy()
 
         df_groupped = df.groupby('image_name')
 
@@ -242,8 +238,7 @@ class CCAgT_Annotations():
                 G.add_edges_from(graph_connections)
                 connected_items = list(nx.connected_components(G))
 
-                if len(connected_items) > 0:
-                    out[img_name] = connected_items
+                out[img_name] = connected_items
         return out
 
     def union_geometries(self,
@@ -313,9 +308,6 @@ class CCAgT_Annotations():
                 geometries_to_join = [g.buffer(1) for g in geometries_to_join]
 
                 geo = unary_union(geometries_to_join).simplify(tolerance=0.3)
-
-                if geo.geom_type not in {'Polygon', 'MultiPolygon'}:
-                    raise TypeError(f'Geometry shape is not a polygon or MultiPolygon. This is a {geo.geom_type}.')
 
                 df_filtered = df_filtered.drop(index=group, axis=0, errors='ignore')
                 df_filtered = pd.concat([df_filtered, pd.DataFrame([{'image_name': img_name,
