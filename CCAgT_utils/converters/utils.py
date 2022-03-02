@@ -97,15 +97,17 @@ def __prepare_data(CCAgT_ann: CCAgT_Annotations,
 
     print('\tSearching intersections of nuclei with NORs labels (category id in [1] and [2, 3])...')
     df_base_intersects_target = CCAgT_ann.verify_if_intersects(base_categories_id={1}, target_categories_id={2, 3})
-    index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()
-    print(f'\t\tA total of {len(index_to_drop)} of nuclei (category id = 1) will be deleted.')
-    df.drop(index_to_drop, inplace=True)
+    if not df_base_intersects_target.empty:
+        index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()
+        print(f'\t\tA total of {len(index_to_drop)} of nuclei (category id = 1) will be deleted.')
+        df.drop(index_to_drop, inplace=True)
 
     print('\tSearching intersections of NORs with nuclei (normal and overlapped) labels (category id in [2, 3] and [1, 5])..')
     df_base_intersects_target = CCAgT_ann.verify_if_intersects(base_categories_id={2, 3}, target_categories_id={1, 5})
-    index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()
-    print(f'\t\tA total of {len(index_to_drop)} of NORs (category id = [2, 3]) will be deleted.')
-    df.drop(index_to_drop, inplace=True)
+    if not df_base_intersects_target.empty:
+        index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()
+        print(f'\t\tA total of {len(index_to_drop)} of NORs (category id = [2, 3]) will be deleted.')
+        df.drop(index_to_drop, inplace=True)
 
 
 def labelbox_to_OD_COCO(raw_path: str,

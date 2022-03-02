@@ -49,6 +49,30 @@ def categories_aux_data(get_color_rgb, get_categories_name, get_min_area):
 
 
 @pytest.fixture
+def ccagt_metadata():
+    template = '''
+qtd of images = {number_of_images}
+qtd of slides = {number_of_slides}
+qtd of annotations = {number_of_annotations}
+'''
+
+    return {'url': 'https://127.0.0.1:5000/tests/CCAgT-utils',
+            'version': 'test version',
+            'description_template': template,
+            'university': {
+                'name': 'university testname',
+                'link': 'https:///127.0.0.1:5000/tests/CCAgT-utils/university',
+                'short_name': 'UTEST'
+            },
+            'contributors': 'Contrib A, Contrib B, Contrib tests'}
+
+
+@pytest.fixture
+def ccagt_aux_data(categories_aux_data, ccagt_metadata):
+    return {'categories': categories_aux_data, 'metadata': ccagt_metadata}
+
+
+@pytest.fixture
 def shape():
     return (1200, 1600)
 
@@ -64,25 +88,13 @@ def rgb_image(gray_image):
 
 
 @pytest.fixture
-def mask_categorical(gray_image):
-    h, w = gray_image.shape
-    o = gray_image.copy()
-    o[:h // 2, :w // 2] = 1
-    o[:h // 2, w // 2:] = 2
-    o[h // 2:, :w // 2] = 3
-    o[h // 2:, w // 2:] = 4
-    return o
+def mask_categorical(shape):
+    return create.mask_categorical(shape)
 
 
 @pytest.fixture
-def mask_colorized(gray_image):
-    h, w = gray_image.shape
-    o = np.stack([gray_image, gray_image, gray_image], axis=-1)
-    o[:h // 2, :w // 2] = [21, 62, 125]
-    o[:h // 2, w // 2:] = [114, 67, 144]
-    o[h // 2:, :w // 2] = [255, 166, 0]
-    o[h // 2:, w // 2:] = [26, 167, 238]
-    return np.array(o, dtype=np.uint8)
+def mask_colorized(shape):
+    return create.mask_colorized(shape)
 
 
 @pytest.fixture
@@ -92,7 +104,7 @@ def mask(mask_categorical):
 
 @pytest.fixture
 def nucleus_ex():
-    return Polygon([(0, 0), (0, 20), (20, 20), (20, 0)])
+    return Polygon([(0, 0), (0, 30), (30, 30), (30, 0)])
 
 
 @pytest.fixture
@@ -124,8 +136,47 @@ def lbb_raw_single_satellite(satellite_ex):
 
 
 @pytest.fixture
-def lbb_raw_sample_complete(lbb_raw_single_satellite):
+def lbb_raw_single_nucleus(nucleus_ex):
+    return {'ID': 'a1', 'External ID': 'tmp/A_xxx.png', 'Skipped': False, 'Reviews': [{'score': 1,
+                                                                                       'labelId': 'a1'}],
+            'Label': {'objects': [{
+                'featureId': '<ID for this annotation - 26>',
+                'schemaId': '<Unique ID for category Nucleus>',
+                'color': '#1CE6FF',
+                'title': 'nucleus',
+                'value': 'nucleus',
+                'polygon': [{'x': x, 'y': y} for x, y in zip(*nucleus_ex.exterior.xy)],
+                'instanceURI': '<URL for this annotation>'}]}
+            }
+
+
+@pytest.fixture
+def lbb_raw_single_wrong_nucleus():
+    return {'ID': 'a1', 'External ID': 'tmp/A_xxx.png', 'Skipped': False, 'Reviews': [{'score': 1,
+                                                                                       'labelId': 'a1'}],
+            'Label': {'objects': [{
+                'featureId': '<ID for this annotation - 1>',
+                'schemaId': '<Unique ID for category Nucleus>',
+                'color': '#1CE6FF',
+                'title': 'nucleus',
+                'value': 'nucleus',
+                'polygon': [{
+                            'x': 450,
+                            'y': 450
+                            }, {
+                            'x': 460,
+                            'y': 460
+                            }, {
+                            'x': 470,
+                            'y': 460}],
+                'instanceURI': '<URL for this annotation>'}]}
+            }
+
+
+@pytest.fixture
+def lbb_raw_sample_complete(lbb_raw_single_satellite, lbb_raw_single_nucleus):
     o = [lbb_raw_single_satellite,
+         lbb_raw_single_nucleus,
          {'ID': 'a2', 'External ID': 'tmp/B_xxx', 'Skipped': True}]
     return o
 
@@ -136,8 +187,9 @@ def lbb_ann(categories_aux_data, lbb_raw_sample_complete):
 
 
 @pytest.fixture
-def lbb_raw_expected_ccagt_df(satellite_ex):
-    d = [create.row_CCAgT(satellite_ex, 3, 'A_xxx')]
+def lbb_raw_expected_ccagt_df(satellite_ex, nucleus_ex):
+    d = [create.row_CCAgT(satellite_ex, 3, 'A_xxx'),
+         create.row_CCAgT(nucleus_ex, 1, 'A_xxx')]
     return pd.DataFrame(d)
 
 

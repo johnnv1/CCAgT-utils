@@ -82,8 +82,8 @@ def test_fit_geometries_to_image_boundary(ccagt_ann_single_nucleus, nucleus_ex):
     assert np.isnan(geos[0])
 
 
-def test_geometries_area(ccagt_ann_single_nucleus):
-    assert ccagt_ann_single_nucleus.geometries_area().tolist() == [400]
+def test_geometries_area(ccagt_ann_single_nucleus, nucleus_ex):
+    assert ccagt_ann_single_nucleus.geometries_area().tolist() == [nucleus_ex.area]
 
 
 def test_generate_ids(ccagt_ann_multi):
@@ -91,7 +91,7 @@ def test_generate_ids(ccagt_ann_multi):
     assert ccagt_ann_multi.generate_ids(img_name_series).tolist() == [1, 1, 1, 2, 2]
 
 
-@pytest.mark.parametrize('min_area,expected,compute_area', [(500, 0, False),
+@pytest.mark.parametrize('min_area,expected,compute_area', [(99999, 0, False),
                                                             (0, 1, False),
                                                             (0, 1, True)])
 def test_delete_by_area(ccagt_ann_single_nucleus, min_area, expected, compute_area):

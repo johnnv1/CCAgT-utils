@@ -25,7 +25,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                              required=True,
                              metavar='HELPER_FILE_PATH')
     show_parser.add_argument('-t',
-                             '--type',
+                             '--plot-type',
                              help='The type of plots desired.',
                              default='image-with-boxes',
                              choices=['image-with-boxes', 'image-and-mask'])
@@ -71,10 +71,10 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == 'help':
         parser.parse_args(['--help'])
 
-    if args.command == 'show':
+    if args.command == 'show' and (args.labels_file != '' and args.aux_file != ''):
         CCAgT_ann = CCAgT.read_parquet(args.labels_file)
         CCAgT_helper = Categories.read_json(args.aux_file)
-        if args.type == 'image-with-boxes':
+        if args.plot_type == 'image-with-boxes' and args.dir_path != '':
             return _show.image_with_boxes(CCAgT_ann,
                                           CCAgT_helper,
                                           args.dir_path,
@@ -82,7 +82,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                                           args.images_names,
                                           args.shuffle_images,
                                           args.look_recursive)
-        elif args.type == 'image-and-mask':
+        elif args.plot_type == 'image-and-mask' and args.dir_path != '':
             return _show.image_and_mask(CCAgT_ann,
                                         CCAgT_helper,
                                         args.dir_path,
@@ -92,5 +92,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                                         args.images_names,
                                         args.shuffle_images,
                                         args.look_recursive)
-
     return 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

@@ -21,7 +21,8 @@ def test_init_without_raw():
 
 
 def test_init_without_categories_map(lbb_raw_sample_complete):
-    LabelBox_Annotations(lbb_raw_sample_complete)
+    lbb_ann = LabelBox_Annotations(lbb_raw_sample_complete)
+    assert lbb_ann.categories_map is None
 
 
 def test_init_without_expected_data():
