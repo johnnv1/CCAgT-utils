@@ -53,8 +53,8 @@ $ CCAgT-converter -h  # to show help message
 
 ### Labelbox to COCO format
 ```console
-$ CCAgT-converter labelbox_to_COCO -t OD -r ./data/samples/sanitized_sample_labelbox.json
-                                         -a ./data/samples/CCAgT_dataset_metadata.json
+$ CCAgT-converter labelbox_to_COCO -t OD -r ./data/samples/sanitized_sample_labelbox.json\
+                                         -a ./data/samples/CCAgT_dataset_metadata.json\
                                          -o ./data/samples/out/CCAgT_COCO_OD.json
 ```
 
@@ -62,7 +62,7 @@ $ CCAgT-converter labelbox_to_COCO -t OD -r ./data/samples/sanitized_sample_labe
 ```console
 $ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.json \
                                     -a ./data/samples/CCAgT_dataset_metadata.json \
-                                    -o ./data/samples/out/CCAgT.parquet.gzip
+                                    -o ./data/samples/out/CCAgT.parquet.gzip\
                                     -p True
 ```
 

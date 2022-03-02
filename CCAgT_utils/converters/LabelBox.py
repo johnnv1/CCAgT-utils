@@ -11,6 +11,7 @@ from CCAgT_utils.converters.CCAgT import CCAgT_Annotations
 from CCAgT_utils.utils import basename
 
 
+# Just remove the class, everything can be just functions
 class LabelBox_Annotations():
 
     def __init__(self,
@@ -20,8 +21,16 @@ class LabelBox_Annotations():
         if not isinstance(raw_labelbox, list):
             raise ValueError('Expected a list of dictionary that represents raw labelbox data!')
 
-        self.raw_labelbox = raw_labelbox
-        self.categories_map = categories_map
+        expected_data = set({'ID', 'External ID', 'Skipped', 'Reviews', 'Label'})
+        for it in raw_labelbox:
+            if not all(i in it for i in expected_data):
+                if 'Skipped' not in it:
+                    raise KeyError(f'Not found expected values need to have `Skipped` or {expected_data}')
+        self.raw_labelbox = raw_labelbox[:]
+
+        self.categories_map = None
+        if isinstance(categories_map, list):
+            self.categories_map = categories_map[:]
 
     @property
     def raw_dataframe(self) -> pd.DataFrame:
@@ -31,7 +40,7 @@ class LabelBox_Annotations():
                                            categories_map: list[dict[str, Any]] | None) -> bool:
         if categories_map is None:
             if self.categories_map is None:
-                raise Exception('You need instantiate or pass as parameter the categories_map before!')
+                raise ValueError('You need instantiate or pass as parameter the categories_map before!')
         elif isinstance(categories_map, list):
             if self.categories_map is not None:
                 print('The categories map will be overwrite!')
@@ -41,14 +50,14 @@ class LabelBox_Annotations():
             self.schematic_to_id = {x['labelbox_schemaId']: int(x['id']) for x in self.categories_map}
             return True
         else:
-            raise Exception('Some problems occur in the instantiation of the category map!')
+            raise ValueError('Some problems occur in the instantiation of the category map!')
 
     def __remove_duplicated_labels(self,
                                    df: pd.DataFrame) -> pd.DataFrame:
         duplicated_idx = df['image_name'].duplicated(keep=False)
         df_duplicated = df.loc[duplicated_idx, :]
 
-        if df_duplicated.shape[0] == 0:
+        if df_duplicated.empty:
             return df
 
         def hasreview(reviews: list[dict[str, Any]]) -> bool:
@@ -61,9 +70,6 @@ class LabelBox_Annotations():
         # Check the labels that has review
         df_duplicated['have_review'] = df_duplicated.apply(lambda row: hasreview(row['Reviews']), axis=1)
 
-        # Drop the rows without review
-        df_duplicated = df_duplicated[df_duplicated['have_review']]
-
         # Count the quantity of labels for each row
         df_duplicated['len'] = df_duplicated.apply(lambda row: len(row['Label']['objects']), axis=1)
 
@@ -73,7 +79,9 @@ class LabelBox_Annotations():
         # Drop the duplicates labels and keep the first label will be that have more labels
         df_to_keep = df_duplicated.drop_duplicates(['image_name'], keep='first')
 
-        id_to_remove = df_duplicated.loc[~df_duplicated['ID'].isin(df_to_keep['ID'].values), 'ID']
+        id_to_remove = df_duplicated.loc[~df_duplicated['ID'].isin(df_to_keep['ID'].to_numpy()), 'ID']
+        # the rows without review
+        id_to_remove = pd.concat([id_to_remove, df_duplicated.loc[~df_duplicated['have_review'], 'ID']])
 
         df_without_duplicated = df[~df['ID'].isin(id_to_remove)].copy()
 
@@ -105,11 +113,14 @@ class LabelBox_Annotations():
 
     def __transform_geometry(self,
                              df: pd.DataFrame) -> pd.DataFrame:
-        df['geometry'] = df.apply(lambda row: self.labelbox_to_shapely(row['objects']), axis=1)
+        df['geometry'] = df['objects'].apply(lambda obj: self.labelbox_to_shapely(obj))
         df_out = df.dropna(axis=0, subset=['geometry'])
 
         if df.shape != df_out.shape:
             print(f'Some NaN geometries have been deleted! Original shape = {df.shape} | out shape = {df_out.shape}')
+
+        if df_out.empty:
+            raise ValueError('Data without valid geometries! After transform the geometries the dataframe stay empty.')
 
         return df_out
 
@@ -121,7 +132,7 @@ class LabelBox_Annotations():
         # Drop irrelevant columns
         df = df.drop(['DataRow ID', 'Labeled Data', 'Created By', 'Project Name', 'Dataset Name', 'Created At', 'Updated At',
                       'Seconds to Label', 'Agreement', 'Benchmark Agreement', 'Benchmark ID', 'View Label',
-                      'Has Open Issues', 'Skipped'], axis=1)
+                      'Has Open Issues', 'Skipped'], axis=1, errors='ignore')
 
         # Get image names
         df['image_name'] = df.apply(lambda row: basename(row['External ID']), axis=1)

@@ -15,7 +15,7 @@ class Helper():
         if not isinstance(raw_helper, list):
             raise ValueError('Expected a list of dictionary that represents raw helper data!')
 
-        self.raw_helper = raw_helper
+        self.raw_helper = raw_helper[:]
         if all((x['id'] != 0 and x['name'].lower() != 'background') for x in self.raw_helper):
             self.raw_helper.append({
                 'id': 0,

@@ -12,62 +12,10 @@ from shapely.geometry import Polygon
 
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
-from testing import create
 
 
-@pytest.fixture
-def nucleus_ex():
-    return Polygon([(0, 0), (0, 20), (20, 20), (20, 0)])
-
-
-@pytest.fixture
-def cluster_ex():
-    return Polygon([(10, 10), (10, 15), (15, 15), (15, 10)])
-
-
-@pytest.fixture
-def satellite_ex():
-    return Point(1, 1)
-
-
-@pytest.fixture
-def df_data(nucleus_ex, cluster_ex, satellite_ex):
-    # Using a dict with a list for each collum, will raise a warning for Points because of pandas cast type
-    d = [create.row_CCAgT(satellite_ex, 3, 'A_xx1'),
-         create.row_CCAgT(nucleus_ex, 1, 'A_xx1'),
-         create.row_CCAgT(cluster_ex, 2, 'A_xx1'),
-         create.row_CCAgT(nucleus_ex, 1, 'B_xx1'),
-         create.row_CCAgT(nucleus_ex, 1, 'B_xx1')]
-    return pd.DataFrame(d)
-
-
-@pytest.fixture
-def ccagt_ann_multi(df_data):
-    return CCAgT.CCAgT_Annotations(df_data)
-
-
-@pytest.fixture
-def ccagt_ann_simple(nucleus_ex):
-    d = pd.DataFrame([create.row_CCAgT(nucleus_ex, 1, 'C_xx1')])
-    return CCAgT.CCAgT_Annotations(d)
-
-
-@pytest.fixture
-def coco_ann_simple(nucleus_ex):
-    min_x, min_y, max_x, max_y = nucleus_ex.bounds
-    x, y = nucleus_ex.exterior.xy
-    pol = [float(val) for pair in zip(x, y) for val in pair]
-    return [{'id': 1,
-             'image_id': 1,
-             'category_id': 1,
-             'bbox': [float(min_x), float(min_y), float(max_x - min_x), float(max_y - min_y)],
-             'segmentation': [pol],
-             'area': float(float(max_x - min_x) * float(max_y - min_y)),
-             'iscrowd': 0}]
-
-
-def test_init_class(ccagt_ann_multi, df_data):
-    assert ccagt_ann_multi.df.equals(df_data)
+def test_init_class(ccagt_ann_multi, ccagt_df_multi):
+    assert ccagt_ann_multi.df.equals(ccagt_df_multi)
 
 
 def test_init_wrong_columns():
@@ -89,12 +37,12 @@ def test_init_wrong_data():
         CCAgT.CCAgT_Annotations([{'image_name': 'A', 'geometry': Point(1, 1)}])
 
 
-def test_get_slide_id(ccagt_ann_simple):
-    assert ccagt_ann_simple.get_slide_id().tolist() == ['C']
+def test_get_slide_id(ccagt_ann_single_nucleus):
+    assert ccagt_ann_single_nucleus.get_slide_id().tolist() == ['C']
 
 
-def test_geometries_type(ccagt_ann_multi, df_data):
-    geometries_type = df_data['geometry'].apply(lambda g: g.geom_type).tolist()
+def test_geometries_type(ccagt_ann_multi, ccagt_df_multi):
+    geometries_type = ccagt_df_multi['geometry'].apply(lambda g: g.geom_type).tolist()
     assert ccagt_ann_multi.geometries_type().tolist() == geometries_type
 
 
@@ -119,23 +67,23 @@ def test_satellite_point_to_polygon(ccagt_ann_multi, satellite_ex, area_size, re
     assert sat_series_pol.to_numpy()[0].equals(pol_sat)
 
 
-def test_fit_geometries_to_image_boundary(ccagt_ann_simple, nucleus_ex):
-    geos = ccagt_ann_simple.fit_geometries_to_image_boundary(100, 100).tolist()
+def test_fit_geometries_to_image_boundary(ccagt_ann_single_nucleus, nucleus_ex):
+    geos = ccagt_ann_single_nucleus.fit_geometries_to_image_boundary(100, 100).tolist()
 
     assert geos[0].equals(nucleus_ex)
 
-    geos = ccagt_ann_simple.fit_geometries_to_image_boundary(13, 13).tolist()
+    geos = ccagt_ann_single_nucleus.fit_geometries_to_image_boundary(13, 13).tolist()
     p = Polygon([(0, 0), (0, 13), (13, 13), (13, 0)])
     assert geos[0].equals(p)
 
-    ccagt_aan = copy.copy(ccagt_ann_simple)
+    ccagt_aan = copy.copy(ccagt_ann_single_nucleus)
     ccagt_aan.df['geometry'] = Polygon([(100, 100), (100, 130), (130, 130), (130, 100)])
-    geos = ccagt_ann_simple.fit_geometries_to_image_boundary(13, 13).tolist()
+    geos = ccagt_ann_single_nucleus.fit_geometries_to_image_boundary(13, 13).tolist()
     assert np.isnan(geos[0])
 
 
-def test_geometries_area(ccagt_ann_simple):
-    assert ccagt_ann_simple.geometries_area().tolist() == [400]
+def test_geometries_area(ccagt_ann_single_nucleus):
+    assert ccagt_ann_single_nucleus.geometries_area().tolist() == [400]
 
 
 def test_generate_ids(ccagt_ann_multi):
@@ -146,10 +94,10 @@ def test_generate_ids(ccagt_ann_multi):
 @pytest.mark.parametrize('min_area,expected,compute_area', [(500, 0, False),
                                                             (0, 1, False),
                                                             (0, 1, True)])
-def test_delete_by_area(ccagt_ann_simple, min_area, expected, compute_area):
+def test_delete_by_area(ccagt_ann_single_nucleus, min_area, expected, compute_area):
     if compute_area:
-        ccagt_ann_simple.df['area'] = ccagt_ann_simple.geometries_area()
-    df = ccagt_ann_simple.delete_by_area({1: min_area})
+        ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
+    df = ccagt_ann_single_nucleus.delete_by_area({1: min_area})
     assert df.shape[0] == expected
 
 
@@ -220,49 +168,49 @@ def test_union_geometries(ccagt_ann_multi):
     assert df.shape == ccagt_ann_multi.df.shape
 
 
-def test_to_OD_COCO(ccagt_ann_simple, coco_ann_simple):
+def test_to_OD_COCO(ccagt_ann_single_nucleus, coco_ann_single_nucleus):
     with pytest.raises(KeyError):
-        ccagt_ann_simple.to_OD_COCO()
+        ccagt_ann_single_nucleus.to_OD_COCO()
 
-    ccagt_ann_simple.df['area'] = ccagt_ann_simple.geometries_area()
-    ccagt_ann_simple.df['image_id'] = ccagt_ann_simple.generate_ids(ccagt_ann_simple.df['image_name'])
+    ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
+    ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
 
-    coco_OD_ann = ccagt_ann_simple.to_OD_COCO()
+    coco_OD_ann = ccagt_ann_single_nucleus.to_OD_COCO()
 
-    assert coco_OD_ann == coco_ann_simple
+    assert coco_OD_ann == coco_ann_single_nucleus
 
 
-def test_image_id_by_name(ccagt_ann_simple):
+def test_image_id_by_name(ccagt_ann_single_nucleus):
     with pytest.raises(KeyError):
-        id = ccagt_ann_simple.image_id_by_name('C_xx1')
+        id = ccagt_ann_single_nucleus.image_id_by_name('C_xx1')
 
-    ccagt_ann_simple.df['image_id'] = ccagt_ann_simple.generate_ids(ccagt_ann_simple.df['image_name'])
-    id = ccagt_ann_simple.image_id_by_name('C_xx1')
+    ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
+    id = ccagt_ann_single_nucleus.image_id_by_name('C_xx1')
     assert id == 1
 
-    ccagt_ann_simple.df = pd.concat([ccagt_ann_simple.df, ccagt_ann_simple.df]).reset_index()
-    ccagt_ann_simple.df.loc[1, 'image_id'] = 50
+    ccagt_ann_single_nucleus.df = pd.concat([ccagt_ann_single_nucleus.df, ccagt_ann_single_nucleus.df]).reset_index()
+    ccagt_ann_single_nucleus.df.loc[1, 'image_id'] = 50
     with pytest.raises(MoreThanOneIDbyItemError):
-        ccagt_ann_simple.image_id_by_name('C_xx1')
+        ccagt_ann_single_nucleus.image_id_by_name('C_xx1')
 
 
-def test_read_and_dump_to_parquet(ccagt_ann_simple):
+def test_read_and_dump_to_parquet(ccagt_ann_single_nucleus):
     with tempfile.TemporaryDirectory() as tmp_dir:
         filename = os.path.join(tmp_dir, 'ccagt_test.parquet')
 
-        ccagt_ann_simple.to_parquet(filename)
+        ccagt_ann_single_nucleus.to_parquet(filename)
 
         assert os.path.exists(filename)
 
         ccagt_ann = CCAgT.read_parquet(filename)
-        assert ccagt_ann.df.equals(ccagt_ann_simple.df)
+        assert ccagt_ann.df.equals(ccagt_ann_single_nucleus.df)
 
 
-def test_single_core_to_OD_COCO(ccagt_ann_simple, coco_ann_simple):
-    ccagt_ann_simple.df['area'] = ccagt_ann_simple.geometries_area()
-    ccagt_ann_simple.df['image_id'] = ccagt_ann_simple.generate_ids(ccagt_ann_simple.df['image_name'])
-    ccagt_ann_simple.df.index = ccagt_ann_simple.df.index + 1
+def test_single_core_to_OD_COCO(ccagt_ann_single_nucleus, coco_ann_single_nucleus):
+    ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
+    ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
+    ccagt_ann_single_nucleus.df.index = ccagt_ann_single_nucleus.df.index + 1
 
-    coco_OD_ann = CCAgT.single_core_to_OD_COCO(ccagt_ann_simple.df)
+    coco_OD_ann = CCAgT.single_core_to_OD_COCO(ccagt_ann_single_nucleus.df)
 
-    assert coco_OD_ann == coco_ann_simple
+    assert coco_OD_ann == coco_ann_single_nucleus
