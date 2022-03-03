@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import shutil
 
-from CCAgT_utils.Categories import Helper
+from CCAgT_utils.categories import Helper
 from CCAgT_utils.visualization import _show
 from testing import create
 

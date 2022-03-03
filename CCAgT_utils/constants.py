@@ -9,3 +9,5 @@ else:  # pragma: <3.8 cover
 
 
 VERSION = importlib_metadata.version('CCAgT_utils')
+
+FILENAME_SEP = '_'

@@ -7,7 +7,7 @@ from shapely.geometry import Point
 from shapely.geometry import Polygon
 
 from CCAgT_utils.converters import CCAgT
-from CCAgT_utils.converters.LabelBox import LabelBox_Annotations
+from CCAgT_utils.converters.LabelBox import LabelBox
 from CCAgT_utils.types.mask import Mask
 from CCAgT_utils.visualization import colors
 from testing import create
@@ -183,7 +183,7 @@ def lbb_raw_sample_complete(lbb_raw_single_satellite, lbb_raw_single_nucleus):
 
 @pytest.fixture
 def lbb_ann(categories_aux_data, lbb_raw_sample_complete):
-    return LabelBox_Annotations(lbb_raw_sample_complete, categories_aux_data)
+    return LabelBox(lbb_raw_sample_complete, categories_aux_data)
 
 
 @pytest.fixture
@@ -207,12 +207,12 @@ def ccagt_df_multi(nucleus_ex, cluster_ex, satellite_ex):
 @pytest.fixture
 def ccagt_ann_single_nucleus(nucleus_ex):
     d = pd.DataFrame([create.row_CCAgT(nucleus_ex, 1, 'C_xx1')])
-    return CCAgT.CCAgT_Annotations(d)
+    return CCAgT.CCAgT(d)
 
 
 @pytest.fixture
 def ccagt_ann_multi(ccagt_df_multi):
-    return CCAgT.CCAgT_Annotations(ccagt_df_multi)
+    return CCAgT.CCAgT(ccagt_df_multi)
 
 
 @pytest.fixture

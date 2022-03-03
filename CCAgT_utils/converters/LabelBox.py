@@ -7,12 +7,12 @@ import pandas as pd
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
-from CCAgT_utils.converters.CCAgT import CCAgT_Annotations
+from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.utils import basename
 
 
 # Just remove the class, everything can be just functions
-class LabelBox_Annotations():
+class LabelBox():
 
     def __init__(self,
                  raw_labelbox: list[dict[str, Any]],
@@ -155,11 +155,11 @@ class LabelBox_Annotations():
         return df
 
     def to_CCAgT(self,
-                 categories_map: list[dict[str, Any]] | None = None) -> CCAgT_Annotations:
+                 categories_map: list[dict[str, Any]] | None = None) -> CCAgT:
 
         self.__check_or_instance_categories_map(categories_map)
 
         self.df = self.__prepare_data(self.raw_dataframe)
 
-        CCAgT_anns = CCAgT_Annotations(self.df)
+        CCAgT_anns = CCAgT(self.df)
         return CCAgT_anns

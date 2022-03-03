@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 from PIL import Image
 from tqdm.auto import tqdm
 
-from CCAgT_utils import Categories
-from CCAgT_utils.converters.CCAgT import CCAgT_Annotations
+from CCAgT_utils import categories
+from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.types.annotation import bounds_to_BBox
 from CCAgT_utils.types.annotation import count_BBox_categories
 from CCAgT_utils.types.mask import Mask
@@ -24,8 +24,8 @@ def __search_all_files(dir_path: str) -> dict[str, str]:
     return all_files
 
 
-def image_with_boxes(CCAgT_ann: CCAgT_Annotations,
-                     CCAgT_helper: Categories.Helper,
+def image_with_boxes(CCAgT_ann: CCAgT,
+                     CCAgT_helper: categories.Helper,
                      dir_path: str,
                      images_extension: str,
                      images_names: list[str] = [],
@@ -81,8 +81,8 @@ def image_with_boxes(CCAgT_ann: CCAgT_Annotations,
     return 0
 
 
-def image_and_mask(CCAgT_ann: CCAgT_Annotations,
-                   CCAgT_helper: Categories.Helper,
+def image_and_mask(CCAgT_ann: CCAgT,
+                   CCAgT_helper: categories.Helper,
                    dir_path: str,
                    dir_mask_path: str,
                    images_extension: str,

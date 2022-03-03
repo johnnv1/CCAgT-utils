@@ -1,6 +1,8 @@
 [![PyPI](https://img.shields.io/pypi/v/CCAgT-utils?color=blue&label=pypi%20version)](https://pypi.org/project/CCAgT-utils/)
-[![ Code coverage Status](https://codecov.io/gh/johnnv1/CCAgT-utils/branch/main/graph/badge.svg?token=HB8P4BKTZ7)](https://codecov.io/gh/johnnv1/CCAgT-utils)
+[![Code coverage Status](https://codecov.io/gh/johnnv1/CCAgT-utils/branch/main/graph/badge.svg?token=HB8P4BKTZ7)](https://codecov.io/gh/johnnv1/CCAgT-utils)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/johnnv1/CCAgT-utils/main.svg)](https://results.pre-commit.ci/latest/github/johnnv1/CCAgT-utils/main)
+[![main status](https://github.com/johnnv1/CCAgT-utils/actions/workflows/main.yml/badge.svg)](https://github.com/johnnv1/CCAgT-utils/actions/workflows/main.yml)
+
 # CCAgT-utils
 
 CCAgT-utils it's a package to work with the **CCAgT dataset**: `Images of Cervical Cells with AgNOR Stain Technique`. The package will provide some customized codes for annotations format conversion, mask generation, plotting samples, etc.

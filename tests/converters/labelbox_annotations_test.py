@@ -6,7 +6,7 @@ import pytest
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
-from CCAgT_utils.converters.LabelBox import LabelBox_Annotations
+from CCAgT_utils.converters.LabelBox import LabelBox
 
 
 def test_labelbox_to_dataFrame(lbb_ann, lbb_raw_sample_complete):
@@ -17,17 +17,17 @@ def test_labelbox_to_dataFrame(lbb_ann, lbb_raw_sample_complete):
 
 def test_init_without_raw():
     with pytest.raises(ValueError):
-        LabelBox_Annotations(raw_labelbox=None)
+        LabelBox(raw_labelbox=None)
 
 
 def test_init_without_categories_map(lbb_raw_sample_complete):
-    lbb_ann = LabelBox_Annotations(lbb_raw_sample_complete)
+    lbb_ann = LabelBox(lbb_raw_sample_complete)
     assert lbb_ann.categories_map is None
 
 
 def test_init_without_expected_data():
     with pytest.raises(KeyError):
-        LabelBox_Annotations(raw_labelbox=[{'ID': 'a2', 'External ID': 'tmp/A_xxx'}])
+        LabelBox(raw_labelbox=[{'ID': 'a2', 'External ID': 'tmp/A_xxx'}])
 
 
 def test_instance_categories_map(lbb_ann, categories_aux_data):
@@ -38,16 +38,16 @@ def test_labelbox_object_to_shapely():
     obj = {'polygon': [{'x': 10, 'y': 10}, {'x': 20, 'y': 20}, {'x': 25, 'y': 15}, {'x': 15, 'y': 10}]}
     pol_list = [(p['x'], p['y']) for p in obj['polygon']]
     pol = Polygon(pol_list)
-    assert LabelBox_Annotations.labelbox_to_shapely(obj) == pol
+    assert LabelBox.labelbox_to_shapely(obj) == pol
 
     obj_nan = {'multiline': [{'x': 1, 'y': 1}]}
-    assert np.isnan(LabelBox_Annotations.labelbox_to_shapely(obj_nan))
+    assert np.isnan(LabelBox.labelbox_to_shapely(obj_nan))
 
 
 def test_labelbox_object_to_shapely_point():
     obj = {'point': {'x': 10, 'y': 10}}
     point = Point([10, 10])
-    assert LabelBox_Annotations.labelbox_to_shapely(obj) == point
+    assert LabelBox.labelbox_to_shapely(obj) == point
 
 
 def test_to_CCAgT(lbb_ann, lbb_raw_expected_ccagt_df):

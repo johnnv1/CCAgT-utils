@@ -22,3 +22,17 @@ def test_get_traceback_raise():
 
     with pytest.raises(Exception):
         utils.get_traceback(raise_exception)()
+
+
+def test_items_from_filename():
+    filename = '/tmp/G_11_000_999.jpg'
+    items = utils.items_from_filename(filename)
+
+    assert items == ['G', '11', '000', '999']
+
+
+def test_slide_from_filename():
+    filename = '/tmp/G_11_000_999.jpg'
+    slide_id = utils.slide_from_filename(filename)
+
+    assert slide_id == 'G'

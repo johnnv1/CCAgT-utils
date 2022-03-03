@@ -4,7 +4,7 @@ import argparse
 import sys
 from typing import Sequence
 
-from CCAgT_utils import Categories
+from CCAgT_utils import categories
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.visualization import _show
 
@@ -73,7 +73,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     if args.command == 'show' and (args.labels_file != '' and args.aux_file != ''):
         CCAgT_ann = CCAgT.read_parquet(args.labels_file)
-        CCAgT_helper = Categories.read_json(args.aux_file)
+        CCAgT_helper = categories.read_json(args.aux_file)
         if args.plot_type == 'image-with-boxes' and args.dir_path != '':
             return _show.image_with_boxes(CCAgT_ann,
                                           CCAgT_helper,
