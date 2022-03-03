@@ -21,8 +21,10 @@ jobs:
           - "3.9"
           - "3.8"
           - "3.7"
+          - "pypy-3.8"
     steps:
       - name: Setup python for test ${{ matrix.py }}
+        if: ${{ matrix.py }} != 3.10 && ${{ matrix.os }} != MacOs
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.py }}
@@ -35,3 +37,19 @@ jobs:
         run: tox4 r --skip-pkg-install
         env:
           PYTEST_ADDOPTS: "-vv --durations=10"
+      - name: Generate coverage report
+        run: |
+          pip install pytest
+          pip install pytest-cov
+          pytest --cov=./ --cov-report=xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        with:
+          directory: ./coverage/reports/
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
+          files: ./coverage1.xml,./coverage2.xml
+          flags: unittests
+          name: codecov-umbrella
+          path_to_write_report: ./coverage/codecov_report.txt
+          verbose: true
