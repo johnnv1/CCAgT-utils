@@ -3,22 +3,22 @@ from __future__ import annotations
 
 def rgb_to_rgba(color: list[int] | list[float],
                 normalize: bool = False,
-                bytes_precision: int = 8) -> list[int] | list[float]:
-
+                bytes_precision: int = 8,
+                alpha_value: int = 255) -> list[int] | list[float]:
     max_value = 2 ** bytes_precision - 1
-
-    if len(color) == 4:
-        if normalize and isinstance(color[0], int):
-            return [float(x / max_value) for x in color]
-
+    if len(color) == 4 and isinstance(color[0], float):
         return color
-
-    o = list(color) + [max_value]
+    elif len(color) == 3:
+        if isinstance(color[0], float):
+            return list(color) + [alpha_value / max_value]
+        color = list(color) + [alpha_value]
+    else:
+        raise ValueError('Expected a RGB or a RGBA value!')
 
     if normalize:
-        return [float(x / max_value) for x in o]
+        return [float(x / max_value) for x in color]
 
-    return o
+    return color
 
 
 def hex_to_rgb(hex: str,

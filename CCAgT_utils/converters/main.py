@@ -82,14 +82,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == 'help':
         parser.parse_args(['--help'])
 
-    if args.command == 'labelbox_to_COCO':
+    if args.command == 'labelbox_to_COCO' and args.raw_file != '':
         return labelbox_to_COCO(target=args.target,
                                 raw_path=os.path.abspath(args.raw_file),
                                 aux_path=os.path.abspath(args.aux_file),
                                 out_path=os.path.abspath(args.out_file),
                                 image_extension=args.images_extension,
                                 decimals=int(args.out_precision))
-    elif args.command == 'labelbox_to_CCAgT':
+    elif args.command == 'labelbox_to_CCAgT' and args.raw_file != '':
         return labelbox_to_CCAgT(raw_path=os.path.abspath(args.raw_file),
                                  aux_path=os.path.abspath(args.aux_file),
                                  out_path=os.path.abspath(args.out_file),
@@ -97,3 +97,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                                  preprocess=args.preprocess)
 
     return 1
+
+
+if __name__ == '__main__':
+    raise SystemExit(main())

@@ -7,3 +7,7 @@ class ShapeError(RuntimeError):
 
 class FileTypeError(RuntimeError):
     pass
+
+
+class MoreThanOneIDbyItemError(RuntimeError):
+    pass

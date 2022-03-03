@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import random
+import sys
 
 import matplotlib.pyplot as plt
 from PIL import Image
@@ -50,7 +51,7 @@ def image_with_boxes(CCAgT_ann: CCAgT_Annotations,
         else:
             img_path = os.path.join(dir_path, img_name + images_extension)
             if not os.path.exists(img_path):
-                print(f'Not found the image {img_path}')
+                print(f'Not found the image {img_path}', file=sys.stderr)
                 continue
 
         image_boxes = CCAgT_ann.df[CCAgT_ann.df['image_name'] == img_name].apply(lambda r:
@@ -114,11 +115,11 @@ def image_and_mask(CCAgT_ann: CCAgT_Annotations,
             msk_path = os.path.join(dir_mask_path, img_name + masks_extension)
 
             if not os.path.exists(img_path):
-                print(f'Not found the image {img_path}')
+                print(f'Not found the image {img_path}', file=sys.stderr)
                 continue
 
             if not os.path.exists(msk_path):
-                print(f'Not found the mask {msk_path}')
+                print(f'Not found the mask {msk_path}', file=sys.stderr)
                 continue
 
         img = Image.open(img_path)
