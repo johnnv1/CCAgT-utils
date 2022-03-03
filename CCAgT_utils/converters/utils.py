@@ -142,7 +142,6 @@ def labelbox_to_OD_COCO(raw_path: str,
                  'url': dataset_helper['metadata']['url'],
                  'date_created': datetime.now().strftime('%Y-%m-%d')}
 
-    print(categories_helpper)
     categories_coco = [{'supercategory': None if it['supercategory'] == '' else it['supercategory'],
                         'name': it['name'],
                         'id': it['id']} for it in categories_helpper]
