@@ -11,14 +11,14 @@ from shapely.geometry import box
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
-from CCAgT_utils.CCAgT import slide_from_filename
 from CCAgT_utils.converters.COCO import COCO_OD
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
 from CCAgT_utils.types.annotation import bounds_to_BBox
 from CCAgT_utils.utils import get_traceback
+from CCAgT_utils.utils import slide_from_filename
 
 
-class CCAgT_Annotations():
+class CCAgT():
     IMAGE_WIDTH: int = 1600
     IMAGE_HEIGHT: int = 1200
 
@@ -384,8 +384,8 @@ def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str
                     axis=1).to_numpy().tolist()
 
 
-def read_parquet(filename: str, **kwargs: Any) -> CCAgT_Annotations:
+def read_parquet(filename: str, **kwargs: Any) -> CCAgT:
     df = pd.read_parquet(filename, **kwargs)
     df['geometry'] = df['geometry'].apply(lambda x: shapely.wkt.loads(x))
 
-    return CCAgT_Annotations(df)
+    return CCAgT(df)

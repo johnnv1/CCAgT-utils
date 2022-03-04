@@ -21,20 +21,20 @@ def test_init_class(ccagt_ann_multi, ccagt_df_multi):
 def test_init_wrong_columns():
     with pytest.raises(KeyError):
         df = pd.DataFrame([{'image_name': 'A', 'category_id': 1}])
-        CCAgT.CCAgT_Annotations(df)
+        CCAgT.CCAgT(df)
 
     with pytest.raises(KeyError):
         df = pd.DataFrame([{'category_id': 1}])
-        CCAgT.CCAgT_Annotations(df)
+        CCAgT.CCAgT(df)
 
     with pytest.raises(KeyError):
         df = pd.DataFrame([{'image_name': 'A', 'geometry': Point(1, 1)}])
-        CCAgT.CCAgT_Annotations(df)
+        CCAgT.CCAgT(df)
 
 
 def test_init_wrong_data():
     with pytest.raises(TypeError):
-        CCAgT.CCAgT_Annotations([{'image_name': 'A', 'geometry': Point(1, 1)}])
+        CCAgT.CCAgT([{'image_name': 'A', 'geometry': Point(1, 1)}])
 
 
 def test_get_slide_id(ccagt_ann_single_nucleus):
@@ -109,11 +109,11 @@ def test_delete_by_area_ignore_ids(ccagt_ann_multi):
 def test_find_intersecting_geometries(ccagt_ann_multi, cluster_ex):
     g = ccagt_ann_multi.df.groupby('image_name')
     df = g.get_group(list(g.groups)[0])
-    indexes = CCAgT.CCAgT_Annotations.find_intersecting_geometries(cluster_ex, 2, df)
+    indexes = CCAgT.CCAgT.find_intersecting_geometries(cluster_ex, 2, df)
 
     assert indexes == [1]
 
-    indexes = CCAgT.CCAgT_Annotations.find_intersecting_geometries(cluster_ex, 2, pd.DataFrame())
+    indexes = CCAgT.CCAgT.find_intersecting_geometries(cluster_ex, 2, pd.DataFrame())
     assert np.isnan(indexes)
 
 
@@ -124,8 +124,8 @@ def test_filter_by_category(ccagt_ann_multi):
 
 def test_has_intersecting_geometries(ccagt_ann_multi, cluster_ex):
     geometries = ccagt_ann_multi.df['geometry']
-    assert CCAgT.CCAgT_Annotations.has_intersecting_geometries(cluster_ex, geometries)
-    o = CCAgT.CCAgT_Annotations.has_intersecting_geometries(Point(9999, 9999), geometries)
+    assert CCAgT.CCAgT.has_intersecting_geometries(cluster_ex, geometries)
+    o = CCAgT.CCAgT.has_intersecting_geometries(Point(9999, 9999), geometries)
     assert not o
 
 

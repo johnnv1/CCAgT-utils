@@ -6,9 +6,9 @@ from typing import Any
 
 import pandas as pd
 
-from CCAgT_utils import Categories
-from CCAgT_utils.converters.CCAgT import CCAgT_Annotations
-from CCAgT_utils.converters.LabelBox import LabelBox_Annotations
+from CCAgT_utils import categories
+from CCAgT_utils.converters.CCAgT import CCAgT
+from CCAgT_utils.converters.LabelBox import LabelBox
 from CCAgT_utils.errors import FileTypeError
 
 
@@ -61,7 +61,7 @@ def __build_description(template: str, df: pd.Dataframe) -> str:
     return o
 
 
-def __prepare_data(CCAgT_ann: CCAgT_Annotations,
+def __prepare_data(CCAgT_ann: CCAgT,
                    categories_helper_raw: list[dict[str, Any]],
                    image_extension: str) -> None:
     print('\tSearching overlapping and joining labels for overlapping annotations (category id = 5)...')
@@ -91,7 +91,7 @@ def __prepare_data(CCAgT_ann: CCAgT_Annotations,
     df['slide_id'] = CCAgT_ann.get_slide_id()
 
     print('\tDeleting annotations based on the minimal area settet at auxiliary file.')
-    ccagt_helper = Categories.Helper(categories_helper_raw)
+    ccagt_helper = categories.Helper(categories_helper_raw)
     min_area = ccagt_helper.min_area_by_category_id
     df = CCAgT_ann.delete_by_area(min_area)
 
@@ -123,7 +123,7 @@ def labelbox_to_OD_COCO(raw_path: str,
     dataset_helper = open_and_read_json(aux_path)
     categories_helpper = dataset_helper['categories']
 
-    lb_ann = LabelBox_Annotations(labelbox_raw, categories_helpper)
+    lb_ann = LabelBox(labelbox_raw, categories_helpper)
 
     print('\tConverting RAW data into CCAgT formart...')
     CCAgT_ann = lb_ann.to_CCAgT()
@@ -192,7 +192,7 @@ def labelbox_to_CCAgT(raw_path: str,
     dataset_helper = open_and_read_json(aux_path)
     categories_helpper = dataset_helper['categories']
 
-    lb_ann = LabelBox_Annotations(labelbox_raw, categories_helpper)
+    lb_ann = LabelBox(labelbox_raw, categories_helpper)
 
     print('\tConverting RAW data into CCAgT formart...')
     CCAgT_ann = lb_ann.to_CCAgT()

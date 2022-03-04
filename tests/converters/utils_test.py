@@ -12,7 +12,7 @@ from testing.create import RawAuxFiles
 
 def test_build_description(ccagt_df_multi, ccagt_metadata):
     df = ccagt_df_multi.copy()
-    CCAgT_ann = CCAgT.CCAgT_Annotations(df)
+    CCAgT_ann = CCAgT.CCAgT(df)
     df['image_id'] = CCAgT_ann.generate_ids(df['image_name'])
     df['slide_id'] = CCAgT_ann.get_slide_id()
 
