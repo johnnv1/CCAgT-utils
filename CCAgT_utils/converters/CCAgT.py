@@ -375,9 +375,9 @@ class CCAgT():
 
         if split_by_slide:
             if 'slide_id' not in self.df.columns:
-                slide_ids = self.get_slide_id().unique()
-            else:
-                slide_ids = self.df['slide_id'].unique()
+                self.df['slide_id'] = self.get_slide_id()
+
+            slide_ids = self.df['slide_id'].unique()
 
             for slide_id in slide_ids:
                 os.makedirs(os.path.join(out_dir, slide_id), exist_ok=True)

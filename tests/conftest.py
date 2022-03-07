@@ -113,6 +113,13 @@ def cluster_ex():
 
 
 @pytest.fixture
+def cluster_mask_ex():
+    out = np.zeros((20, 20), dtype=np.uint8)
+    out[10:16, 10:16] = 2
+    return out
+
+
+@pytest.fixture
 def satellite_ex():
     return Point(1, 1)
 
