@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import multiprocessing
+import os
 from typing import Any
 
 import networkx as nx
@@ -12,8 +13,11 @@ from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
 from CCAgT_utils.converters.COCO import COCO_OD
+from CCAgT_utils.converters.masks import annotations_to_mask
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
+from CCAgT_utils.types.annotation import Annotation
 from CCAgT_utils.types.annotation import bounds_to_BBox
+from CCAgT_utils.utils import basename
 from CCAgT_utils.utils import get_traceback
 from CCAgT_utils.utils import slide_from_filename
 
@@ -367,6 +371,33 @@ class CCAgT():
 
         df_out.to_parquet(filename, compression=compression, **kwargs)
 
+    def generate_masks(self, out_dir: str, split_by_slide: bool = True) -> None:
+
+        if split_by_slide:
+            if 'slide_id' not in self.df.columns:
+                slide_ids = self.get_slide_id().unique()
+            else:
+                slide_ids = self.df['slide_id'].unique()
+
+            for slide_id in slide_ids:
+                os.makedirs(os.path.join(out_dir, slide_id), exist_ok=True)
+
+        cpu_num = multiprocessing.cpu_count()
+
+        # Split equals the annotations for the cpu quantity
+        images_ids_splitted = np.array_split(self.df['image_id'].unique(), cpu_num)
+        print(f'Number of cores: {cpu_num}, images per core: {len(images_ids_splitted[0])}')
+
+        workers = multiprocessing.Pool(processes=cpu_num)
+        processes = []
+        for images_ids in images_ids_splitted:
+            df_to_process = self.df.loc[self.df['image_id'].isin(images_ids), :]
+            p = workers.apply_async(single_core_to_mask, (df_to_process, out_dir, split_by_slide))
+            processes.append(p)
+
+        workers.close()
+        workers.join()
+
     # TODO: Split data into train validation and test
 
     # TODO: Describe / stats of the dataset or of the data splitted
@@ -389,3 +420,20 @@ def read_parquet(filename: str, **kwargs: Any) -> CCAgT:
     df['geometry'] = df['geometry'].apply(lambda x: shapely.wkt.loads(x))
 
     return CCAgT(df)
+
+
+@get_traceback
+def single_core_to_mask(df: pd.DataFrame, output_dir: str, split_by_slide: bool, extension: str = '.png') -> None:
+    df_groupped = df.groupby('image_id')
+    _out_dir = output_dir
+
+    for _, df_img in df_groupped:
+        if split_by_slide:
+            _out_dir = os.path.join(output_dir, df_img.iloc[0]['slide_id'])
+        img_name = basename(df_img.iloc[0]['image_name']) + extension
+        out_path = os.path.join(_out_dir, img_name)
+
+        annotations = [Annotation(row['geometry'], row['category_id']) for _, row in df_img.iterrows()]
+        mask = annotations_to_mask(annotations)
+
+        mask.save(out_path)

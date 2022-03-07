@@ -1,10 +1,22 @@
 from __future__ import annotations
 
 import json
+from enum import Enum
 from typing import Any
 
 from CCAgT_utils.errors import FileTypeError
 from CCAgT_utils.visualization import colors
+
+
+class Categories(Enum):
+    BACKGROUND = 0
+    NUCLEUS = 1
+    CLUSTER = 2
+    SATELLITE = 3
+    NUCLEUS_OUT_OF_FOCUS = 4
+    OVERLAPPED_NUCLEI = 5
+    NON_VIABLE_NUCLEUS = 6
+    LEUKOCYTE_NUCLEUS = 7
 
 
 class Helper():
@@ -16,6 +28,9 @@ class Helper():
             raise ValueError('Expected a list of dictionary that represents raw helper data!')
 
         self.raw_helper = raw_helper[:]
+
+        self.__check_id_names()
+
         if all((x['id'] != 0 and x['name'].lower() != 'background') for x in self.raw_helper):
             self.raw_helper.append({
                 'id': 0,
@@ -23,6 +38,12 @@ class Helper():
                 'name': 'background',
                 'minimal_area': 0
             })
+
+    def __check_id_names(self) -> None:
+        for id, name in self.name_by_category_id.items():
+            if Categories(id).name != name.upper():
+                raise ValueError(f'The category name to id does not match with the expected! For id {id} it was expected '
+                                 f'{Categories(id).name} and receive {name.upper()}')
 
     @property
     def min_area_by_category_id(self) -> dict[int, int]:

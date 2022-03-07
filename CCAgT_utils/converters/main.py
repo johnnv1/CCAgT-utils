@@ -6,6 +6,7 @@ import sys
 from typing import Sequence
 
 from CCAgT_utils.constants import VERSION
+from CCAgT_utils.converters.utils import ccagt_generate_masks
 from CCAgT_utils.converters.utils import labelbox_to_CCAgT
 from CCAgT_utils.converters.utils import labelbox_to_COCO
 
@@ -32,6 +33,25 @@ def _add_converter_default_options(parser: argparse.ArgumentParser,
                         '--images-extension',
                         help='The extension of the filenames at COCO file. Example `.jpg`',
                         default='')
+
+
+def _add_mask_generator_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument('-l',
+                        '--labels-path',
+                        help='Path for the CCAgT file. A parquet file is expected.',
+                        required=True,
+                        metavar='CCAgT_FILE_PATH')
+    parser.add_argument('-o',
+                        '--output-dir',
+                        help=('Path for the directory where the masks should be saved.'),
+                        required=True)
+    parser.add_argument('--split-by-slide',
+                        help='To save the masks into subdirectories for each slide',
+                        action='store_true')
+    # TODO: colorized option
+    # parser.add_argument('--colorized',
+    #                     help='Flag to generate RGB masks if desired',
+    #                     default=False)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -69,6 +89,9 @@ def main(argv: Sequence[str] | None = None) -> int:
                                     help='Flag to define if want to run teh preprocessing steps',
                                     default=False)
 
+    ccagt_to_mask = subparsers.add_parser('generate_masks', help='Converter from CCAgT file to masks')
+    _add_mask_generator_options(ccagt_to_mask)
+
     help = subparsers.add_parser('help', help='Show help for a specific command.')
     help.add_argument('help_cmd', nargs='?', help='Command to show help for.')
 
@@ -95,7 +118,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                                  out_path=os.path.abspath(args.out_file),
                                  image_extension=args.images_extension,
                                  preprocess=args.preprocess)
-
+    elif args.command == 'generate_masks' and args.labels_path != '':
+        return ccagt_generate_masks(os.path.abspath(args.labels_path),
+                                    os.path.abspath(args.output_dir),
+                                    args.split_by_slide)
     return 1
 
 

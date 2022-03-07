@@ -28,7 +28,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                              '--plot-type',
                              help='The type of plots desired.',
                              default='image-with-boxes',
-                             choices=['image-with-boxes', 'image-and-mask'])
+                             choices=['image-with-boxes', 'image-and-mask', 'image-with-boxes-and-mask'])
     show_parser.add_argument('-i',
                              '--images-names',
                              help='Filenames of the images to plot. If nothing be passed, all images will be plotted',
@@ -92,6 +92,16 @@ def main(argv: Sequence[str] | None = None) -> int:
                                         args.images_names,
                                         args.shuffle_images,
                                         args.look_recursive)
+        elif args.plot_type == 'image-with-boxes-and-mask' and args.dir_path != '':
+            return _show.image_with_boxes_and_mask(CCAgT_ann,
+                                                   CCAgT_helper,
+                                                   args.dir_path,
+                                                   args.dir_masks_path,
+                                                   args.image_extension,
+                                                   args.mask_extension,
+                                                   args.images_names,
+                                                   args.shuffle_images,
+                                                   args.look_recursive)
     return 1
 
 

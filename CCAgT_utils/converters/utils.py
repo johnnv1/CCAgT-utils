@@ -8,6 +8,7 @@ import pandas as pd
 
 from CCAgT_utils import categories
 from CCAgT_utils.converters.CCAgT import CCAgT
+from CCAgT_utils.converters.CCAgT import read_parquet
 from CCAgT_utils.converters.LabelBox import LabelBox
 from CCAgT_utils.errors import FileTypeError
 
@@ -203,4 +204,18 @@ def labelbox_to_CCAgT(raw_path: str,
     print('\tSaving the CCAgT to a parquet file...')
     CCAgT_ann.to_parquet(out_path)
 
+    return 0
+
+
+def ccagt_generate_masks(ccagt_path: str,
+                         output_dir: str,
+                         split_by_slide: bool) -> int:
+    if not ccagt_path.endswith('.parquet.gzip'):
+        raise FileTypeError('The labels file is not a parquet file.')
+
+    print(f'Reading CCAgT labels/annotations file - {ccagt_path}')
+    ccagt = read_parquet(ccagt_path)
+
+    print('Generating masks into...')
+    ccagt.generate_masks(output_dir, split_by_slide)
     return 0

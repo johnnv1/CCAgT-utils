@@ -9,7 +9,36 @@ from shapely.geometry import Polygon
 
 @dataclass
 class Annotation:
-    labels: list[Polygon | MultiPolygon]
+    geometry: Polygon | MultiPolygon
+    category_id: int
+
+    @property
+    def bbox(self) -> BBox:
+        return bounds_to_BBox(self.geometry.bounds, self.category_id)
+
+    @property
+    def _geo_type(self) -> str:
+        return self.geometry.geom_type
+
+    def __iter__(self) -> Annotation:
+        self._idx = 0
+
+        if self._geo_type == 'MultiPolygon':
+            self._geometries = list(self.geometry.geoms)
+        elif self._geo_type == 'Polygon':
+            self._geometries = [self.geometry]
+        else:
+            raise TypeError(f'Unexpected geometry type (`{self._geo_type}`) - expected `MultiPolygon` or `Polygon`')
+
+        return self
+
+    def __next__(self) -> list[Polygon]:
+        if self._idx < len(self._geometries):
+            out = self._geometries[self._idx]
+            self._idx += 1
+            return out
+        else:
+            raise StopIteration
 
 
 @dataclass
