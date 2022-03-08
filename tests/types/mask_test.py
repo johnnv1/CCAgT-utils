@@ -49,6 +49,6 @@ def test_save_colorized(mask, get_color_rgb):
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_path = os.path.join(tmp_dir, 'test_colorized.png')
         mask.save(out_path, get_color_rgb)
-        assert os.path.isfile(out_path)
         msk = Image.open(out_path)
-    assert np.array_equal(mask.colorized(get_color_rgb), msk)
+        assert os.path.isfile(out_path)
+        assert np.array_equal(mask.colorized(get_color_rgb), msk)
