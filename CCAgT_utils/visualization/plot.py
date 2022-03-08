@@ -33,6 +33,7 @@ def bbox(boxes: list[BBox],
                     get_categories_name[bb.category_id],
                     verticalalignment='top',
                     color=get_color[bb.category_id],
+                    clip_on=True,
                     fontsize=fontsize).set_path_effects([patheffects.Stroke(linewidth=4, foreground='black'),
                                                         patheffects.Normal()])
     return ax
