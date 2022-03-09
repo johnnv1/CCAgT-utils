@@ -108,3 +108,44 @@ def slide_from_filename(filename: str) -> str:
         The slide ID of the filename
     """
     return items_from_filename(filename)[FILENAME_ITEM.slide.value]
+
+
+def find_files(dir_path: str,
+               extension: str | tuple[str, ...],
+               look_recursive: bool = False,
+               selection: list[str] = []) -> dict[str, str]:
+    """Find all files into at the path and subdirectories
+
+    Parameters
+    ----------
+    dir_path : str
+        Path of the base directory to look
+    extension : str | tuple[str]
+        Extension of the dessired files
+
+    Returns
+    -------
+    dict[str, str]
+        A dict with the filename as key and the relative path for the
+        file
+    """
+    print(f'Finding all `{extension}` files into the directory {dir_path}...')
+    if look_recursive:
+        files = {file: os.path.join(path, file) for path, _, files in os.walk(dir_path) for file in files
+                 if file.endswith(extension) and (selection == [] or file in selection)}
+    else:
+        files = {file: os.path.join(dir_path, file) for file in os.listdir(dir_path)
+                 if file.endswith(extension) and (selection == [] or file in selection)}
+
+    print(f'\tFind a total of {len(files)} `{extension}` files.')
+    return files
+
+
+def create_structure(dir_path: str, slides: set[str]) -> None:
+
+    dir_images = os.path.join(dir_path, 'images/')
+    dir_masks = os.path.join(dir_path, 'masks/')
+
+    for slide in slides:
+        os.makedirs(os.path.join(dir_images, slide), exist_ok=True)
+        os.makedirs(os.path.join(dir_masks, slide), exist_ok=True)
