@@ -69,7 +69,12 @@ $ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.
                                     -o ./data/samples/out/CCAgT.parquet.gzip\
                                     -p True
 ```
-
+### CCAgT to masks (categorical masks for semantic segmentation)
+```console
+$ CCAgT-converter generate_masks -l ./data/samples/out/CCAgT.parquet.gzip\
+                                 -o ./data/samples/masks/\
+                                 --split-by-slide
+```
 ## visualization
 Module responsible for assisting in the display or creation of figures from the dataset.
 
@@ -89,5 +94,15 @@ $ CCAgT-visualization show -l ./data/samples/out/CCAgT.parquet.gzip\
 $ CCAgT-visualization show -t image-and-mask\
                            -l ./data/samples/out/CCAgT.parquet.gzip\
                            -a ./data/samples/CCAgT_dataset_metadata.json\
-                           -d ./data/samples/images/
+                           -d ./data/samples/images/\
+                           -m ./data/samples/masks/
+```
+
+### Show image with boxes and mask
+```console
+$ CCAgT-visualization show -t image-with-boxes-and-mask\
+                           -l ./data/samples/out/CCAgT.parquet.gzip\
+                           -a ./data/samples/CCAgT_dataset_metadata.json\
+                           -d ./data/samples/images/\
+                           -m ./data/samples/masks/
 ```

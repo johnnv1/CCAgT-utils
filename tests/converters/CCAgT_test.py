@@ -12,6 +12,7 @@ from shapely.geometry import Polygon
 
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
+from testing import create
 
 
 def test_init_class(ccagt_ann_multi, ccagt_df_multi):
@@ -214,3 +215,35 @@ def test_single_core_to_OD_COCO(ccagt_ann_single_nucleus, coco_ann_single_nucleu
     coco_OD_ann = CCAgT.single_core_to_OD_COCO(ccagt_ann_single_nucleus.df)
 
     assert coco_OD_ann == coco_ann_single_nucleus
+
+
+def test_single_core_to_mask(nucleus_ex):
+    img_name = 'C_xx1'
+    df = pd.DataFrame([create.row_CCAgT(nucleus_ex, 1, img_name)])
+    df['image_id'] = [1]
+    df['slide_id'] = ['C']
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        outdir = os.path.join(tmp_dir, 'C/')
+        os.makedirs(outdir)
+        CCAgT.single_core_to_mask(df, tmp_dir, split_by_slide=True)
+        assert os.path.isfile(os.path.join(outdir, img_name + '.png'))
+
+        CCAgT.single_core_to_mask(df, tmp_dir, split_by_slide=False)
+        assert os.path.isfile(os.path.join(tmp_dir, img_name + '.png'))
+
+
+def test_generate_masks(ccagt_ann_single_nucleus):
+
+    ccagt_ann_single_nucleus.df['image_name'] = 'C_xx1'
+    ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
+
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        ccagt_ann_single_nucleus.generate_masks(tmp_dir, split_by_slide=True)
+        assert os.path.isfile(os.path.join(tmp_dir, 'C/C_xx1' + '.png'))
+
+        ccagt_ann_single_nucleus.generate_masks(tmp_dir, split_by_slide=False)
+        assert os.path.isfile(os.path.join(tmp_dir, 'C_xx1' + '.png'))
+
+        ccagt_ann_single_nucleus.df['slide_id'] = ccagt_ann_single_nucleus.get_slide_id()
+        ccagt_ann_single_nucleus.generate_masks(tmp_dir, split_by_slide=True)
+        assert os.path.isfile(os.path.join(tmp_dir, 'C/C_xx1' + '.png'))

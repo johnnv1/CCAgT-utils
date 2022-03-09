@@ -29,7 +29,7 @@ def get_color_rgba_norm(get_color_rgb):
 def get_categories_name():
     # TODO: Maybe load from the json file?
     return {1: 'Nucleus', 2: 'Cluster', 3: 'Satellite', 4: 'Nucleus_out_of_focus', 5: 'Overlapped_Nuclei',
-            6: 'non-viable_nucleus', 7: 'Leukocyte_Nucleus'}
+            6: 'non_viable_nucleus', 7: 'Leukocyte_Nucleus'}
 
 
 @pytest.fixture
@@ -110,6 +110,13 @@ def nucleus_ex():
 @pytest.fixture
 def cluster_ex():
     return Polygon([(10, 10), (10, 15), (15, 15), (15, 10)])
+
+
+@pytest.fixture
+def cluster_mask_ex():
+    out = np.zeros((20, 20), dtype=np.uint8)
+    out[10:16, 10:16] = 2
+    return out
 
 
 @pytest.fixture

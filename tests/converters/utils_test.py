@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import tempfile
 
 import pytest
 
@@ -99,3 +100,16 @@ def test_labelbox_to_CCAgT_without_valid_geometries(lbb_raw_single_wrong_nucleus
         out = utils.labelbox_to_CCAgT(raw_path, aux_path, out_filename, '', True)
 
     assert out == 0
+
+
+def test_ccagt_generate_masks(ccagt_ann_single_nucleus):
+    ccagt_ann_single_nucleus.df['image_id'] = 1
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        ccagt_path = os.path.join(tmp_dir, 'ccagt.parquet.gzip')
+        ccagt_ann_single_nucleus.to_parquet(ccagt_path)
+        assert utils.ccagt_generate_masks(ccagt_path, tmp_dir, split_by_slide=False) == 0
+
+
+def test_ccagt_wrong_file():
+    with pytest.raises(FileTypeError):
+        utils.ccagt_generate_masks('wrong.name', '/tmp/', False)

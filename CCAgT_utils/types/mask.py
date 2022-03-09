@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 import matplotlib.colors as mlp_colors
 import numpy as np
+from PIL import Image
 
 from CCAgT_utils.errors import ShapeError
 from CCAgT_utils.types.checkers import is_2d
@@ -34,7 +36,7 @@ class Mask:
         return set(np.unique(self.categorical))
 
     def colorized(self,
-                  get_color: dict[int, list[int] | list[float]]) -> np.ndarray:
+                  get_color: dict[int, list[int]]) -> np.ndarray:
         o = np.zeros((self.height, self.width, 3), dtype=np.uint8)
 
         for id in self.unique_ids:
@@ -45,3 +47,15 @@ class Mask:
     def cmap(self, get_color: dict[int, list[int] | list[float]]) -> mlp_colors.ListedColormap:
         o = [colors.rgb_to_rgba(get_color[id], normalize=True) for id in self.unique_ids]
         return mlp_colors.ListedColormap(o)
+
+    def save(self,
+             filename: str,
+             get_color: dict[int, list[int]] | None = None,
+             **kwargs: Any) -> None:
+
+        if isinstance(get_color, dict):
+            out = self.colorized(get_color)
+        else:
+            out = self.categorical
+
+        Image.fromarray(out).save(filename, **kwargs)

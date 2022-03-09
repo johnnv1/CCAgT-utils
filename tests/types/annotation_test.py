@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 
 import pytest
+from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
 
 from CCAgT_utils.types import annotation
@@ -116,3 +117,31 @@ def test_count_BBox_categories(bbox_example):
     counter = annotation.count_BBox_categories(items, categories_names)
 
     assert counter == {f'cat {cat_id_example}': 3, f'cat {cat_id_example1}': 2}
+
+
+def test_annotation_bbox(nucleus_ex):
+    ann = annotation.Annotation(nucleus_ex, 1)
+
+    assert ann.bbox.to_polygon().equals(nucleus_ex)
+
+
+def test_annotation_geo_type(nucleus_ex):
+    ann = annotation.Annotation(nucleus_ex, 1)
+    geo_type = ann._geo_type
+    assert geo_type == 'Polygon'
+
+
+def test_annotation_iter(nucleus_ex, cluster_ex):
+    ann = annotation.Annotation(nucleus_ex, 1)
+
+    assert len([geo for geo in ann]) == 1
+
+    mult_p = MultiPolygon([nucleus_ex, cluster_ex])
+    ann = annotation.Annotation(mult_p, 1)
+
+    assert len([geo for geo in ann]) == 2
+
+
+def test_annotation_iter_wrong_geo(satellite_ex):
+    with pytest.raises(TypeError):
+        iter(annotation.Annotation(satellite_ex, 3))

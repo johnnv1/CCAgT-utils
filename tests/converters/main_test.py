@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import tempfile
 
 import pytest
 
@@ -53,3 +54,14 @@ def test_main_help_other_command():
 def test_not_implemented_command():
     exit_code = main.main(['labelbox_to_CCAgT', '-r', '', '-a', '', '-o', ''])
     assert exit_code == 1
+
+
+def test_main_ccagt_generate_masks(ccagt_ann_single_nucleus):
+    ccagt_ann_single_nucleus.df['image_id'] = 1
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        ccagt_path = os.path.join(tmp_dir, 'ccagt.parquet.gzip')
+        ccagt_ann_single_nucleus.to_parquet(ccagt_path)
+
+        out = main.main(['generate_masks', '-l', ccagt_path, '-o', tmp_dir])
+
+    assert out == 0
