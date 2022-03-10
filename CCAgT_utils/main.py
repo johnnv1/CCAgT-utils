@@ -8,9 +8,12 @@ import sys
 from typing import Sequence
 
 from CCAgT_utils import slice
+from CCAgT_utils.checkers import masks_that_has
 from CCAgT_utils.constants import VERSION
 from CCAgT_utils.prepare import clean_images_and_masks
 from CCAgT_utils.prepare import extract_image_and_mask_by_category
+from CCAgT_utils.utils import basename
+from CCAgT_utils.utils import find_files
 
 
 def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
@@ -83,19 +86,19 @@ def create_subdataset(name: str,
                       output_base: str,
                       slice_images: tuple[int, ...] | None,
                       extract: set[int] | None,
-                      categories_to_delete: set[int] | None,
+                      categories_to_keep: set[int] | None,
                       check_if_all_have_one: set[int] | None,
                       delete: bool,
                       CCAgT_path: str | None,
-                      paddings: int | float,
+                      paddings: str,
                       extensions: tuple[str, ...] = ('.jpg', '.png')) -> int:
     output_dir = os.path.join(output_base, name)
     output_images_dir = os.path.join(output_dir, 'images/')
     output_masks_dir = os.path.join(output_dir, 'masks/')
 
-    # if os.path.isdir(output_images_dir) or os.path.isdir(output_masks_dir):
-    #     print(f'Already exist a dataset with name={name} at {output_base}!', file=sys.stderr)
-    #     return 1
+    if os.path.isdir(output_images_dir) or os.path.isdir(output_masks_dir):
+        print(f'Already exist a dataset with name={name} at {output_base}!', file=sys.stderr)
+        return 1
 
     input_images_dir = os.path.join(original_dir, 'images/')
     input_masks_dir = os.path.join(original_dir, 'masks/')
@@ -104,8 +107,10 @@ def create_subdataset(name: str,
         print(f'Do not found the original dataset at {input_images_dir} or {input_masks_dir}!', file=sys.stderr)
         return 1
 
+    print('\n\n------------------------')
     if slice_images:
         slice_images = tuple(slice_images)
+        print(f'Create images and masks splitting then into {slice_images} (horizontal, vertical) parts')
         slice.images_and_masks(input_images_dir,
                                input_masks_dir,
                                output_dir,
@@ -114,33 +119,57 @@ def create_subdataset(name: str,
                                look_recursive=True)
     elif extract:
         if CCAgT_path:
+            print(f'Create images and masks for each instance of the categories {extract}')
             extract_image_and_mask_by_category(input_images_dir,
                                                input_masks_dir,
                                                output_dir,
                                                extract,
                                                CCAgT_path,
-                                               paddings,
+                                               ast.literal_eval(paddings),
                                                extensions,
                                                True)
         else:
             print('When using `--extract`, please specify the labels files with `--labels` argument', file=sys.stderr)
             return 1
     else:
+        print('The images and masks of the subdataset will be copied from the original dataset!')
         print('Coping images files...')
         shutil.copytree(input_images_dir, output_images_dir)
         print('Coping masks files...')
         shutil.copytree(input_masks_dir, output_masks_dir)
 
-    if categories_to_delete:
-        categories_to_delete = set(categories_to_delete)
-        clean_images_and_masks(output_images_dir, output_masks_dir, categories_to_delete, extensions)
+    if categories_to_keep:
+        print('------------------------')
+        print(f'Delete images that do not have the categories: {categories_to_keep} ')
+        clean_images_and_masks(output_images_dir, output_masks_dir, set(categories_to_keep), extensions)
 
     if check_if_all_have_one:
+        print('------------------------')
         check_if_all_have_one = set(check_if_all_have_one)
 
-        if delete:
-            ...
+        masks_with = masks_that_has(output_masks_dir, check_if_all_have_one, extensions, True)
+        all_masks = {basename(k): v for k, v in find_files(output_masks_dir, extensions, True).items()}
+        diff = set(all_masks.keys()) - masks_with
 
+        if len(diff) > 0:
+            print(f'A total of {len(diff)} files there is not at least one of the categories {check_if_all_have_one}',
+                  file=sys.stderr)
+
+            if delete:
+                all_images = {basename(k): v for k, v in find_files(output_images_dir, extensions, True).items()}
+                print('Deleting images and masks that do not have at least one of the selected categories...')
+                for bn in diff:
+                    os.remove(all_masks[bn])
+                    os.remove(all_images[bn])
+        else:
+            print(f'Everything is ok, having 0 files that do not have any of the categories {check_if_all_have_one}')
+    print('\n------------------------')
+    print('Creation of the subdataset finished!')
+    print(f'Dataset name: `{name}` | Location: `{output_dir}`')
+    images_quantity = len(find_files(output_images_dir, extensions, True))
+    masks_quantity = len(find_files(output_masks_dir, extensions, True))
+    print(f'Total of images: {images_quantity}')
+    print(f'Total of images: {masks_quantity}')
     return 0
 
 
@@ -183,7 +212,7 @@ def main(argv: Sequence[str] | None = None) -> int:
                                  args.check_if_all_have_at_least_one_of,
                                  args.delete,
                                  args.labels,
-                                 ast.literal_eval(args.paddings),
+                                 args.paddings,
                                  tuple(args.extensions))
 
     return 1

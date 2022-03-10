@@ -33,10 +33,9 @@ def masks_that_has(dir_masks: str,
     cpu_num = multiprocessing.cpu_count()
     workers = multiprocessing.Pool(processes=cpu_num)
 
-    # Split equals the annotations for the cpu quantity
     filenames_splitted = np.array_split(list(files), cpu_num)
-    print(f'Number of cores: {cpu_num}, masks per core: {len(filenames_splitted[0])}')
-
+    print(f'Start the checker if the masks have at least one of the categories ({categories}) using {cpu_num} cores with '
+          f'{len(filenames_splitted[0])} masks per core...')
     processes = []
     for filenames in filenames_splitted:
         msk_filenames = {files[f] for f in filenames}

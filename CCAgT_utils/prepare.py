@@ -31,11 +31,11 @@ def clean_images_and_masks(dir_images: str,
     mask_filenames_to_remove = {v for k, v in find_files(dir_masks, extension, look_recursive).items()
                                 if basename(k) not in basenames_matches}
 
-    print('Deleting images files...')
+    print(f'Deleting {len(image_filenames_to_remove)} images files...')
     for filename in image_filenames_to_remove:
         os.remove(filename)
 
-    print('Deleting masks files...')
+    print(f'Deleting {len(mask_filenames_to_remove)} masks files...')
     for filename in mask_filenames_to_remove:
         os.remove(filename)
 
@@ -95,35 +95,28 @@ def extract_image_and_mask_by_category(dir_images: str,
                                        CCAgT_path: str,
                                        paddings: int | float,
                                        extension: str | tuple[str, ...] = ('.png', '.jpg'),
-                                       look_recursive: bool = True) -> int:
-    print(f'Extracting images and masks of the categories {categories} from {dir_images} and {dir_masks}')
-
-    print(f'\tLoading labels from {CCAgT_path}')
+                                       look_recursive: bool = True) -> None:
     ccagt_annotations = CCAgT.read_parquet(CCAgT_path)
 
     df = ccagt_annotations.df.loc[ccagt_annotations.df['category_id'].isin(categories),
                                   ['image_name', 'geometry', 'category_id']]
 
     if df.empty:
-        print(f'\tNothing to process with categories {categories} from {CCAgT_path}')
-        return 0
+        print(f'Nothing to process with categories {categories} from {CCAgT_path}')
+        return
 
-    print(f'\tFinding all `{extension}` files into the directory {dir_images}...')
     image_filenames = {basename(k): v for k, v in find_files(dir_images, extension, look_recursive).items()}
-
-    print(f'\tFinding all `{extension}` files into the directory {dir_masks}...')
     mask_filenames = {basename(k): v for k, v in find_files(dir_masks, extension, look_recursive).items()}
 
-    print('\tCreating output directories...')
     slides = {slide_from_filename(i) for i in image_filenames}
     create_structure(dir_output, slides)
 
-    print('\tStart extracting into multiprocessing...')
     cpu_num = multiprocessing.cpu_count()
     workers = multiprocessing.Pool(processes=cpu_num)
 
     filenames_splitted = np.array_split(df['image_name'].unique().tolist(), cpu_num)
-    print(f'\t\tNumber of cores: {cpu_num}, images and masks per core: {len(filenames_splitted[0])}')
+    print(f'Start the extraction of each category instance at {len(image_filenames)} images/masks using {cpu_num} cores with '
+          f'{len(filenames_splitted[0])} images/masks per core...')
 
     processes = []
     for filenames in filenames_splitted:
@@ -143,8 +136,7 @@ def extract_image_and_mask_by_category(dir_images: str,
         image_counter += im_counter
         mask_counter += msk_counter
 
-    print(f'\tSuccessful create {image_counter}/{mask_counter} images/masks of categories {categories}')
-    return 0
+    print(f'Successful create {image_counter}/{mask_counter} images/masks for the instances of the categories {categories}')
 
 
 """

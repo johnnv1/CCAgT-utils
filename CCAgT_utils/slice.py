@@ -16,16 +16,16 @@ from CCAgT_utils.utils import slide_from_filename
 
 def image(input_path: str,
           output_path: str,
-          horizontal_slice_amount: int = 4,
-          vertical_slice_amount: int = 4) -> None:
+          h_quantity: int = 4,
+          v_quantity: int = 4) -> int:
     im = np.asarray(Image.open(input_path))
 
     bn, ext = os.path.splitext(basename(input_path, with_extension=True))
 
     height, width = im.shape[:2]
 
-    tile_h = height // vertical_slice_amount
-    tile_w = width // horizontal_slice_amount
+    tile_h = height // v_quantity
+    tile_w = width // h_quantity
 
     count = 1
     for y in range(0, height, tile_h):
@@ -36,29 +36,28 @@ def image(input_path: str,
                                        subsampling=0)
             count += 1
 
+    return count - 1
+
 
 @get_traceback
 def single_core_image_and_masks(image_filenames: dict[str, str],
                                 mask_filenames: dict[str, str],
                                 base_dir_output: str,
-                                horizontal_slice_amount: int = 4,
-                                vertical_slice_amount: int = 4) -> tuple[int, int]:
+                                h_quantity: int = 4,
+                                v_quantity: int = 4) -> tuple[int, int]:
     image_counter = 0
     mask_counter = 0
     for bn in image_filenames:
-        image(image_filenames[bn],
-              os.path.join(base_dir_output, 'images/', slide_from_filename(bn)),
-              horizontal_slice_amount,
-              vertical_slice_amount)
+        image_counter += image(image_filenames[bn],
+                               os.path.join(base_dir_output, 'images/', slide_from_filename(bn)),
+                               h_quantity,
+                               v_quantity)
 
         if bn in mask_filenames:
-            image(mask_filenames[bn],
-                  os.path.join(base_dir_output, 'masks/', slide_from_filename(bn)),
-                  horizontal_slice_amount,
-                  vertical_slice_amount)
-            mask_counter += 1
-
-        image_counter += 1
+            mask_counter += image(mask_filenames[bn],
+                                  os.path.join(base_dir_output, 'masks/', slide_from_filename(bn)),
+                                  h_quantity,
+                                  v_quantity)
 
     return (image_counter, mask_counter)
 
@@ -66,27 +65,21 @@ def single_core_image_and_masks(image_filenames: dict[str, str],
 def images_and_masks(dir_images: str,
                      dir_masks: str,
                      dir_output: str,
-                     horizontal_slice_amount: int = 4,
-                     vertical_slice_amount: int = 4,
-                     **kwargs: Any) -> int:
+                     h_quantity: int = 4,
+                     v_quantity: int = 4,
+                     **kwargs: Any) -> None:
 
-    print(f'Splitting images and masks from {dir_images} and {dir_masks}')
-    print(f'Splitting images and masks into {horizontal_slice_amount}x{vertical_slice_amount} parts')
     image_filenames = {basename(k): v for k, v in find_files(dir_images, **kwargs).items()}
     mask_filenames = {basename(k): v for k, v in find_files(dir_masks, **kwargs).items()}
 
-    print('Creating output directories...')
     slides = {slide_from_filename(i) for i in image_filenames}
     create_structure(dir_output, slides)
 
-    print('Start splitting into multiprocessing...')
     cpu_num = multiprocessing.cpu_count()
     workers = multiprocessing.Pool(processes=cpu_num)
-
-    # Split equals the annotations for the cpu quantity
     filenames_splitted = np.array_split(list(image_filenames), cpu_num)
-    print(f'\tNumber of cores: {cpu_num}, images and masks per core: {len(filenames_splitted[0])}')
-
+    print(f'Start the split of images and masks into {h_quantity}x{v_quantity} parts using {cpu_num} cores with '
+          f'{len(filenames_splitted[0])} images and masks per core...')
     processes = []
     for filenames in filenames_splitted:
         img_filenames = {k: image_filenames[k] for k in filenames}
@@ -94,8 +87,8 @@ def images_and_masks(dir_images: str,
         p = workers.apply_async(single_core_image_and_masks, (img_filenames,
                                                               msk_filenames,
                                                               dir_output,
-                                                              horizontal_slice_amount,
-                                                              vertical_slice_amount))
+                                                              h_quantity,
+                                                              v_quantity))
         processes.append(p)
 
     image_counter = 0
@@ -105,6 +98,5 @@ def images_and_masks(dir_images: str,
         image_counter += im_counter
         mask_counter += msk_counter
 
-    print(f'Successful sliced {image_counter} images into {horizontal_slice_amount}x{vertical_slice_amount} parts')
-    print(f'Successful sliced {mask_counter} masks into {horizontal_slice_amount}x{vertical_slice_amount} parts')
-    return 0
+    print(f'Successful splitted {len(image_filenames)}/{len(mask_filenames)} images/masks into {image_counter}/{mask_counter}'
+          ' images/masks')
