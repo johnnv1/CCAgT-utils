@@ -129,7 +129,6 @@ def find_files(dir_path: str,
         A dict with the filename as key and the relative path for the
         file
     """
-    print(f'Finding all `{extension}` files into the directory {dir_path}...')
     if look_recursive:
         files = {file: os.path.join(path, file) for path, _, files in os.walk(dir_path) for file in files
                  if file.endswith(extension) and (selection == [] or file in selection)}
@@ -137,7 +136,6 @@ def find_files(dir_path: str,
         files = {file: os.path.join(dir_path, file) for file in os.listdir(dir_path)
                  if file.endswith(extension) and (selection == [] or file in selection)}
 
-    print(f'\tFind a total of {len(files)} `{extension}` files.')
     return files
 
 

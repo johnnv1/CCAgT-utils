@@ -31,7 +31,9 @@ def image(input_path: str,
     for y in range(0, height, tile_h):
         for x in range(0, width, tile_w):
             part = im[y:y + tile_h, x:x + tile_w]
-            Image.fromarray(part).save(os.path.join(output_path, f'{bn}_{count}{ext}'))
+            Image.fromarray(part).save(os.path.join(output_path, f'{bn}_{count}{ext}'),
+                                       quality=100,
+                                       subsampling=0)
             count += 1
 
 
@@ -66,23 +68,24 @@ def images_and_masks(dir_images: str,
                      dir_output: str,
                      horizontal_slice_amount: int = 4,
                      vertical_slice_amount: int = 4,
-                     **kwargs: Any) -> None:
+                     **kwargs: Any) -> int:
 
     print(f'Splitting images and masks from {dir_images} and {dir_masks}')
     print(f'Splitting images and masks into {horizontal_slice_amount}x{vertical_slice_amount} parts')
     image_filenames = {basename(k): v for k, v in find_files(dir_images, **kwargs).items()}
     mask_filenames = {basename(k): v for k, v in find_files(dir_masks, **kwargs).items()}
 
+    print('Creating output directories...')
     slides = {slide_from_filename(i) for i in image_filenames}
-
     create_structure(dir_output, slides)
 
+    print('Start splitting into multiprocessing...')
     cpu_num = multiprocessing.cpu_count()
     workers = multiprocessing.Pool(processes=cpu_num)
 
     # Split equals the annotations for the cpu quantity
     filenames_splitted = np.array_split(list(image_filenames), cpu_num)
-    print(f'Number of cores: {cpu_num}, images and masks per core: {len(filenames_splitted[0])}')
+    print(f'\tNumber of cores: {cpu_num}, images and masks per core: {len(filenames_splitted[0])}')
 
     processes = []
     for filenames in filenames_splitted:
@@ -104,3 +107,4 @@ def images_and_masks(dir_images: str,
 
     print(f'Successful sliced {image_counter} images into {horizontal_slice_amount}x{vertical_slice_amount} parts')
     print(f'Successful sliced {mask_counter} masks into {horizontal_slice_amount}x{vertical_slice_amount} parts')
+    return 0

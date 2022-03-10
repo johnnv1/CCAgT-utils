@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import os
+import shutil
 import sys
 from typing import Sequence
 
 from CCAgT_utils import slice
 from CCAgT_utils.constants import VERSION
 from CCAgT_utils.prepare import clean_images_and_masks
+from CCAgT_utils.prepare import extract_image_and_mask_by_category
 
 
 def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
@@ -35,12 +38,21 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
                           type=int,
                           help=('Define that wants slice the images into smaller parts. Needs to pass the amount of slice '
                                 'desired for the horizontal and vertical split of the images.'))
-    group_ex.add_argument('--extract',
-                          nargs=1,
-                          metavar='CATEGORY ID',
-                          type=int,
-                          help=('Define that wants extract based on one category. Will generate one image for each instance '
-                                'of the desired category.'))
+    group_extract = group_ex.add_argument_group('Extract options')
+
+    group_extract.add_argument('--extract',
+                               nargs='*',
+                               type=int,
+                               metavar='CATEGORIES IDs',
+                               help=('Define that wants extract based on one category. Will generate one image for each '
+                                     'instance of the desired category.'))
+    group_extract.add_argument('--labels',
+                               help='Path for the CCAgT file with the labels. Just works with --extract')
+
+    group_extract.add_argument('--paddings',
+                               default=0,
+                               help=('In percent (float values) or pixels (integer values) select, the size of paddings to '
+                                     'apply. Just works with --extract'))
 
     parser.add_argument('--remove-images-without',
                         nargs='*',
@@ -70,18 +82,20 @@ def create_subdataset(name: str,
                       original_dir: str,
                       output_base: str,
                       slice_images: tuple[int, ...] | None,
-                      extract: int | str | None,
+                      extract: set[int] | None,
                       categories_to_delete: set[int] | None,
                       check_if_all_have_one: set[int] | None,
                       delete: bool,
+                      CCAgT_path: str | None,
+                      paddings: int | float,
                       extensions: tuple[str, ...] = ('.jpg', '.png')) -> int:
     output_dir = os.path.join(output_base, name)
     output_images_dir = os.path.join(output_dir, 'images/')
     output_masks_dir = os.path.join(output_dir, 'masks/')
 
-    if os.path.isdir(output_images_dir) or os.path.isdir(output_masks_dir):
-        print(f'Already exist a dataset with name={name} at {output_base}!', file=sys.stderr)
-        return 1
+    # if os.path.isdir(output_images_dir) or os.path.isdir(output_masks_dir):
+    #     print(f'Already exist a dataset with name={name} at {output_base}!', file=sys.stderr)
+    #     return 1
 
     input_images_dir = os.path.join(original_dir, 'images/')
     input_masks_dir = os.path.join(original_dir, 'masks/')
@@ -99,10 +113,23 @@ def create_subdataset(name: str,
                                extension=extensions,
                                look_recursive=True)
     elif extract:
-        ...
+        if CCAgT_path:
+            extract_image_and_mask_by_category(input_images_dir,
+                                               input_masks_dir,
+                                               output_dir,
+                                               extract,
+                                               CCAgT_path,
+                                               paddings,
+                                               extensions,
+                                               True)
+        else:
+            print('When using `--extract`, please specify the labels files with `--labels` argument', file=sys.stderr)
+            return 1
     else:
-        ...
-        # Just copy
+        print('Coping images files...')
+        shutil.copytree(input_images_dir, output_images_dir)
+        print('Coping masks files...')
+        shutil.copytree(input_masks_dir, output_masks_dir)
 
     if categories_to_delete:
         categories_to_delete = set(categories_to_delete)
@@ -155,6 +182,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                                  args.remove_images_without,
                                  args.check_if_all_have_at_least_one_of,
                                  args.delete,
+                                 args.labels,
+                                 ast.literal_eval(args.paddings),
                                  tuple(args.extensions))
 
     return 1
