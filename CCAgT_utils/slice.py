@@ -68,6 +68,8 @@ def images_and_masks(dir_images: str,
                      vertical_slice_amount: int = 4,
                      **kwargs: Any) -> None:
 
+    print(f'Splitting images and masks from {dir_images} and {dir_masks}')
+    print(f'Splitting images and masks into {horizontal_slice_amount}x{vertical_slice_amount} parts')
     image_filenames = {basename(k): v for k, v in find_files(dir_images, **kwargs).items()}
     mask_filenames = {basename(k): v for k, v in find_files(dir_masks, **kwargs).items()}
 
@@ -100,5 +102,5 @@ def images_and_masks(dir_images: str,
         image_counter += im_counter
         mask_counter += msk_counter
 
-    print(f'Successful sliced {image_counter} images into {horizontal_slice_amount}x{vertical_slice_amount}')
-    print(f'Successful sliced {mask_counter} masks into {horizontal_slice_amount}x{vertical_slice_amount}')
+    print(f'Successful sliced {image_counter} images into {horizontal_slice_amount}x{vertical_slice_amount} parts')
+    print(f'Successful sliced {mask_counter} masks into {horizontal_slice_amount}x{vertical_slice_amount} parts')
