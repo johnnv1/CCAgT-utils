@@ -26,6 +26,7 @@ def test_create_subdataset(capsys, shape):
         assert err[:36] == 'Do not found the original dataset at'
 
 
+@pytest.mark.slow
 def test_create_subdataset_with_slice(shape):
     with create.ImageMaskFiles(shape[0], shape[1], ['A_example']) as paths:
         tmp_dir, masks_dir, _ = paths
@@ -39,6 +40,7 @@ def test_create_subdataset_with_slice(shape):
         assert out == 0
 
 
+@pytest.mark.slow
 def test_create_subdataset_with_extraction(capsys, shape, ccagt_ann_single_nucleus):
     img_name = ccagt_ann_single_nucleus.df.iloc[0]['image_name']
     with create.ImageMaskFiles(shape[0], shape[1], [img_name]) as paths:

@@ -56,6 +56,7 @@ def test_not_implemented_command():
     assert exit_code == 1
 
 
+@pytest.mark.slow
 def test_main_ccagt_generate_masks(ccagt_ann_single_nucleus):
     ccagt_ann_single_nucleus.df['image_id'] = 1
     with tempfile.TemporaryDirectory() as tmp_dir:

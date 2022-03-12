@@ -232,6 +232,7 @@ def test_single_core_to_mask(nucleus_ex):
         assert os.path.isfile(os.path.join(tmp_dir, img_name + '.png'))
 
 
+@pytest.mark.slow
 def test_generate_masks(ccagt_ann_single_nucleus):
 
     ccagt_ann_single_nucleus.df['image_name'] = 'C_xx1'

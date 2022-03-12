@@ -3,6 +3,8 @@ from __future__ import annotations
 import os
 import tempfile
 
+import pytest
+
 from CCAgT_utils import checkers
 from testing import create
 
@@ -29,6 +31,7 @@ def test_single_core_mask_has(shape):
         assert o == {'test'}
 
 
+@pytest.mark.slow
 def test_masks_that_has(shape):
     with create.ImageMaskFiles(shape[0], shape[1], ['test'], create_image=False) as paths:
         _, mask_dir, _ = paths

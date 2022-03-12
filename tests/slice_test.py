@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import os
 
+import pytest
+
 from CCAgT_utils import slice
 from testing import create
 
@@ -17,6 +19,7 @@ def test_slice_image(shape):
         assert os.path.isfile(os.path.join(tmp_dir, 'example_2.png'))
 
 
+@pytest.mark.slow
 def test_single_core_image_and_masks(shape):
     with create.ImageMaskFiles(shape[0], shape[1], ['A_example']) as paths:
         tmp_dir, masks_dir, images_dir = paths
@@ -43,6 +46,7 @@ def test_single_core_image_and_masks(shape):
         assert sliced_quantity == (2, 0)
 
 
+@pytest.mark.slow
 def test_slice_image_and_masks(shape):
     with create.ImageMaskFiles(shape[0], shape[1], ['A_example']) as paths:
         tmp_dir, masks_dir, images_dir = paths

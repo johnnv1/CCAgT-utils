@@ -102,6 +102,7 @@ def test_labelbox_to_CCAgT_without_valid_geometries(lbb_raw_single_wrong_nucleus
     assert out == 0
 
 
+@pytest.mark.slow
 def test_ccagt_generate_masks(ccagt_ann_single_nucleus):
     ccagt_ann_single_nucleus.df['image_id'] = 1
     with tempfile.TemporaryDirectory() as tmp_dir:

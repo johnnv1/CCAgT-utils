@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import matplotlib.pyplot as plt
+import pytest
 from matplotlib.testing.decorators import image_comparison
 
 from CCAgT_utils.visualization import plot
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @image_comparison(baseline_images=['boxes_plot'], extensions=['png'])
 def test_bbox(boxes, get_color_rgba_norm, get_categories_name, shape):
     plt.close('all')
@@ -19,7 +20,7 @@ def test_bbox(boxes, get_color_rgba_norm, get_categories_name, shape):
               get_categories_name=get_categories_name, without_text=set({3}))
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @image_comparison(baseline_images=['image_with_boxes_plot'], extensions=['png'])
 def test_image_with_boxes(rgb_image, boxes, get_color_rgba_norm):
     plt.close('all')
@@ -27,7 +28,7 @@ def test_image_with_boxes(rgb_image, boxes, get_color_rgba_norm):
     plot.image_with_boxes(rgb_image, boxes, ax, get_color_rgba_norm)
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @image_comparison(baseline_images=['mask_with_color_plot'], extensions=['png'])
 def test_mask_with_color_cmap(mask, get_color_rgba_norm):
     plt.close('all')
@@ -35,7 +36,7 @@ def test_mask_with_color_cmap(mask, get_color_rgba_norm):
     plot.mask_with_color(mask, ax, get_color_rgba_norm)
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 @image_comparison(baseline_images=['mask_with_color_plot'], extensions=['png'])
 def test_mask_with_color_colorized(mask, get_color_rgb):
     plt.close('all')

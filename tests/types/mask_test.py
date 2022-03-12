@@ -45,6 +45,7 @@ def test_save(mask):
     assert np.array_equal(mask.categorical, msk)
 
 
+@pytest.mark.slow
 def test_save_colorized(mask, get_color_rgb):
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_path = os.path.join(tmp_dir, 'test_colorized.png')

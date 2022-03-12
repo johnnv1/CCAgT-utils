@@ -2,12 +2,14 @@ from __future__ import annotations
 
 import shutil
 
+import pytest
+
 from CCAgT_utils.categories import Helper
 from CCAgT_utils.visualization import _show
 from testing import create
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_image_and_mask(remove_plt_show, ccagt_ann_multi, categories_aux_data, shape):
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
@@ -27,7 +29,7 @@ def test_image_and_mask(remove_plt_show, ccagt_ann_multi, categories_aux_data, s
     assert out2 == 0
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_image_and_mask_not_found(capsys, ccagt_ann_multi, categories_aux_data, shape):
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
@@ -53,7 +55,7 @@ def test_image_and_mask_not_found(capsys, ccagt_ann_multi, categories_aux_data, 
     assert 'Not found the image' in err2
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_image_with_boxes(ccagt_ann_multi, categories_aux_data, shape, remove_plt_show):
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names, create_mask=False) as paths:
@@ -73,7 +75,7 @@ def test_image_with_boxes(ccagt_ann_multi, categories_aux_data, shape, remove_pl
     assert out2 == 0
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_image_with_boxes_not_found(capsys, ccagt_ann_multi, categories_aux_data, shape, remove_plt_show):
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names, create_mask=False) as paths:
@@ -91,7 +93,7 @@ def test_image_with_boxes_not_found(capsys, ccagt_ann_multi, categories_aux_data
     assert 'Not found the image' in err
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_image_with_boxes_and_mask(remove_plt_show, ccagt_ann_multi, categories_aux_data, shape):
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:

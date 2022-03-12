@@ -247,17 +247,17 @@ def coco_ann_single_nucleus(nucleus_ex):
              'iscrowd': 0}]
 
 
-# def pytest_addoption(parser):
-#     parser.addoption("--skip-slow", action="store_true", default=False, help="this will skip the slow tests")
+def pytest_addoption(parser):
+    parser.addoption('--skip-slow', action='store_true', default=False, help='this will skip the slow tests')
 
 
-# def pytest_configure(config):
-#     config.addinivalue_line("markers", "slow: mark test as slow to run")
+def pytest_configure(config):
+    config.addinivalue_line('markers', 'slow: mark test as slow to run')
 
 
-# def pytest_collection_modifyitems(config, items):
-#     if config.getoption("--skip-slow"):
-#         skip_slow = pytest.mark.skip(reason="--skip-slow option activated")
-#         for item in items:
-#             if "slow" in item.keywords:
-#                 item.add_marker(skip_slow)
+def pytest_collection_modifyitems(config, items):  # pragma: no cover
+    if config.getoption('--skip-slow'):
+        skip_slow = pytest.mark.skip(reason='--skip-slow option activated')
+        for item in items:
+            if 'slow' in item.keywords:
+                item.add_marker(skip_slow)

@@ -33,7 +33,7 @@ def test_not_implemented_command():
     assert exit_code == 1
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_main_show_images_with_boxes(ccagt_ann_multi, lbb_raw_sample_complete, ccagt_aux_data):
     with create.RawAuxFiles(lbb_raw_sample_complete, ccagt_aux_data) as paths:
         temp_dir, _, aux_path = paths
@@ -45,7 +45,7 @@ def test_main_show_images_with_boxes(ccagt_ann_multi, lbb_raw_sample_complete, c
     assert out == 0
 
 
-# @pytest.mark.slow
+@pytest.mark.slow
 def test_main_show_image_and_mask(ccagt_ann_multi, lbb_raw_sample_complete, ccagt_aux_data):
     with create.RawAuxFiles(lbb_raw_sample_complete, ccagt_aux_data) as paths:
         temp_dir, _, aux_path = paths
