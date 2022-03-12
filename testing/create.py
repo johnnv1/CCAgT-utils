@@ -59,22 +59,35 @@ class RawAuxFiles():
 
 
 class ImageMaskFiles():
-    def __init__(self, height: int = 1000, width: int = 1000, names: list[str] = ['example']) -> None:
+    def __init__(self,
+                 height: int = 1000,
+                 width: int = 1000,
+                 names: list[str] = ['example'],
+                 create_image: bool = True,
+                 create_mask: bool = True) -> None:
         self.tmp_dir = tempfile.TemporaryDirectory('_ImageMaskFiles', 'CCAgTutils_')
-        self.mask_dir = os.path.join(self.tmp_dir.name, 'masks/')
-        self.image_dir = os.path.join(self.tmp_dir.name, 'images/')
-        os.makedirs(self.mask_dir, exist_ok=True)
-        os.makedirs(self.image_dir, exist_ok=True)
 
-        self.__mask = mask_categorical((height, width))
-        self.__image = mask_colorized((height, width))
-        img = Image.fromarray(self.__image)
-        msk = Image.fromarray(self.__mask)
+        self.image_dir = os.path.join(self.tmp_dir.name, 'images/')
+        self.mask_dir = os.path.join(self.tmp_dir.name, 'masks/')
+
+        if create_mask:
+            os.makedirs(self.mask_dir, exist_ok=True)
+            self.__mask = mask_categorical((height, width))
+            msk = Image.fromarray(self.__mask)
+
+        if create_image:
+            os.makedirs(self.image_dir, exist_ok=True)
+            self.__image = mask_colorized((height, width))
+            img = Image.fromarray(self.__image)
+
         for name in names:
-            self.mask_path = os.path.join(self.mask_dir, f'{name}.png')
-            self.image_path = os.path.join(self.image_dir, f'{name}.jpg')
-            img.save(self.image_path)
-            msk.save(self.mask_path)
+            if create_mask:
+                self.mask_path = os.path.join(self.mask_dir, f'{name}.png')
+                msk.save(self.mask_path)
+
+            if create_image:
+                self.image_path = os.path.join(self.image_dir, f'{name}.jpg')
+                img.save(self.image_path)
 
     def __enter__(self) -> tuple[str, str, str]:
 

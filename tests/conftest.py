@@ -8,6 +8,7 @@ from shapely.geometry import Polygon
 
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.converters.LabelBox import LabelBox
+from CCAgT_utils.types.annotation import Annotation
 from CCAgT_utils.types.mask import Mask
 from CCAgT_utils.visualization import colors
 from testing import create
@@ -113,6 +114,11 @@ def cluster_ex():
 
 
 @pytest.fixture
+def annotations_ex(nucleus_ex, cluster_ex):
+    return [Annotation(nucleus_ex, 1), Annotation(cluster_ex, 2)]
+
+
+@pytest.fixture
 def cluster_mask_ex():
     out = np.zeros((20, 20), dtype=np.uint8)
     out[10:16, 10:16] = 2
@@ -209,6 +215,11 @@ def ccagt_df_multi(nucleus_ex, cluster_ex, satellite_ex):
          create.row_CCAgT(nucleus_ex, 1, 'B_xx1'),
          create.row_CCAgT(nucleus_ex, 1, 'B_xx1')]
     return pd.DataFrame(d)
+
+
+@pytest.fixture
+def ccagt_df_single_nucleus(nucleus_ex):
+    return pd.DataFrame([create.row_CCAgT(nucleus_ex, 1, 'C_xx1')])
 
 
 @pytest.fixture
