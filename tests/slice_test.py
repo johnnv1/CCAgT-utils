@@ -24,10 +24,10 @@ def test_single_core_image_and_masks(shape):
         imgs = {'A_example': os.path.join(images_dir, 'A_example.jpg')}
         msks = {'A_example': os.path.join(masks_dir, 'A_example.png')}
 
-        masks_dir_out = os.path.join(masks_dir, 'A/')
+        masks_dir_out = os.path.join(masks_dir, 'A')
         os.makedirs(masks_dir_out)
 
-        images_dir_out = os.path.join(images_dir, 'A/')
+        images_dir_out = os.path.join(images_dir, 'A')
         os.makedirs(images_dir_out)
 
         sliced_quantity = slice.single_core_image_and_masks(imgs, msks, tmp_dir, 1, 2)
@@ -48,7 +48,7 @@ def test_slice_image_and_masks(shape):
         tmp_dir, masks_dir, images_dir = paths
         slice.images_and_masks(images_dir, masks_dir, tmp_dir, 1, 2, extension=('.png', '.jpg'))
 
-        assert os.path.isfile(os.path.join(masks_dir, 'A/', 'A_example_1.png'))
-        assert os.path.isfile(os.path.join(masks_dir, 'A/', 'A_example_2.png'))
-        assert os.path.isfile(os.path.join(images_dir, 'A/', 'A_example_1.jpg'))
-        assert os.path.isfile(os.path.join(images_dir, 'A/', 'A_example_2.jpg'))
+        assert os.path.isfile(os.path.join(masks_dir, 'A', 'A_example_1.png'))
+        assert os.path.isfile(os.path.join(masks_dir, 'A', 'A_example_2.png'))
+        assert os.path.isfile(os.path.join(images_dir, 'A', 'A_example_1.jpg'))
+        assert os.path.isfile(os.path.join(images_dir, 'A', 'A_example_2.jpg'))

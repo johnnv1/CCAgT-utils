@@ -44,7 +44,7 @@ def test_slide_from_filename():
 def test_find_files():
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        subdir = os.path.join(tmpdir, 'test/')
+        subdir = os.path.join(tmpdir, 'test')
         os.makedirs(subdir)
         filename_txt = os.path.join(tmpdir, 'file.txt')
         f = open(filename_txt, 'w')
@@ -68,5 +68,5 @@ def test_create_structure():
     with tempfile.TemporaryDirectory() as tmpdir:
 
         utils.create_structure(tmpdir, {'A'})
-        assert os.path.isdir(os.path.join(tmpdir, 'images/A/'))
-        assert os.path.isdir(os.path.join(tmpdir, 'masks/A/'))
+        assert os.path.isdir(os.path.join(tmpdir, 'images', 'A'))
+        assert os.path.isdir(os.path.join(tmpdir, 'masks', 'A'))

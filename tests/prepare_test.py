@@ -11,10 +11,10 @@ def test_clean_images_and_masks(shape):
         tmp_dir, masks_dir, images_dir = paths
         prepare.clean_images_and_masks(images_dir, masks_dir, {0})
 
-        assert os.path.isfile(os.path.join(masks_dir, 'A/', 'A_example_1.png')) is False
-        assert os.path.isfile(os.path.join(masks_dir, 'A/', 'A_example_2.png')) is False
-        assert os.path.isfile(os.path.join(images_dir, 'A/', 'A_example_1.jpg')) is False
-        assert os.path.isfile(os.path.join(images_dir, 'A/', 'A_example_2.jpg')) is False
+        assert os.path.isfile(os.path.join(masks_dir, 'A', 'A_example_1.png')) is False
+        assert os.path.isfile(os.path.join(masks_dir, 'A', 'A_example_2.png')) is False
+        assert os.path.isfile(os.path.join(images_dir, 'A', 'A_example_1.jpg')) is False
+        assert os.path.isfile(os.path.join(images_dir, 'A', 'A_example_2.jpg')) is False
 
 
 def test_extract_category_from_image_file(shape, annotations_ex):
@@ -37,10 +37,10 @@ def test_single_core_extract_image_and_masks(shape, ccagt_df_single_nucleus):
         imgs = {img_name: os.path.join(images_dir, f'{img_name}.jpg')}
         msks = {img_name: os.path.join(masks_dir, f'{img_name}.png')}
 
-        masks_dir_out = os.path.join(masks_dir, f'{slide}/')
+        masks_dir_out = os.path.join(masks_dir, f'{slide}')
         os.makedirs(masks_dir_out)
 
-        images_dir_out = os.path.join(images_dir, f'{slide}/')
+        images_dir_out = os.path.join(images_dir, f'{slide}')
         os.makedirs(images_dir_out)
 
         extracted_quantity = prepare.single_core_extract_image_and_masks(imgs, msks, ccagt_df_single_nucleus, tmp_dir, 0)
