@@ -101,6 +101,11 @@ def test_bounds_to_BBox(bbox_example, bbox_params):
     assert bbox_example == annotation.bounds_to_BBox(bounds, bbox_params['category_id'])
 
 
+def test_slices(bbox_example, bbox_params):
+    assert bbox_example.slice_y == slice(bbox_params['y_init'], bbox_params['y_end'])
+    assert bbox_example.slice_x == slice(bbox_params['x_init'], bbox_params['x_end'])
+
+
 def test_count_BBox_categories(bbox_example):
     cat_id_example = bbox_example.category_id
     bbox_example1 = copy.copy(bbox_example)
@@ -117,6 +122,62 @@ def test_count_BBox_categories(bbox_example):
     counter = annotation.count_BBox_categories(items, categories_names)
 
     assert counter == {f'cat {cat_id_example}': 3, f'cat {cat_id_example1}': 2}
+
+
+def test_fit_inside(bbox_example, bbox_params):
+    x_init, y_init, x_end, y_end = (bbox_params['x_init'], bbox_params['y_init'],
+                                    int(bbox_params['x_end'] * 0.8), int(bbox_params['y_end'] * 0.8))
+
+    bbox_example.fit_inside((x_init, y_init, x_end, y_end))
+
+    assert bbox_example.x_init == x_init
+    assert bbox_example.y_init == y_init
+    assert bbox_example.x_end == x_end
+    assert bbox_example.y_end == y_end
+
+
+def test_add_padding(bbox_example):
+    bbox_example1 = copy.copy(bbox_example)
+    bbox_example1.add_padding()
+    assert bbox_example1.coords == bbox_example.coords
+
+    with pytest.raises(TypeError):
+        bbox_example.add_padding('1')
+
+
+@pytest.mark.parametrize('padding', [1, 5, 50, 5000])
+def test_add_padding_in_pixel(bbox_example, bbox_params, padding):
+    x_init_expected = bbox_params['x_init'] - padding
+    y_init_expected = bbox_params['y_init'] - padding
+    x_end_expected = bbox_params['x_end'] + padding
+    y_end_expected = bbox_params['y_end'] + padding
+    bbox_example.add_padding(padding, (x_init_expected - 100,
+                                       y_init_expected - 100,
+                                       x_end_expected + 100,
+                                       y_end_expected + 100))
+
+    assert bbox_example.x_init == x_init_expected
+    assert bbox_example.y_init == y_init_expected
+    assert bbox_example.x_end == x_end_expected
+    assert bbox_example.y_end == y_end_expected
+
+
+@pytest.mark.parametrize('padding', [.1, .5, 5.0, 50.00])
+def test_add_padding_in_percentage(bbox_example, bbox_params, padding):
+    x_init_expected = int(bbox_params['x_init'] - (bbox_params['width'] * padding))
+    y_init_expected = int(bbox_params['y_init'] - (bbox_params['height'] * padding))
+    x_end_expected = int(bbox_params['x_end'] + (bbox_params['width'] * padding))
+    y_end_expected = int(bbox_params['y_end'] + (bbox_params['height'] * padding))
+
+    bbox_example.add_padding(padding, (x_init_expected - 100,
+                                       y_init_expected - 100,
+                                       x_end_expected + 100,
+                                       y_end_expected + 100))
+
+    assert bbox_example.x_init == x_init_expected
+    assert bbox_example.y_init == y_init_expected
+    assert bbox_example.x_end == x_end_expected
+    assert bbox_example.y_end == y_end_expected
 
 
 def test_annotation_bbox(nucleus_ex):

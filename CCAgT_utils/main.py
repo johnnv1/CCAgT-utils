@@ -202,7 +202,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     elif args.command == 'help':
         parser.parse_args(['--help'])
 
-    if args.command == 'create-subdataset':
+    if args.command == 'create-subdataset' and args.name != '':
         return create_subdataset(str(args.name),
                                  str(args.original),
                                  str(args.output),

@@ -137,27 +137,3 @@ def extract_image_and_mask_by_category(dir_images: str,
         mask_counter += msk_counter
 
     print(f'Successful create {image_counter}/{mask_counter} images/masks for the instances of the categories {categories}')
-
-
-"""
-TODO: Entry point
-
-CCAgT-utils create-subdataset --name <name> (--slice-images [(horizontal), (vertical)] | --extract <category id>)--original
-<path to original dataset with images/ and masks/ dirs> --remove-images-without Sequence[categories ids] --output-path <path
-to local to create the new subdataset> --check-if-all-have-at-least-one-of Sequence[categories ids]
-
-D2
-CCAgT-utils create-subdataset --name Dataset2 --slice-images [4, 4] --original <2.1.1/original/> --remove-images-without
-[1,2,3,4,5,6,7] --output-path <2.1.1/>
-
-D3
-CCAgT-utils create-subdataset --name Dataset3 --original <2.1.1/original/> --remove-images-without [1] --output-path <2.1.1/>
---check-if-all-have-at-least-one-of {2, 3}
-
-D4
-CCAgT-utils create-subdataset --name Dataset4 --slice-images [4, 4] --original <2.1.1/original/> --remove-images-without [1]
---output-path <2.1.1/> --check-if-all-have-at-least-one-of {2, 3}
-
-D5
-CCAgT-utils create-subdataset --name Dataset5 --extract 1 --check-if-all-have-at-least-one-of {2, 3}
-"""

@@ -56,7 +56,7 @@ def test_image_and_mask_not_found(capsys, ccagt_ann_multi, categories_aux_data, 
 # @pytest.mark.slow
 def test_image_with_boxes(ccagt_ann_multi, categories_aux_data, shape, remove_plt_show):
     names = ccagt_ann_multi.df['image_name'].unique()
-    with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
+    with create.ImageMaskFiles(shape[0], shape[1], names, create_mask=False) as paths:
         _, _, image_dir = paths
         _params = {'CCAgT_ann': ccagt_ann_multi,
                    'CCAgT_helper': Helper(categories_aux_data),
@@ -76,7 +76,7 @@ def test_image_with_boxes(ccagt_ann_multi, categories_aux_data, shape, remove_pl
 # @pytest.mark.slow
 def test_image_with_boxes_not_found(capsys, ccagt_ann_multi, categories_aux_data, shape, remove_plt_show):
     names = ccagt_ann_multi.df['image_name'].unique()
-    with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
+    with create.ImageMaskFiles(shape[0], shape[1], names, create_mask=False) as paths:
         _, _, image_dir = paths
         _params = {'CCAgT_ann': ccagt_ann_multi,
                    'CCAgT_helper': Helper(categories_aux_data),
