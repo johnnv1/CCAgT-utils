@@ -113,7 +113,7 @@ def slide_from_filename(filename: str) -> str:
 def find_files(dir_path: str,
                extension: str | tuple[str, ...],
                look_recursive: bool = False,
-               selection: list[str] = []) -> dict[str, str]:
+               selection: set[str] = set()) -> dict[str, str]:
     """Find all files into at the path and subdirectories
 
     Parameters
@@ -131,10 +131,10 @@ def find_files(dir_path: str,
     """
     if look_recursive:
         files = {file: os.path.join(path, file) for path, _, files in os.walk(dir_path) for file in files
-                 if file.endswith(extension) and (selection == [] or file in selection)}
+                 if file.endswith(extension) and (selection == {} or file in selection)}
     else:
         files = {file: os.path.join(dir_path, file) for file in os.listdir(dir_path)
-                 if file.endswith(extension) and (selection == [] or file in selection)}
+                 if file.endswith(extension) and (selection == {} or file in selection)}
 
     return files
 
