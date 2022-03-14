@@ -2,6 +2,7 @@
 [![Code coverage Status](https://codecov.io/gh/johnnv1/CCAgT-utils/branch/main/graph/badge.svg?token=HB8P4BKTZ7)](https://codecov.io/gh/johnnv1/CCAgT-utils)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/johnnv1/CCAgT-utils/main.svg)](https://results.pre-commit.ci/latest/github/johnnv1/CCAgT-utils/main)
 [![main status](https://github.com/johnnv1/CCAgT-utils/actions/workflows/main.yml/badge.svg)](https://github.com/johnnv1/CCAgT-utils/actions/workflows/main.yml)
+[![DOI](https://zenodo.org/badge/456516174.svg)](https://zenodo.org/badge/latestdoi/456516174)
 
 # CCAgT-utils
 
