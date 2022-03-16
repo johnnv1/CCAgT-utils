@@ -65,3 +65,8 @@ def test_from_image_files(shape, tmpdir):
     assert np.array_equal(stats.max, np.max(image, axis=(0, 1)))
     assert np.array_equal(stats.min, np.min(image, axis=(0, 1)))
     assert stats.count == 2
+
+
+def test_from_image_files_empty(tmpdir):
+    stats = describe.from_image_files(tmpdir, '.WrongExtension')
+    assert stats.count == 0
