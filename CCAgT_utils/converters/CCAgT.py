@@ -12,6 +12,7 @@ from shapely.geometry import box
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
 
+from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.converters.COCO import COCO_OD
 from CCAgT_utils.converters.masks import annotations_to_mask
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
@@ -397,6 +398,36 @@ class CCAgT():
 
         workers.close()
         workers.join()
+
+    def to_PS_COCO(self, categories_infos: CategoriesInfos) -> None:
+        # image_names = self.df['image_name'].unique().tolist()
+
+        cols = self.df.columns
+        if not all(c in cols for c in ['image_id']):
+            raise KeyError('The dataframe need to have the columns `image_id`!')
+
+        # annotations_panoptic = []
+        # for img_id, df_by_img in self.df.groupby('image_id'):
+            # img_name = df_by_img.iloc[0]['image_name']
+            # pan_format = np.zeros((self.IMAGE_HEIGHT, self.IMAGE_WIDTH, 3), dtype=np.uint8)
+            # panoptic_record = {'image_id': int(img_id),
+            #                    'file_name': basename(img_name) + '.png'}
+            # segments_info = []
+            # for cat in DRAW_ORDER:
+            # ---- if cat == Categories.BACKGROUND:
+            # ---- ---- continue
+
+            # ---- category_info = categories_infos.get_cat_info(cat)
+            # ---- Get annotations for this category
+            # ---- For each annotation
+            # ---- ----  Generate a random color and a id based on the color
+            # ---- ----  Write the the annotation into the output mask based on the generated color
+            # ---- ----  Append into segments_info the annotation info -> a dict with
+            # ---- ---- ---- "id": int, "category_id": int, "area": int, "bbox": [x,y,width,height], "iscrowd": 0 or 1,
+            # add to panoptic_record the "segments_info"
+            # append to annotations_panoptic the panoptic_record
+            # Save the mask into the file
+        #
 
     # TODO: Split data into train validation and test
 

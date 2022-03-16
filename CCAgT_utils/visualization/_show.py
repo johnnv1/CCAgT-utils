@@ -25,7 +25,7 @@ def __search_all_files(dir_path: str) -> dict[str, str]:
 
 
 def image_with_boxes(CCAgT_ann: CCAgT,
-                     CCAgT_helper: categories.Helper,
+                     CCAgT_helper: categories.CategoriesInfos,
                      dir_path: str,
                      images_extension: str,
                      images_names: list[str] = [],
@@ -82,7 +82,7 @@ def image_with_boxes(CCAgT_ann: CCAgT,
 
 
 def image_and_mask(CCAgT_ann: CCAgT,
-                   CCAgT_helper: categories.Helper,
+                   CCAgT_helper: categories.CategoriesInfos,
                    dir_path: str,
                    dir_mask_path: str,
                    images_extension: str,
@@ -152,7 +152,7 @@ def image_and_mask(CCAgT_ann: CCAgT,
 
 
 def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
-                              CCAgT_helper: categories.Helper,
+                              CCAgT_helper: categories.CategoriesInfos,
                               dir_path: str,
                               dir_mask_path: str,
                               images_extension: str,

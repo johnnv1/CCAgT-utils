@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
@@ -19,25 +20,77 @@ class Categories(Enum):
     LEUKOCYTE_NUCLEUS = 7
 
 
-class Helper():
+CATS_COLORS = {
+    Categories.BACKGROUND: [0, 0, 0],
+    Categories.NUCLEUS: [21, 62, 125],
+    Categories.CLUSTER: [114, 67, 144],
+    Categories.SATELLITE: [254, 166, 0],
+    Categories.NUCLEUS_OUT_OF_FOCUS: [26, 167, 238],
+    Categories.OVERLAPPED_NUCLEI: [39, 91, 82],
+    Categories.NON_VIABLE_NUCLEUS: [5, 207, 192],
+    Categories.LEUKOCYTE_NUCLEUS: [255, 0, 0]
+}
 
+CATS_MIN_AREA = {
+    Categories.BACKGROUND: 0,
+    Categories.NUCLEUS: 500,
+    Categories.CLUSTER: 40,
+    Categories.SATELLITE: 30,
+    Categories.NUCLEUS_OUT_OF_FOCUS: 500,
+    Categories.OVERLAPPED_NUCLEI: 500,
+    Categories.NON_VIABLE_NUCLEUS: 200,
+    Categories.LEUKOCYTE_NUCLEUS: 200
+}
+
+
+@dataclass
+class CategoryInfo:
+    """
+    id: unique id for each category
+    name: name of the category
+    color: the RGB values for the representations of each category
+    labelbox_schemaId: The schemaID from labelbox of each category
+    minimal_area: The minimal area that the category can have
+    supercategory: The name of the supercategory, if the category
+        belongs to a supercategory (ex.: Animal is a supercategory
+        for dog)
+    isthing: Defines if the categories is a stuff or a thing. A thing
+        is a countable object, a category that has instance-level
+        annotation. The stuff is amorphous region of similar texture,
+        its a category without instance-level annotation. Specified as
+        0 for stuff and 1 for things.
+    """
+    id: int
+    name: str
+    color: list[int] | str
+    labelbox_schemaId: str | None = None
+    minimal_area: int = 0
+    supercategory: str | None = None
+    isthing: int = 1
+
+
+class CategoriesInfos():
     def __init__(self,
-                 raw_helper: list[dict[str, Any]]) -> None:
+                 categories_info: list[dict[str, Any]] | None = None) -> None:
+        if isinstance(categories_info, list):
+            self.__check_id_names()
 
-        if not isinstance(raw_helper, list):
-            raise ValueError('Expected a list of dictionary that represents raw helper data!')
+            if all((x['id'] != 0 and x['name'].lower() != 'background') for x in categories_info):
+                categories_info.append({'id': 0,
+                                        'color': [0, 0, 0],
+                                        'name': 'background',
+                                        'minimal_area': 0})
 
-        self.raw_helper = raw_helper[:]
+        else:
+            categories_info = [{'color': CATS_COLORS[cat],
+                                'name': cat.name,
+                                'id': cat.value,
+                                'minimal_area': CATS_MIN_AREA[cat]}
+                               for cat in Categories]
 
-        self.__check_id_names()
-
-        if all((x['id'] != 0 and x['name'].lower() != 'background') for x in self.raw_helper):
-            self.raw_helper.append({
-                'id': 0,
-                'color': [0, 0, 0],
-                'name': 'background',
-                'minimal_area': 0
-            })
+        self._infos = [CategoryInfo(**itens) for itens in categories_info]
+        self.taken_colors = {cat_info.color for cat_info in self._infos if cat_info.isthing == 0}
+        self.taken_colors.add([0, 0, 0])
 
     def __check_id_names(self) -> None:
         for id, name in self.name_by_category_id.items():
@@ -47,28 +100,61 @@ class Helper():
 
     @property
     def min_area_by_category_id(self) -> dict[int, int]:
-        return {int(x['id']): int(x['minimal_area']) for x in self.raw_helper}
+        return {x.id: x.minimal_area for x in self._infos}
 
     @property
     def name_by_category_id(self) -> dict[int, str]:
-        return {int(x['id']): str(x['name']) for x in self.raw_helper}
+        return {x.id: x.name for x in self._infos}
 
     @property
     def colors_by_category_id(self) -> dict[int, list[int] | list[float]]:
-        def force_rgb(c: list[int] | list[float] | str) -> list[int] | list[float]:
-            if isinstance(c, list):
-                if len(c) in {3, 4}:
-                    return c
-            elif isinstance(c, str):
-                if c.startswith('#'):
-                    return colors.hex_to_rgb(c)
+        return {x.id: colors.force_rgb(x.color) for x in self._infos}
 
-            raise TypeError('Unexpected type of color, expected color into RGB list/tuple or HEX string!')
+    # Based on https://github.com/cocodataset/panopticapi/blob/7bb4655548f98f3fedc07bf37e9040a992b054b0/panopticapi/utils.py#L42
+    def generate_random_color(self, category_id: int) -> list[int]:
+        cat_info = self.cat_info_from_id(category_id)
+        base_color = colors.force_rgb(cat_info.color)
 
-        return {int(x['id']): force_rgb(x['color']) for x in self.raw_helper}
+        if cat_info.isthing == 0:
+            return base_color
+        elif base_color not in self.taken_colors:
+            self.taken_colors.add(base_color)
+            return base_color
+        else:
+            while True:
+                color = colors.random_color_from_base(base_color)
+                if color not in self.taken_colors:
+                    self.taken_colors.add(color)
+                    return color
+
+    def cat_info_from_id(self, category_id: int) -> CategoryInfo:
+        for cat_info in self._infos:
+            if cat_info.id == category_id:
+                return cat_info
+        else:
+            raise KeyError('Category ID not found!')
+
+    def get_cat_info(self, category: Categories) -> CategoryInfo:
+        for cat_info in self._infos:
+            if cat_info.id == category.value:
+                return cat_info
+        else:
+            raise KeyError('Category ID not found!')
+
+    def __iter__(self) -> CategoriesInfos:
+        self._idx = 0
+        return self
+
+    def __next__(self) -> CategoryInfo:
+        if self._idx < len(self._infos):
+            out = self._infos[self._idx]
+            self._idx += 1
+            return out
+        else:
+            raise StopIteration
 
 
-def read_json(filename: str, **kwargs: Any) -> Helper:
+def read_json(filename: str, **kwargs: Any) -> CategoriesInfos:
     if not filename.endswith('.json'):
         raise FileTypeError('The auxiliary file is not a JSON file.')
 
@@ -77,4 +163,4 @@ def read_json(filename: str, **kwargs: Any) -> Helper:
 
     categories_helpper = dataset_helper['categories']
 
-    return Helper(categories_helpper)
+    return CategoriesInfos(categories_helpper)
