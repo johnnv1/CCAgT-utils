@@ -49,7 +49,7 @@ def from_array(array: np.ndarray) -> Statistics:
 @get_traceback
 def single_core_from_image_files(filenames: list[str]) -> Statistics:
     if len(filenames) == 0:
-        raise
+        raise ValueError('It was expected a list of filenames with at least one value.')
 
     out_stats = Statistics()
     for filename in filenames:
@@ -102,6 +102,9 @@ def from_image_files(images_dir: str,
 
     processes = []
     for filenames in filenames_splitted:
+        if len(filenames) == 0:
+            continue
+
         p = workers.apply_async(single_core_from_image_files, (filenames.tolist(), ))
         processes.append(p)
 
@@ -109,5 +112,7 @@ def from_image_files(images_dir: str,
     for p in processes:
         out_stats.join_stats(p.get())
 
-    print(f'Successfully computed the statstics of {out_stats.count} files!')
+    print(f'Successfully computed the statstics of {out_stats.count} files with {len(processes)} processes!')
     return out_stats
+
+# TODO: add describe for CCAgT Annotations
