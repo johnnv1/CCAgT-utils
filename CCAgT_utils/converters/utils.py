@@ -92,9 +92,8 @@ def __prepare_data(CCAgT_ann: CCAgT,
     df['slide_id'] = CCAgT_ann.get_slide_id()
 
     print('\tDeleting annotations based on the minimal area settet at auxiliary file.')
-    ccagt_helper = categories.CategoriesInfos(categories_helper_raw)
-    min_area = ccagt_helper.min_area_by_category_id
-    df = CCAgT_ann.delete_by_area(min_area)
+    categories_infos = categories.CategoriesInfos(categories_helper_raw)
+    df = CCAgT_ann.delete_by_area(categories_infos)
 
     print('\tSearching intersections of nuclei with NORs labels (category id in [1] and [2, 3])...')
     df_base_intersects_target = CCAgT_ann.verify_if_intersects(base_categories_id={1}, target_categories_id={2, 3})

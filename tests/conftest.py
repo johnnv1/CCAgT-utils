@@ -6,6 +6,7 @@ import pytest
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
+from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.converters.LabelBox import LabelBox
 from CCAgT_utils.types.annotation import Annotation
@@ -49,6 +50,11 @@ def categories_aux_data(get_color_rgb, get_categories_name, get_min_area):
              'labelbox_schemaId': f'<Unique ID for category {get_categories_name[cat_id]}>',
              'minimal_area': get_min_area[cat_id],
              'supercategory': ''} for cat_id, c in get_color_rgb.items()]
+
+
+@pytest.fixture
+def categories_infos(categories_aux_data):
+    return CategoriesInfos(categories_aux_data)
 
 
 @pytest.fixture

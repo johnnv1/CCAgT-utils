@@ -124,29 +124,29 @@ class CCAgT():
         return col.cat.codes + 1
 
     def delete_by_area(self,
-                       minimal_area: dict[int, int],
+                       categories_infos: CategoriesInfos,
                        ignore_categories: set[int] = set({})) -> pd.DataFrame:
         if 'area' not in self.df.columns:
             self.df['area'] = self.geometries_area()
 
         categories_at_df = self.df['category_id'].unique()
 
-        for category_id, min_area in minimal_area.items():
-            if category_id in ignore_categories or category_id not in categories_at_df:
+        for cat_info in categories_infos:
+            if cat_info.id in ignore_categories or cat_info.id not in categories_at_df:
                 continue
 
-            df_filtered = self.df[self.df['category_id'] == category_id]
+            df_filtered = self.df[self.df['category_id'] == cat_info.id]
             length_before = df_filtered.shape[0]
 
-            cleaned_by_area = df_filtered[df_filtered['area'] >= min_area]
+            cleaned_by_area = df_filtered[df_filtered['area'] >= cat_info.minimal_area]
 
             length_after = cleaned_by_area.shape[0]
             dif = length_before - length_after
 
             if dif > 0:
-                self.df = self.df[self.df['category_id'] != category_id].append(cleaned_by_area)
+                self.df = self.df[self.df['category_id'] != cat_info.id].append(cleaned_by_area)
 
-                print(f'ATTENTION | {dif} items has been removed from category with id {category_id}')
+                print(f'ATTENTION | {dif} items has been removed from category with id {cat_info.id}')
 
         return self.df
 

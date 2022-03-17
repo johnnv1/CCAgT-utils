@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
 
+from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.types.colors import Color
 
 
@@ -145,10 +146,10 @@ def bounds_to_BBox(bounds: tuple[float], category_id: int) -> BBox:
 
 
 def count_BBox_categories(items: list[BBox],
-                          get_categories_name: dict[int, str]) -> dict[str, int]:
+                          categories_infos: CategoriesInfos) -> dict[str, int]:
     c: dict[str, int] = collections.defaultdict(int)
     for bbox in items:
-        cat_name = get_categories_name[bbox.category_id]
+        cat_name = categories_infos[bbox.category_id].name
         c[cat_name] += 1
 
     return c

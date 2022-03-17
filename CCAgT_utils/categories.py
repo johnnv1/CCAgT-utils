@@ -74,19 +74,21 @@ class CategoriesInfos():
     def __init__(self,
                  categories_info: list[dict[str, Any]] | None = None) -> None:
         if isinstance(categories_info, list):
+            self.__check_categories_info(categories_info)
             _categories_info = []
             for d in categories_info:
-                if 'color' in d:
-                    c = d['color']
-                    d['color'] = Color(c[0], c[1], c[2])
+                c = d['color']
+                d['color'] = Color(c[0], c[1], c[2])
                 _categories_info.append(d)
+
             categories_info = _categories_info[:]
 
             if all((x['id'] != 0 and x['name'].lower() != 'background') for x in categories_info):
                 categories_info.append({'id': 0,
                                         'color': Color(0, 0, 0),
                                         'name': 'background',
-                                        'minimal_area': 0})
+                                        'minimal_area': 0,
+                                        'isthing': 0})
 
         elif categories_info is None:
             categories_info = []
@@ -100,34 +102,59 @@ class CategoriesInfos():
                                         'minimal_area': CATS_MIN_AREA[cat],
                                         'isthing': isthing})
         else:
-            raise ValueError('Wrong type of categories info!')
+            raise ValueError('Wrong type of categories info! Was expected a list of dicts!')
 
-        self._infos = [CategoryInfo(**itens) for itens in categories_info]
-        self.taken_colors = {cat_info.color.rgb for cat_info in self._infos if cat_info.isthing == 0}
+        self._infos = {int(itens['id']): CategoryInfo(**itens) for itens in categories_info}
+
+        self.taken_colors = {cat_info.color.rgb for cat_info in self._infos.values() if cat_info.isthing == 0}
         self.taken_colors.add((0, 0, 0))
-        self.__check_id_names()
 
-    def __check_id_names(self) -> None:
-        for id, name in self.name_by_category_id.items():
-            if Categories(id).name != name.upper():
+    def __check_categories_info(self, categories_info: list[dict[str, Any]]) -> None:
+        expected_keys = ['id', 'name', 'color']
+        for cat_info in categories_info:
+            if not all(k in cat_info for k in expected_keys):
+                raise KeyError(f'Not found all expected keys! At {cat_info}')
+
+            cat_name = cat_info['name'].upper()
+            cat_id = cat_info['id']
+            if Categories(cat_id).name != cat_name:
                 raise ValueError(f'The category name to id does not match with the expected! For id {id} it was expected '
-                                 f'{Categories(id).name} and receive {name.upper()}')
+                                 f'{Categories(cat_id).name} and receive {cat_name}')
 
-    @property
-    def min_area_by_category_id(self) -> dict[int, int]:
-        return {x.id: x.minimal_area for x in self._infos}
+    def __len__(self) -> int:
+        return len(self._infos)
 
-    @property
-    def name_by_category_id(self) -> dict[int, str]:
-        return {x.id: x.name for x in self._infos}
+    def __getitem__(self, category_id: int) -> CategoryInfo:
+        return self._infos[category_id]
 
-    @property
-    def colors_by_category_id(self) -> dict[int, Color]:
-        return {x.id: x.color for x in self._infos}
+    def __iter__(self) -> CategoriesInfos:
+        self._idx = 0
+        self._keys = self.keys()
+        return self
+
+    def __next__(self) -> CategoryInfo:
+        if self._idx < len(self._keys):
+            out = self._infos[self._keys[self._idx]]
+            self._idx += 1
+            return out
+        else:
+            raise StopIteration
+
+    def keys(self) -> list[int]:
+        return list(self._infos.keys())
+
+    def get_min_area(self, category_id: int) -> int:
+        return self[category_id].minimal_area
+
+    def get_name(self, category_id: int) -> str:
+        return self[category_id].name
+
+    def get_color(self, category_id: int) -> Color:
+        return self[category_id].color
 
     # Based on https://github.com/cocodataset/panopticapi/blob/7bb4655548f98f3fedc07bf37e9040a992b054b0/panopticapi/utils.py#L42
-    def generate_random_color(self, category_id: int) -> Color:
-        cat_info = self.cat_info_from_id(category_id)
+    def generate_random_color(self, category_id: int, max_dist: int = 30) -> Color:
+        cat_info = self[category_id]
         base_color = cat_info.color
 
         if cat_info.isthing == 0:
@@ -137,36 +164,10 @@ class CategoriesInfos():
             return base_color
         else:
             while True:
-                color = random_color_from_base(base_color)
-                if color.rgb not in self.taken_colors:
+                color = random_color_from_base(base_color, max_dist)
+                if color.rgb not in self.taken_colors:  # pragma: no cover
                     self.taken_colors.add(color.rgb)
                     return color
-
-    def cat_info_from_id(self, category_id: int) -> CategoryInfo:
-        for cat_info in self._infos:
-            if cat_info.id == category_id:
-                return cat_info
-        else:
-            raise KeyError('Category ID not found!')
-
-    def get_cat_info(self, category: Categories) -> CategoryInfo:
-        for cat_info in self._infos:
-            if cat_info.id == category.value:
-                return cat_info
-        else:
-            raise KeyError('Category ID not found!')
-
-    def __iter__(self) -> CategoriesInfos:
-        self._idx = 0
-        return self
-
-    def __next__(self) -> CategoryInfo:
-        if self._idx < len(self._infos):
-            out = self._infos[self._idx]
-            self._idx += 1
-            return out
-        else:
-            raise StopIteration
 
 
 def read_json(filename: str, **kwargs: Any) -> CategoriesInfos:

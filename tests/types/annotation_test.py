@@ -6,6 +6,7 @@ import pytest
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
 
+from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.types import annotation
 
 
@@ -15,7 +16,7 @@ def bbox_params():
          'y_init': 500,
          'width': 35,
          'height': 88,
-         'category_id': 0}
+         'category_id': 1}
     x['x_end'] = x['x_init'] + x['width']
     x['y_end'] = x['y_init'] + x['height']
     return x
@@ -115,13 +116,13 @@ def test_count_BBox_categories(bbox_example):
     items = [bbox_example, bbox_example, bbox_example,
              bbox_example1, bbox_example1]
 
-    categories_names = {cat_id_example: f'cat {cat_id_example}',
-                        cat_id_example1: f'cat {cat_id_example1}',
-                        cat_id_example1 + 10: 'not show at result'}
+    categories_infos = CategoriesInfos([{'name': 'Nucleus', 'id': cat_id_example, 'color': (0, 0, 0)},
+                                        {'name': 'Cluster', 'id': cat_id_example1, 'color': (0, 0, 0)},
+                                        {'name': 'Satellite', 'id': cat_id_example1 + 1, 'color': (0, 0, 0)}])
 
-    counter = annotation.count_BBox_categories(items, categories_names)
+    counter = annotation.count_BBox_categories(items, categories_infos)
 
-    assert counter == {f'cat {cat_id_example}': 3, f'cat {cat_id_example1}': 2}
+    assert counter == {'Nucleus': 3, 'Cluster': 2}
 
 
 def test_fit_inside(bbox_example, bbox_params):

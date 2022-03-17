@@ -10,6 +10,7 @@ import pytest
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
+from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
 from testing import create
@@ -98,12 +99,18 @@ def test_generate_ids(ccagt_ann_multi):
 def test_delete_by_area(ccagt_ann_single_nucleus, min_area, expected, compute_area):
     if compute_area:
         ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
-    df = ccagt_ann_single_nucleus.delete_by_area({1: min_area})
+
+    categories_infos = CategoriesInfos([{'name': 'Nucleus', 'id': 1, 'color': (0, 0, 0), 'minimal_area': min_area}])
+    df = ccagt_ann_single_nucleus.delete_by_area(categories_infos)
     assert df.shape[0] == expected
 
 
 def test_delete_by_area_ignore_ids(ccagt_ann_multi):
-    df = ccagt_ann_multi.delete_by_area({1: 1000, 2: 0, 3: 0, 4: 0}, set({2, 3}))
+    categories_infos = CategoriesInfos([{'name': 'Nucleus', 'id': 1, 'color': (0, 0, 0), 'minimal_area': 1000},
+                                        {'name': 'Cluster', 'id': 2, 'color': (0, 0, 0), 'minimal_area': 0},
+                                        {'name': 'Satellite', 'id': 3, 'color': (0, 0, 0), 'minimal_area': 0},
+                                        {'name': 'Nucleus_out_of_focus', 'id': 4, 'color': (0, 0, 0), 'minimal_area': 0}])
+    df = ccagt_ann_multi.delete_by_area(categories_infos, set({2, 3}))
     assert df.shape[0] == 2
 
 

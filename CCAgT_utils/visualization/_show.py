@@ -24,7 +24,7 @@ def __search_all_files(dir_path: str) -> dict[str, str]:
 
 
 def image_with_boxes(CCAgT_ann: CCAgT,
-                     CCAgT_helper: categories.CategoriesInfos,
+                     categories_infos: categories.CategoriesInfos,
                      dir_path: str,
                      images_extension: str,
                      images_names: list[str] = [],
@@ -41,9 +41,8 @@ def image_with_boxes(CCAgT_ann: CCAgT,
     if shuffle_images:
         random.shuffle(images_to_plot)
 
-    get_color = {int(k): v.rgba_normalized for k, v in CCAgT_helper.colors_by_category_id.items()}
-    get_name = CCAgT_helper.name_by_category_id
-    get_id = {v: k for (k, v) in get_name.items()}
+    get_id = {cat_info.name: cat_info.id for cat_info in categories_infos}
+
     for img_name in tqdm(images_to_plot):
         if look_recursive:
             img_path = all_files[img_name + images_extension]
@@ -58,14 +57,14 @@ def image_with_boxes(CCAgT_ann: CCAgT,
                                                                                                 r['category_id']),
                                                                                  axis=1).to_numpy().tolist()
 
-        counter = count_BBox_categories(image_boxes, get_name)
+        counter = count_BBox_categories(image_boxes, categories_infos)
         text_counter = ' | '.join([f'{key}:: {value}' for key, value in counter.items()])
         selected_categories = [get_id[cat_name] for cat_name in counter]
-        handles = plot.create_handles(get_color, get_name, selected_categories)
+        handles = plot.create_handles(categories_infos, selected_categories)
 
         fig, ax = plt.subplots(1, 1, figsize=(16, 9))
         img = Image.open(img_path)
-        plot.image_with_boxes(img, image_boxes, ax, get_color, get_categories_name=get_name)
+        plot.image_with_boxes(img, image_boxes, ax, categories_infos, write_names=True)
         ax.legend(handles=handles)
         ax.set_title(img_name)
         plt.figtext(0.5, 0.01, text_counter,
@@ -81,7 +80,7 @@ def image_with_boxes(CCAgT_ann: CCAgT,
 
 
 def image_and_mask(CCAgT_ann: CCAgT,
-                   CCAgT_helper: categories.CategoriesInfos,
+                   categories_infos: categories.CategoriesInfos,
                    dir_path: str,
                    dir_mask_path: str,
                    images_extension: str,
@@ -100,10 +99,6 @@ def image_and_mask(CCAgT_ann: CCAgT,
 
     if shuffle_images:
         random.shuffle(images_to_plot)
-
-    get_color = {int(k): v.rgba_normalized for k, v in CCAgT_helper.colors_by_category_id.items()}
-    get_color_rgb = {int(k): v.rgb for k, v in CCAgT_helper.colors_by_category_id.items()}
-    get_name = CCAgT_helper.name_by_category_id
 
     for img_name in tqdm(images_to_plot):
 
@@ -133,15 +128,15 @@ def image_and_mask(CCAgT_ann: CCAgT,
         ax1.set_axis_off()
 
         ax2 = fig.add_subplot(2, 2, 3, sharex=ax1, sharey=ax1)
-        plot.mask_with_color(msk, ax2, get_color_rgb, colorized=True)
+        plot.mask_with_color(msk, ax2, categories_infos, colorized=True)
 
-        handles = plot.create_handles(get_color, get_name, msk.unique_ids)
+        handles = plot.create_handles(categories_infos, msk.unique_ids)
         ax2.legend(handles=handles)
         ax2.set_title('Mask')
 
         ax3 = fig.add_subplot(2, 2, 4, sharex=ax1, sharey=ax1)
         ax3.imshow(img)
-        plot.mask_with_color(msk, ax3, get_color_rgb, colorized=True, alpha=0.4)
+        plot.mask_with_color(msk, ax3, categories_infos, colorized=True, alpha=0.4)
         ax3.set_title('Image with mask')
 
         fig.suptitle(img_name)
@@ -152,7 +147,7 @@ def image_and_mask(CCAgT_ann: CCAgT,
 
 
 def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
-                              CCAgT_helper: categories.CategoriesInfos,
+                              categories_infos: categories.CategoriesInfos,
                               dir_path: str,
                               dir_mask_path: str,
                               images_extension: str,
@@ -171,10 +166,6 @@ def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
 
     if shuffle_images:
         random.shuffle(images_to_plot)
-
-    get_color = {int(k): v.rgba_normalized for k, v in CCAgT_helper.colors_by_category_id.items()}
-    get_color_rgb = {int(k): v.rgb for k, v in CCAgT_helper.colors_by_category_id.items()}
-    get_name = CCAgT_helper.name_by_category_id
 
     for img_name in tqdm(images_to_plot):
 
@@ -202,9 +193,9 @@ def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
                                                                                                 r['category_id']),
                                                                                  axis=1).to_numpy().tolist()
 
-        counter = count_BBox_categories(image_boxes, get_name)
+        counter = count_BBox_categories(image_boxes, categories_infos)
         text_counter = ' | '.join([f'{key}:: {value}' for key, value in counter.items()])
-        handles = plot.create_handles(get_color, get_name, msk.unique_ids)
+        handles = plot.create_handles(categories_infos, msk.unique_ids)
 
         fig = plt.figure(figsize=(32, 18))
 
@@ -213,8 +204,8 @@ def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
         ax1.set_axis_off()
 
         ax2 = fig.add_subplot(1, 2, 2, sharex=ax1, sharey=ax1)
-        plot.image_with_boxes(img, image_boxes, ax2, get_color, get_categories_name=get_name)
-        plot.mask_with_color(msk, ax2, get_color_rgb, colorized=True, alpha=0.4, vmin=1)
+        plot.image_with_boxes(img, image_boxes, ax2, categories_infos, write_names=True)
+        plot.mask_with_color(msk, ax2, categories_infos, colorized=True, alpha=0.4, vmin=1)
 
         ax2.legend(handles=handles)
 
