@@ -6,7 +6,8 @@ from enum import Enum
 from typing import Any
 
 from CCAgT_utils.errors import FileTypeError
-from CCAgT_utils.visualization import colors
+from CCAgT_utils.types.colors import Color
+from CCAgT_utils.types.colors import random_color_from_base
 
 
 class Categories(Enum):
@@ -21,14 +22,14 @@ class Categories(Enum):
 
 
 CATS_COLORS = {
-    Categories.BACKGROUND: [0, 0, 0],
-    Categories.NUCLEUS: [21, 62, 125],
-    Categories.CLUSTER: [114, 67, 144],
-    Categories.SATELLITE: [254, 166, 0],
-    Categories.NUCLEUS_OUT_OF_FOCUS: [26, 167, 238],
-    Categories.OVERLAPPED_NUCLEI: [39, 91, 82],
-    Categories.NON_VIABLE_NUCLEUS: [5, 207, 192],
-    Categories.LEUKOCYTE_NUCLEUS: [255, 0, 0]
+    Categories.BACKGROUND: Color(0, 0, 0),
+    Categories.NUCLEUS: Color(21, 62, 125),
+    Categories.CLUSTER: Color(114, 67, 144),
+    Categories.SATELLITE: Color(254, 166, 0),
+    Categories.NUCLEUS_OUT_OF_FOCUS: Color(26, 167, 238),
+    Categories.OVERLAPPED_NUCLEI: Color(39, 91, 82),
+    Categories.NON_VIABLE_NUCLEUS: Color(5, 207, 192),
+    Categories.LEUKOCYTE_NUCLEUS: Color(255, 0, 0)
 }
 
 CATS_MIN_AREA = {
@@ -62,7 +63,7 @@ class CategoryInfo:
     """
     id: int
     name: str
-    color: list[int] | str
+    color: Color
     labelbox_schemaId: str | None = None
     minimal_area: int = 0
     supercategory: str | None = None
@@ -75,9 +76,17 @@ class CategoriesInfos():
         if isinstance(categories_info, list):
             self.__check_id_names()
 
+            _categories_info = []
+            for d in categories_info:
+                if 'color' in d:
+                    c = d['color']
+                    d['color'] = Color(c[0], c[1], c[2])
+                _categories_info.append(d)
+            categories_info = _categories_info[:]
+
             if all((x['id'] != 0 and x['name'].lower() != 'background') for x in categories_info):
                 categories_info.append({'id': 0,
-                                        'color': [0, 0, 0],
+                                        'color': Color(0, 0, 0),
                                         'name': 'background',
                                         'minimal_area': 0})
 
@@ -94,7 +103,7 @@ class CategoriesInfos():
                                         'isthing': isthing})
 
         self._infos = [CategoryInfo(**itens) for itens in categories_info]
-        self.taken_colors = {tuple(cat_info.color) for cat_info in self._infos if cat_info.isthing == 0}
+        self.taken_colors = {cat_info.color.rgb for cat_info in self._infos if cat_info.isthing == 0}
         self.taken_colors.add((0, 0, 0))
 
     def __check_id_names(self) -> None:
@@ -112,24 +121,24 @@ class CategoriesInfos():
         return {x.id: x.name for x in self._infos}
 
     @property
-    def colors_by_category_id(self) -> dict[int, list[int] | list[float]]:
-        return {x.id: colors.force_rgb(x.color) for x in self._infos}
+    def colors_by_category_id(self) -> dict[int, Color]:
+        return {x.id: x.color for x in self._infos}
 
     # Based on https://github.com/cocodataset/panopticapi/blob/7bb4655548f98f3fedc07bf37e9040a992b054b0/panopticapi/utils.py#L42
-    def generate_random_color(self, category_id: int) -> list[int]:
+    def generate_random_color(self, category_id: int) -> Color:
         cat_info = self.cat_info_from_id(category_id)
-        base_color = colors.force_rgb(cat_info.color)
+        base_color = cat_info.color
 
         if cat_info.isthing == 0:
             return base_color
-        elif tuple(base_color) not in self.taken_colors:
-            self.taken_colors.add(tuple(base_color))
+        elif base_color.rgb not in self.taken_colors:
+            self.taken_colors.add(base_color.rgb)
             return base_color
         else:
             while True:
-                color = colors.random_color_from_base(base_color)
-                if tuple(color) not in self.taken_colors:
-                    self.taken_colors.add(tuple(color))
+                color = random_color_from_base(base_color)
+                if color.rgb not in self.taken_colors:
+                    self.taken_colors.add(color.rgb)
                     return color
 
     def cat_info_from_id(self, category_id: int) -> CategoryInfo:

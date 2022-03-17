@@ -6,6 +6,8 @@ import numpy as np
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
 
+from CCAgT_utils.types.colors import Color
+
 
 class COCO_OD():
 
@@ -63,19 +65,19 @@ class COCO_PS():
 
     # Copied from github.com/cocodataset/panopticapi/blob/7bb4655548f98f3fedc07bf37e9040a992b054b0/panopticapi/utils.py#L73
     @staticmethod
-    def color_to_id(color: list[int]) -> int:
+    def color_to_id(color: Color) -> int:
         """Encode the color into a ID using:
         ID = R * 256 * G + 256 * 256 + B.
 
 
         Parameters
         ----------
-        color : list
-            A list that represents a RGB color
+        color : Color
+            A RGB color
 
         Returns
         -------
         int
             An ID based on the color
         """
-        return int(color[0] + 256 * color[1] + 256 * 256 * color[2])
+        return int(color.Red + 256 * color.Blue + 256 * 256 * color.Green)

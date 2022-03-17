@@ -14,7 +14,6 @@ from CCAgT_utils.types.annotation import bounds_to_BBox
 from CCAgT_utils.types.annotation import count_BBox_categories
 from CCAgT_utils.types.mask import Mask
 from CCAgT_utils.visualization import plot
-from CCAgT_utils.visualization.colors import rgb_to_rgba
 
 
 def __search_all_files(dir_path: str) -> dict[str, str]:
@@ -42,7 +41,7 @@ def image_with_boxes(CCAgT_ann: CCAgT,
     if shuffle_images:
         random.shuffle(images_to_plot)
 
-    get_color = {int(k): rgb_to_rgba(v, True) for k, v in CCAgT_helper.colors_by_category_id.items()}
+    get_color = {int(k): v.rgba_normalized for k, v in CCAgT_helper.colors_by_category_id.items()}
     get_name = CCAgT_helper.name_by_category_id
     get_id = {v: k for (k, v) in get_name.items()}
     for img_name in tqdm(images_to_plot):
@@ -102,7 +101,7 @@ def image_and_mask(CCAgT_ann: CCAgT,
     if shuffle_images:
         random.shuffle(images_to_plot)
 
-    get_color = {int(k): rgb_to_rgba(v, True) for k, v in CCAgT_helper.colors_by_category_id.items()}
+    get_color = {int(k): v.rgba_normalized for k, v in CCAgT_helper.colors_by_category_id.items()}
     get_name = CCAgT_helper.name_by_category_id
 
     for img_name in tqdm(images_to_plot):
@@ -172,7 +171,7 @@ def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
     if shuffle_images:
         random.shuffle(images_to_plot)
 
-    get_color = {int(k): rgb_to_rgba(v, True) for k, v in CCAgT_helper.colors_by_category_id.items()}
+    get_color = {int(k): v.rgba_normalized for k, v in CCAgT_helper.colors_by_category_id.items()}
 
     get_name = CCAgT_helper.name_by_category_id
 

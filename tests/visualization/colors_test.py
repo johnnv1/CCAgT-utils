@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from CCAgT_utils.visualization import colors
+from CCAgT_utils.types import colors
 
 
 def test_rgb_to_rgba():

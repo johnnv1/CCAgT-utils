@@ -8,9 +8,9 @@ from shapely.geometry import Polygon
 
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.converters.LabelBox import LabelBox
+from CCAgT_utils.types import colors
 from CCAgT_utils.types.annotation import Annotation
 from CCAgT_utils.types.mask import Mask
-from CCAgT_utils.visualization import colors
 from testing import create
 
 

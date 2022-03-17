@@ -8,8 +8,8 @@ import numpy as np
 from PIL import Image
 
 from CCAgT_utils.errors import ShapeError
+from CCAgT_utils.types import colors
 from CCAgT_utils.types.checkers import is_2d
-from CCAgT_utils.visualization import colors
 
 
 @dataclass

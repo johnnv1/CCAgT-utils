@@ -412,7 +412,7 @@ class CCAgT():
         from CCAgT_utils.converters import CCAgT
         a = CCAgT.read_parquet('data/samples/out/CCAgT.parquet.gzip')
         a.df['iscrowd'] = 0
-        a.df.loc[CCAgT_ann.df['category_id'] == 5, 'iscrowd'] = 1
+        a.df.loc[a.df['category_id'] == 5, 'iscrowd'] = 1
         out = a.to_PS_COCO(cats_infos, './data/samples/masks/panoptic_segmentation/')
         '''
         cols = self.df.columns
@@ -442,7 +442,7 @@ class CCAgT():
                         pol_x, pol_y = geo.exterior.coords.xy
 
                         _x, _y = polygon(pol_y, pol_x, (self.IMAGE_HEIGHT, self.IMAGE_WIDTH))
-                        out[_x, _y] = color
+                        out[_x, _y] = color.rgb
                     segments_info.append({'id': id,
                                           'category_id': category_info.id,
                                           'bbox': ann.coco_bbox,
