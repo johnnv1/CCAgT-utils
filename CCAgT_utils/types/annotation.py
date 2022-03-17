@@ -6,12 +6,15 @@ from dataclasses import dataclass
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
 
+from CCAgT_utils.types.colors import Color
+
 
 @dataclass
 class Annotation:
     geometry: Polygon | MultiPolygon
     category_id: int
     iscrowd: int = 0
+    color: Color | None = None
 
     @property
     def bbox(self) -> BBox:

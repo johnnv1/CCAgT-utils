@@ -420,6 +420,7 @@ class CCAgT():
 
         shape = (self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
         annotations_panoptic = []
+        self.df['color'] = self.df['category_id'].apply(lambda cat_id: categories_infos.generate_random_color(cat_id))
         for img_id, df_by_img in self.df.groupby('image_id'):
 
             img_name = df_by_img.iloc[0]['image_name']
@@ -433,15 +434,17 @@ class CCAgT():
 
             out = np.zeros((shape[0], shape[1], 3), dtype=np.uint8)
 
-            annotations = [Annotation(row['geometry'], row['category_id'], row['iscrowd']) for _, row in df_by_img.iterrows()]
-            annotations_sorted = order_annotations_to_draw(annotations)
+            annotations = [Annotation(row['geometry'],
+                                      row['category_id'],
+                                      row['iscrowd'],
+                                      row['color']) for _, row in df_by_img.iterrows()]
 
+            annotations_sorted = order_annotations_to_draw(annotations)
             segments_info = []
             for ann in annotations_sorted:
-                color = categories_infos.generate_random_color(ann.category_id)
-                out = draw_annotation(out, ann, color.rgb, shape)
+                out = draw_annotation(out, ann, ann.color.rgb, shape)
 
-                segments_info.append({'id': COCO_PS.color_to_id(color),
+                segments_info.append({'id': COCO_PS.color_to_id(ann.color),
                                       'category_id': ann.category_id,
                                       'bbox': ann.coco_bbox,
                                       'iscrowd': ann.iscrowd})
