@@ -102,6 +102,7 @@ def image_and_mask(CCAgT_ann: CCAgT,
         random.shuffle(images_to_plot)
 
     get_color = {int(k): v.rgba_normalized for k, v in CCAgT_helper.colors_by_category_id.items()}
+    get_color_rgb = {int(k): v.rgb for k, v in CCAgT_helper.colors_by_category_id.items()}
     get_name = CCAgT_helper.name_by_category_id
 
     for img_name in tqdm(images_to_plot):
@@ -132,7 +133,7 @@ def image_and_mask(CCAgT_ann: CCAgT,
         ax1.set_axis_off()
 
         ax2 = fig.add_subplot(2, 2, 3, sharex=ax1, sharey=ax1)
-        plot.mask_with_color(msk, ax2, CCAgT_helper.colors_by_category_id, colorized=True)
+        plot.mask_with_color(msk, ax2, get_color_rgb, colorized=True)
 
         handles = plot.create_handles(get_color, get_name, msk.unique_ids)
         ax2.legend(handles=handles)
@@ -140,7 +141,7 @@ def image_and_mask(CCAgT_ann: CCAgT,
 
         ax3 = fig.add_subplot(2, 2, 4, sharex=ax1, sharey=ax1)
         ax3.imshow(img)
-        plot.mask_with_color(msk, ax3, CCAgT_helper.colors_by_category_id, colorized=True, alpha=0.4)
+        plot.mask_with_color(msk, ax3, get_color_rgb, colorized=True, alpha=0.4)
         ax3.set_title('Image with mask')
 
         fig.suptitle(img_name)
@@ -172,7 +173,7 @@ def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
         random.shuffle(images_to_plot)
 
     get_color = {int(k): v.rgba_normalized for k, v in CCAgT_helper.colors_by_category_id.items()}
-
+    get_color_rgb = {int(k): v.rgb for k, v in CCAgT_helper.colors_by_category_id.items()}
     get_name = CCAgT_helper.name_by_category_id
 
     for img_name in tqdm(images_to_plot):
@@ -213,7 +214,7 @@ def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
 
         ax2 = fig.add_subplot(1, 2, 2, sharex=ax1, sharey=ax1)
         plot.image_with_boxes(img, image_boxes, ax2, get_color, get_categories_name=get_name)
-        plot.mask_with_color(msk, ax2, CCAgT_helper.colors_by_category_id, colorized=True, alpha=0.4, vmin=1)
+        plot.mask_with_color(msk, ax2, get_color_rgb, colorized=True, alpha=0.4, vmin=1)
 
         ax2.legend(handles=handles)
 

@@ -8,7 +8,6 @@ from shapely.geometry import Polygon
 
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.converters.LabelBox import LabelBox
-from CCAgT_utils.types import colors
 from CCAgT_utils.types.annotation import Annotation
 from CCAgT_utils.types.mask import Mask
 from testing import create
@@ -17,13 +16,16 @@ from testing import create
 @pytest.fixture
 def get_color_rgb():
     # TODO: Maybe load from the json file?
-    return {1: [21, 62, 125], 2: [114, 67, 144], 3: [255, 166, 0], 4: [26, 167, 238],
-            5: [39, 91, 82], 6: [5, 207, 192], 7: [255, 0, 0]}
+    return {1: (21, 62, 125), 2: (114, 67, 144), 3: (255, 166, 0), 4: (26, 167, 238),
+            5: (39, 91, 82), 6: (5, 207, 192), 7: (255, 0, 0)}
 
 
 @pytest.fixture
 def get_color_rgba_norm(get_color_rgb):
-    return {k: colors.rgb_to_rgba(v, True) for k, v in get_color_rgb.items()}
+    return{1: (21 / 255, 62 / 255, 125 / 255, 1.), 2: (114 / 255, 67 / 255, 144 / 255, 1.),
+           3: (255 / 255, 166 / 255, 0, 1.), 4: (26 / 255, 167 / 255, 238 / 255, 1.),
+           5: (39 / 255, 91 / 255, 82 / 255, 1.), 6: (5 / 255, 207 / 255, 192 / 255, 1.),
+           7: (255 / 255, 0, 0, 1.)}
 
 
 @pytest.fixture

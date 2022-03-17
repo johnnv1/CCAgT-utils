@@ -45,7 +45,7 @@ class Mask:
         return o
 
     def cmap(self, get_color: dict[int, list[int] | list[float]]) -> mlp_colors.ListedColormap:
-        o = [colors.rgb_to_rgba(get_color[id], normalize=True) for id in self.unique_ids]
+        o = [colors.from_tuple(get_color[id]).rgba_normalized for id in self.unique_ids]
         return mlp_colors.ListedColormap(o)
 
     def save(self,

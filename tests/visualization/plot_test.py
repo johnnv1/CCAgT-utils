@@ -30,10 +30,10 @@ def test_image_with_boxes(rgb_image, boxes, get_color_rgba_norm):
 
 @pytest.mark.slow
 @image_comparison(baseline_images=['mask_with_color_plot'], extensions=['png'])
-def test_mask_with_color_cmap(mask, get_color_rgba_norm):
+def test_mask_with_color_cmap(mask, get_color_rgb):
     plt.close('all')
     _, ax = plt.subplots(figsize=(16, 9), dpi=300)
-    plot.mask_with_color(mask, ax, get_color_rgba_norm)
+    plot.mask_with_color(mask, ax, get_color_rgb)
 
 
 @pytest.mark.slow
@@ -49,11 +49,11 @@ def test_create_handles(get_color_rgba_norm, get_categories_name):
 
     assert len(handles1) == len(get_color_rgba_norm)
     assert handles1[0].get_label() == get_categories_name[1]
-    assert list(handles1[0].get_edgecolor()) == get_color_rgba_norm[1]
+    assert tuple(handles1[0].get_edgecolor()) == get_color_rgba_norm[1]
 
     selected_categories = [2, 3]
     handles2 = plot.create_handles(get_color_rgba_norm, get_categories_name, selected_categories)
 
     assert len(handles2) == len(selected_categories)
     assert handles2[0].get_label() == get_categories_name[2]
-    assert list(handles2[1].get_edgecolor()) == get_color_rgba_norm[3]
+    assert tuple(handles2[1].get_edgecolor()) == get_color_rgba_norm[3]

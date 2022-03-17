@@ -30,8 +30,8 @@ def test_colorized(mask, get_color_rgb, mask_colorized):
     assert np.array_equal(colorized, mask_colorized)
 
 
-def test_cmap(mask, get_color_rgba_norm):
-    cmap = mask.cmap(get_color_rgba_norm)
+def test_cmap(mask, get_color_rgb, get_color_rgba_norm):
+    cmap = mask.cmap(get_color_rgb)
     assert len(cmap.colors) == len(mask.unique_ids)
     assert cmap.colors[0] == get_color_rgba_norm[1]
 

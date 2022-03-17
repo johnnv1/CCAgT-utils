@@ -74,8 +74,6 @@ class CategoriesInfos():
     def __init__(self,
                  categories_info: list[dict[str, Any]] | None = None) -> None:
         if isinstance(categories_info, list):
-            self.__check_id_names()
-
             _categories_info = []
             for d in categories_info:
                 if 'color' in d:
@@ -90,7 +88,7 @@ class CategoriesInfos():
                                         'name': 'background',
                                         'minimal_area': 0})
 
-        else:
+        elif categories_info is None:
             categories_info = []
             for cat in Categories:
                 isthing = 1
@@ -101,10 +99,13 @@ class CategoriesInfos():
                                         'id': cat.value,
                                         'minimal_area': CATS_MIN_AREA[cat],
                                         'isthing': isthing})
+        else:
+            raise ValueError('Wrong type of categories info!')
 
         self._infos = [CategoryInfo(**itens) for itens in categories_info]
         self.taken_colors = {cat_info.color.rgb for cat_info in self._infos if cat_info.isthing == 0}
         self.taken_colors.add((0, 0, 0))
+        self.__check_id_names()
 
     def __check_id_names(self) -> None:
         for id, name in self.name_by_category_id.items():

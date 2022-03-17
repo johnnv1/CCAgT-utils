@@ -48,6 +48,10 @@ class Color:
                 self.Alpha / self._max_value)
 
 
+def from_tuple(t: tuple[int, int, int], alpha: int = 255, size: int = 8) -> Color:
+    return Color(t[0], t[1], t[2], alpha, size)
+
+
 def hex_to_rgb(hex: str) -> tuple[int, ...]:
     hex = hex.lstrip('#')
     hlen = len(hex)
