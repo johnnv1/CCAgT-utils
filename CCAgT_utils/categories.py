@@ -82,15 +82,20 @@ class CategoriesInfos():
                                         'minimal_area': 0})
 
         else:
-            categories_info = [{'color': CATS_COLORS[cat],
-                                'name': cat.name,
-                                'id': cat.value,
-                                'minimal_area': CATS_MIN_AREA[cat]}
-                               for cat in Categories]
+            categories_info = []
+            for cat in Categories:
+                isthing = 1
+                if cat == Categories.BACKGROUND:
+                    isthing = 0
+                categories_info.append({'color': CATS_COLORS[cat],
+                                        'name': cat.name,
+                                        'id': cat.value,
+                                        'minimal_area': CATS_MIN_AREA[cat],
+                                        'isthing': isthing})
 
         self._infos = [CategoryInfo(**itens) for itens in categories_info]
-        self.taken_colors = {cat_info.color for cat_info in self._infos if cat_info.isthing == 0}
-        self.taken_colors.add([0, 0, 0])
+        self.taken_colors = {tuple(cat_info.color) for cat_info in self._infos if cat_info.isthing == 0}
+        self.taken_colors.add((0, 0, 0))
 
     def __check_id_names(self) -> None:
         for id, name in self.name_by_category_id.items():
@@ -117,14 +122,14 @@ class CategoriesInfos():
 
         if cat_info.isthing == 0:
             return base_color
-        elif base_color not in self.taken_colors:
-            self.taken_colors.add(base_color)
+        elif tuple(base_color) not in self.taken_colors:
+            self.taken_colors.add(tuple(base_color))
             return base_color
         else:
             while True:
                 color = colors.random_color_from_base(base_color)
-                if color not in self.taken_colors:
-                    self.taken_colors.add(color)
+                if tuple(color) not in self.taken_colors:
+                    self.taken_colors.add(tuple(color))
                     return color
 
     def cat_info_from_id(self, category_id: int) -> CategoryInfo:

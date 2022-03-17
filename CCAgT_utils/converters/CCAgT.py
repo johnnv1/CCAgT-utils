@@ -8,13 +8,18 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import shapely.wkt
+from PIL import Image
 from shapely.geometry import box
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
+from skimage.draw import polygon
 
+from CCAgT_utils.categories import Categories
 from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.converters.COCO import COCO_OD
+from CCAgT_utils.converters.COCO import COCO_PS
 from CCAgT_utils.converters.masks import annotations_to_mask
+from CCAgT_utils.converters.masks import DRAW_ORDER
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
 from CCAgT_utils.types.annotation import Annotation
 from CCAgT_utils.types.annotation import bounds_to_BBox
@@ -399,43 +404,65 @@ class CCAgT():
         workers.close()
         workers.join()
 
-    def to_PS_COCO(self, categories_infos: CategoriesInfos) -> None:
+    def to_PS_COCO(self, categories_infos: CategoriesInfos, output_dir: str) -> list[Any]:
         # image_names = self.df['image_name'].unique().tolist()
-
+        '''
+        from CCAgT_utils import categories
+        cats_infos = categories.CategoriesInfos()
+        from CCAgT_utils.converters import CCAgT
+        a = CCAgT.read_parquet('data/samples/out/CCAgT.parquet.gzip')
+        out = a.to_PS_COCO(cats_infos, './data/samples/masks/panoptic_segmentation/')
+        '''
         cols = self.df.columns
         if not all(c in cols for c in ['image_id']):
             raise KeyError('The dataframe need to have the columns `image_id`!')
 
-        # annotations_panoptic = []
-        # for img_id, df_by_img in self.df.groupby('image_id'):
-            # img_name = df_by_img.iloc[0]['image_name']
-            # pan_format = np.zeros((self.IMAGE_HEIGHT, self.IMAGE_WIDTH, 3), dtype=np.uint8)
-            # panoptic_record = {'image_id': int(img_id),
-            #                    'file_name': basename(img_name) + '.png'}
-            # segments_info = []
-            # for cat in DRAW_ORDER:
-            # ---- if cat == Categories.BACKGROUND:
-            # ---- ---- continue
+        annotations_panoptic = []
+        for img_id, df_by_img in self.df.groupby('image_id'):
+            img_name = df_by_img.iloc[0]['image_name']
+            out = np.zeros((self.IMAGE_HEIGHT, self.IMAGE_WIDTH, 3), dtype=np.uint8)
+            panoptic_record = {'image_id': int(img_id),
+                               'file_name': basename(img_name) + '.png'}
+            segments_info = []
+            for cat in DRAW_ORDER:
+                if cat == Categories.BACKGROUND:
+                    continue
 
-            # ---- category_info = categories_infos.get_cat_info(cat)
-            # ---- Get annotations for this category
-            # ---- For each annotation
-            # ---- ----  Generate a random color and a id based on the color
-            # ---- ----  Write the the annotation into the output mask based on the generated color
-            # ---- ----  Append into segments_info the annotation info -> a dict with
-            # ---- ---- ---- "id": int, "category_id": int, "area": int, "bbox": [x,y,width,height], "iscrowd": 0 or 1,
-            # add to panoptic_record the "segments_info"
-            # append to annotations_panoptic the panoptic_record
-            # Save the mask into the file
-        #
+                category_info = categories_infos.get_cat_info(cat)
+                geometries = df_by_img.loc[df_by_img['category_id'] == category_info.id, 'geometry'].tolist()
 
+                # FIXME: Maybe do this in other local, like after join geometries. But, by default, all overlapped nuclei
+                # are crowd ->  iscrowd indicate a large bounding box surrounding multiple objects of the same category
+                iscrowd = 1 if cat == Categories.OVERLAPPED_NUCLEI else 0
+
+                annotations = [Annotation(geo, category_info.id, iscrowd) for geo in geometries]
+                for ann in annotations:
+                    color = categories_infos.generate_random_color(category_info.id)
+                    id = COCO_PS.color_to_id(color)
+
+                    for geo in ann:
+                        pol_x, pol_y = geo.exterior.coords.xy
+
+                        _x, _y = polygon(pol_y, pol_x, (self.IMAGE_HEIGHT, self.IMAGE_WIDTH))
+                        out[_x, _y] = color
+                    segments_info.append({'id': id,
+                                          'category_id': category_info.id,
+                                          'bbox': ann.coco_bbox,
+                                          'iscrowd': iscrowd})
+                panoptic_record['segments_info'] = segments_info
+                annotations_panoptic.append(panoptic_record)
+                Image.fromarray(out).save(os.path.join(output_dir, str(panoptic_record['file_name'])))
+        return annotations_panoptic
     # TODO: Split data into train validation and test
 
     # TODO: Describe / stats of the dataset or of the data splitted
 
 
-@get_traceback
+@ get_traceback
 def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str, Any]]:
+    # FIXME: iscrowd can be 1 for overlapped nuclei
+    # Maybe do this indication like after join geometries. But, by default, all overlapped nuclei
+    # are crowd ->  iscrowd indicate a large bounding box surrounding multiple objects of the same category
     return df.apply(lambda row: {'id': row.name,
                                  'image_id': row['image_id'],
                                  'category_id': row['category_id'],
@@ -453,7 +480,7 @@ def read_parquet(filename: str, **kwargs: Any) -> CCAgT:
     return CCAgT(df)
 
 
-@get_traceback
+@ get_traceback
 def single_core_to_mask(df: pd.DataFrame, output_dir: str, split_by_slide: bool, extension: str = '.png') -> None:
     df_groupped = df.groupby('image_id')
     _out_dir = output_dir

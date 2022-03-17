@@ -11,6 +11,7 @@ from shapely.geometry import Polygon
 class Annotation:
     geometry: Polygon | MultiPolygon
     category_id: int
+    iscrowd: int = 0
 
     @property
     def bbox(self) -> BBox:
@@ -19,6 +20,11 @@ class Annotation:
     @property
     def _geo_type(self) -> str:
         return self.geometry.geom_type
+
+    @property
+    def coco_bbox(self) -> list[float | int]:
+        bbox = self.bbox
+        return [bbox.x_init, bbox.y_init, bbox.width, bbox.height]
 
     def __iter__(self) -> Annotation:
         self._idx = 0
