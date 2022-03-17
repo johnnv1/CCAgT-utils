@@ -64,4 +64,4 @@ def random_color_from_base(base: Color, max_dist: int = 30) -> Color:
     base_rgb = base.rgb
     new_color = base_rgb + np.random.randint(low=-max_dist, high=max_dist + 1, size=3)
     new_color = np.maximum(0, np.minimum(base._max_value, new_color))
-    return Color(new_color[0], new_color[1], new_color[2], size=base.size)
+    return from_tuple((int(new_color[0]), int(new_color[1]), int(new_color[2])), size=base.size)
