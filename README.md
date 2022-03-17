@@ -73,7 +73,7 @@ $ CCAgT-converter labelbox_to_CCAgT -r ./data/samples/sanitized_sample_labelbox.
 ### CCAgT to masks (categorical masks for semantic segmentation)
 ```console
 $ CCAgT-converter generate_masks -l ./data/samples/out/CCAgT.parquet.gzip\
-                                 -o ./data/samples/masks/\
+                                 -o ./data/samples/masks/semantic_segmentation/\
                                  --split-by-slide
 ```
 ## visualization
@@ -96,7 +96,7 @@ $ CCAgT-visualization show -t image-and-mask\
                            -l ./data/samples/out/CCAgT.parquet.gzip\
                            -a ./data/samples/CCAgT_dataset_metadata.json\
                            -d ./data/samples/images/\
-                           -m ./data/samples/masks/
+                           -m ./data/samples/masks/semantic_segmentation/
 ```
 
 ### Show image with boxes and mask
@@ -105,5 +105,5 @@ $ CCAgT-visualization show -t image-with-boxes-and-mask\
                            -l ./data/samples/out/CCAgT.parquet.gzip\
                            -a ./data/samples/CCAgT_dataset_metadata.json\
                            -d ./data/samples/images/\
-                           -m ./data/samples/masks/
+                           -m ./data/samples/masks/semantic_segmentation/
 ```

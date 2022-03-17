@@ -175,6 +175,7 @@ def test_to_OD_COCO(ccagt_ann_single_nucleus, coco_ann_single_nucleus):
 
     ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
     ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
+    ccagt_ann_single_nucleus.df['iscrowd'] = 0
 
     coco_OD_ann = ccagt_ann_single_nucleus.to_OD_COCO()
 
@@ -210,6 +211,7 @@ def test_read_and_dump_to_parquet(ccagt_ann_single_nucleus):
 def test_single_core_to_OD_COCO(ccagt_ann_single_nucleus, coco_ann_single_nucleus):
     ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
     ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
+    ccagt_ann_single_nucleus.df['iscrowd'] = 0
     ccagt_ann_single_nucleus.df.index = ccagt_ann_single_nucleus.df.index + 1
 
     coco_OD_ann = CCAgT.single_core_to_OD_COCO(ccagt_ann_single_nucleus.df)

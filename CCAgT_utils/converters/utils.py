@@ -131,6 +131,10 @@ def labelbox_to_OD_COCO(raw_path: str,
 
     __prepare_data(CCAgT_ann, categories_helpper, image_extension)
 
+    print('\tSetting all overlapped nuclei as iscrowd (1), and others as 0 (false for the iscrowd)')
+    CCAgT_ann.df['iscrowd'] = 0
+    CCAgT_ann.df.loc[CCAgT_ann.df['category_id'] == 5, 'iscrowd'] = 1
+
     print('\tTransforming annotations from CCAgT format to COCO Object Detection Format...')
     annotations_coco = CCAgT_ann.to_OD_COCO(decimals=decimals)
 

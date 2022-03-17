@@ -338,8 +338,8 @@ class CCAgT():
     def to_OD_COCO(self, decimals: int = 2) -> list[dict[str, Any]]:
 
         cols = self.df.columns
-        if not all(c in cols for c in ['area', 'image_id']):
-            raise KeyError('The dataframe need to have the columns `area`, `image_id`!')
+        if not all(c in cols for c in ['area', 'image_id', 'iscrowd']):
+            raise KeyError('The dataframe need to have the columns `area`, `image_id`, `iscrowd`!')
 
         cpu_num = multiprocessing.cpu_count()
 
@@ -411,11 +411,13 @@ class CCAgT():
         cats_infos = categories.CategoriesInfos()
         from CCAgT_utils.converters import CCAgT
         a = CCAgT.read_parquet('data/samples/out/CCAgT.parquet.gzip')
+        a.df['iscrowd'] = 0
+        a.df.loc[CCAgT_ann.df['category_id'] == 5, 'iscrowd'] = 1
         out = a.to_PS_COCO(cats_infos, './data/samples/masks/panoptic_segmentation/')
         '''
         cols = self.df.columns
-        if not all(c in cols for c in ['image_id']):
-            raise KeyError('The dataframe need to have the columns `image_id`!')
+        if not all(c in cols for c in ['image_id', 'iscrowd']):
+            raise KeyError('The dataframe need to have the columns `image_id`, `iscrowd`!')
 
         annotations_panoptic = []
         for img_id, df_by_img in self.df.groupby('image_id'):
@@ -429,13 +431,9 @@ class CCAgT():
                     continue
 
                 category_info = categories_infos.get_cat_info(cat)
-                geometries = df_by_img.loc[df_by_img['category_id'] == category_info.id, 'geometry'].tolist()
+                items = df_by_img.loc[df_by_img['category_id'] == category_info.id, ['geometry', 'iscrowd']]
 
-                # FIXME: Maybe do this in other local, like after join geometries. But, by default, all overlapped nuclei
-                # are crowd ->  iscrowd indicate a large bounding box surrounding multiple objects of the same category
-                iscrowd = 1 if cat == Categories.OVERLAPPED_NUCLEI else 0
-
-                annotations = [Annotation(geo, category_info.id, iscrowd) for geo in geometries]
+                annotations = [Annotation(row['geometry'], category_info.id, row['iscrowd']) for _, row in items.iterrows()]
                 for ann in annotations:
                     color = categories_infos.generate_random_color(category_info.id)
                     id = COCO_PS.color_to_id(color)
@@ -448,7 +446,7 @@ class CCAgT():
                     segments_info.append({'id': id,
                                           'category_id': category_info.id,
                                           'bbox': ann.coco_bbox,
-                                          'iscrowd': iscrowd})
+                                          'iscrowd': ann.iscrowd})
                 panoptic_record['segments_info'] = segments_info
                 annotations_panoptic.append(panoptic_record)
                 Image.fromarray(out).save(os.path.join(output_dir, str(panoptic_record['file_name'])))
@@ -460,16 +458,13 @@ class CCAgT():
 
 @ get_traceback
 def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str, Any]]:
-    # FIXME: iscrowd can be 1 for overlapped nuclei
-    # Maybe do this indication like after join geometries. But, by default, all overlapped nuclei
-    # are crowd ->  iscrowd indicate a large bounding box surrounding multiple objects of the same category
     return df.apply(lambda row: {'id': row.name,
                                  'image_id': row['image_id'],
                                  'category_id': row['category_id'],
                                  'bbox': COCO_OD.bounds_to_coco_bb(row['geometry'].bounds, decimals),
                                  'segmentation': COCO_OD.geometry_to_coco_segment(row['geometry'], decimals),
                                  'area': np.round(row['area'], decimals),
-                                 'iscrowd': 0},
+                                 'iscrowd': row['iscrowd']},
                     axis=1).to_numpy().tolist()
 
 
