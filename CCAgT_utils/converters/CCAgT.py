@@ -418,44 +418,64 @@ class CCAgT():
         if not all(c in cols for c in ['image_id', 'iscrowd']):
             raise KeyError('The dataframe need to have the columns `image_id`, `iscrowd`!')
 
-        shape = (self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
-        annotations_panoptic = []
         self.df['color'] = self.df['category_id'].apply(lambda cat_id: categories_infos.generate_random_color(cat_id))
-        for img_id, df_by_img in self.df.groupby('image_id'):
 
-            img_name = df_by_img.iloc[0]['image_name']
+        cpu_num = multiprocessing.cpu_count()
+        images_ids = self.df['image_id'].unique()
+        images_ids_splitted = np.array_split(images_ids, cpu_num)
 
-            out = np.zeros((self.IMAGE_HEIGHT, self.IMAGE_WIDTH, 3), dtype=np.uint8)
+        print(f'Start compute Statistics for {len(images_ids)} files using {cpu_num} cores with {len(images_ids_splitted[0])}'
+              'files per core...')
 
-            panoptic_record = {'image_id': int(img_id),
-                               'file_name': basename(img_name) + '.png'}
+        workers = multiprocessing.Pool(processes=cpu_num)
+        processes = []
+        output_template = np.zeros((self.IMAGE_HEIGHT, self.IMAGE_WIDTH, 3), dtype=np.uint8)
+        for images_ids in images_ids_splitted:
+            if len(images_ids) == 0:
+                continue
+            df_to_process = self.df.loc[self.df['image_id'].isin(images_ids), :]
+            p = workers.apply_async(single_core_to_PS_COCO, (df_to_process, output_dir, output_template))
+            processes.append(p)
 
-            output_filename = os.path.join(output_dir, str(panoptic_record['file_name']))
+        annotations_panoptic = []
+        for p in processes:
+            annotations_panoptic.extend(p.get())
 
-            out = np.zeros((shape[0], shape[1], 3), dtype=np.uint8)
-
-            annotations = [Annotation(row['geometry'],
-                                      row['category_id'],
-                                      row['iscrowd'],
-                                      row['color']) for _, row in df_by_img.iterrows()]
-
-            annotations_sorted = order_annotations_to_draw(annotations)
-            segments_info = []
-            for ann in annotations_sorted:
-                out = draw_annotation(out, ann, ann.color.rgb, shape)
-
-                segments_info.append({'id': COCO_PS.color_to_id(ann.color),
-                                      'category_id': ann.category_id,
-                                      'bbox': ann.coco_bbox,
-                                      'iscrowd': ann.iscrowd})
-
-            panoptic_record['segments_info'] = segments_info
-            Image.fromarray(out).save(output_filename)
-            annotations_panoptic.append(panoptic_record)
         return annotations_panoptic
 
 
 @get_traceback
+def single_core_to_PS_COCO(df: pd.DataFrame, output_dir: str, output_template: np.ndarray) -> list[dict[str, Any]]:
+    annotations_panoptic = []
+    for img_id, df_by_img in df.groupby('image_id'):
+        img_name = df_by_img.iloc[0]['image_name']
+        output_basename = basename(img_name) + '.png'
+        panoptic_record = {'image_id': int(img_id),
+                           'file_name': output_basename}
+
+        output_filename = os.path.join(output_dir, output_basename)
+
+        annotations_sorted = order_annotations_to_draw([Annotation(row['geometry'],
+                                                                   row['category_id'],
+                                                                   row['iscrowd'],
+                                                                   row['color']) for _, row in df_by_img.iterrows()])
+
+        segments_info = []
+        out = output_template.copy()
+        for ann in annotations_sorted:
+            out = draw_annotation(out, ann, ann.color.rgb, out.shape[:2])
+            segments_info.append({'id': COCO_PS.color_to_id(ann.color),
+                                  'category_id': ann.category_id,
+                                  'bbox': ann.coco_bbox,
+                                  'iscrowd': ann.iscrowd})
+
+        panoptic_record['segments_info'] = segments_info
+        Image.fromarray(out).save(output_filename)
+        annotations_panoptic.append(panoptic_record)
+    return annotations_panoptic
+
+
+@ get_traceback
 def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str, Any]]:
     return df.apply(lambda row: {'id': row.name,
                                  'image_id': row['image_id'],
