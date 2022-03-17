@@ -37,10 +37,20 @@ def annotations_to_mask(annotations: list[Annotation],
 
     out = np.zeros(shape, dtype=np.uint8)
     for ann in annotations_sorted:
-        for geo in ann:
-            pol_x, pol_y = geo.exterior.coords.xy
-
-            _x, _y = polygon(pol_y, pol_x, shape)
-            out[_x, _y] = ann.category_id
+        out = draw_annotation(out, ann, ann.category_id, shape)
 
     return Mask(out)
+
+
+def draw_annotation(target: np.ndarray,
+                    annotation: Annotation,
+                    value: int | tuple[int, int, int],
+                    shape: tuple[int, int] | None = None
+                    ) -> np.ndarray:
+    for geo in annotation:
+        pol_x, pol_y = geo.exterior.coords.xy
+
+        _x, _y = polygon(pol_y, pol_x, shape)
+        target[_x, _y] = value
+
+    return target

@@ -12,14 +12,13 @@ from PIL import Image
 from shapely.geometry import box
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
-from skimage.draw import polygon
 
-from CCAgT_utils.categories import Categories
 from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.converters.COCO import COCO_OD
 from CCAgT_utils.converters.COCO import COCO_PS
 from CCAgT_utils.converters.masks import annotations_to_mask
-from CCAgT_utils.converters.masks import DRAW_ORDER
+from CCAgT_utils.converters.masks import draw_annotation
+from CCAgT_utils.converters.masks import order_annotations_to_draw
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
 from CCAgT_utils.types.annotation import Annotation
 from CCAgT_utils.types.annotation import bounds_to_BBox
@@ -419,44 +418,41 @@ class CCAgT():
         if not all(c in cols for c in ['image_id', 'iscrowd']):
             raise KeyError('The dataframe need to have the columns `image_id`, `iscrowd`!')
 
+        shape = (self.IMAGE_HEIGHT, self.IMAGE_WIDTH)
         annotations_panoptic = []
         for img_id, df_by_img in self.df.groupby('image_id'):
+
             img_name = df_by_img.iloc[0]['image_name']
+
             out = np.zeros((self.IMAGE_HEIGHT, self.IMAGE_WIDTH, 3), dtype=np.uint8)
+
             panoptic_record = {'image_id': int(img_id),
                                'file_name': basename(img_name) + '.png'}
+
+            output_filename = os.path.join(output_dir, str(panoptic_record['file_name']))
+
+            out = np.zeros((shape[0], shape[1], 3), dtype=np.uint8)
+
+            annotations = [Annotation(row['geometry'], row['category_id'], row['iscrowd']) for _, row in df_by_img.iterrows()]
+            annotations_sorted = order_annotations_to_draw(annotations)
+
             segments_info = []
-            for cat in DRAW_ORDER:
-                if cat == Categories.BACKGROUND:
-                    continue
+            for ann in annotations_sorted:
+                color = categories_infos.generate_random_color(ann.category_id)
+                out = draw_annotation(out, ann, color.rgb, shape)
 
-                category_info = categories_infos.get_cat_info(cat)
-                items = df_by_img.loc[df_by_img['category_id'] == category_info.id, ['geometry', 'iscrowd']]
+                segments_info.append({'id': COCO_PS.color_to_id(color),
+                                      'category_id': ann.category_id,
+                                      'bbox': ann.coco_bbox,
+                                      'iscrowd': ann.iscrowd})
 
-                annotations = [Annotation(row['geometry'], category_info.id, row['iscrowd']) for _, row in items.iterrows()]
-                for ann in annotations:
-                    color = categories_infos.generate_random_color(category_info.id)
-                    id = COCO_PS.color_to_id(color)
-
-                    for geo in ann:
-                        pol_x, pol_y = geo.exterior.coords.xy
-
-                        _x, _y = polygon(pol_y, pol_x, (self.IMAGE_HEIGHT, self.IMAGE_WIDTH))
-                        out[_x, _y] = color.rgb
-                    segments_info.append({'id': id,
-                                          'category_id': category_info.id,
-                                          'bbox': ann.coco_bbox,
-                                          'iscrowd': ann.iscrowd})
-                panoptic_record['segments_info'] = segments_info
-                annotations_panoptic.append(panoptic_record)
-                Image.fromarray(out).save(os.path.join(output_dir, str(panoptic_record['file_name'])))
+            panoptic_record['segments_info'] = segments_info
+            Image.fromarray(out).save(output_filename)
+            annotations_panoptic.append(panoptic_record)
         return annotations_panoptic
-    # TODO: Split data into train validation and test
-
-    # TODO: Describe / stats of the dataset or of the data splitted
 
 
-@ get_traceback
+@get_traceback
 def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str, Any]]:
     return df.apply(lambda row: {'id': row.name,
                                  'image_id': row['image_id'],
