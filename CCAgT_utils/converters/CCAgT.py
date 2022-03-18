@@ -19,6 +19,7 @@ from CCAgT_utils.converters.COCO import COCO_PS
 from CCAgT_utils.converters.masks import annotations_to_mask
 from CCAgT_utils.converters.masks import draw_annotation
 from CCAgT_utils.converters.masks import order_annotations_to_draw
+from CCAgT_utils.errors import FileTypeError
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
 from CCAgT_utils.types.annotation import Annotation
 from CCAgT_utils.types.annotation import bounds_to_BBox
@@ -403,29 +404,28 @@ class CCAgT():
         workers.close()
         workers.join()
 
-    def to_PS_COCO(self, categories_infos: CategoriesInfos, output_dir: str) -> list[Any]:
-        # image_names = self.df['image_name'].unique().tolist()
-        '''
-        from CCAgT_utils import categories
-        cats_infos = categories.CategoriesInfos()
-        from CCAgT_utils.converters import CCAgT
-        a = CCAgT.read_parquet('data/samples/out/CCAgT.parquet.gzip')
-        a.df['iscrowd'] = 0
-        a.df.loc[a.df['category_id'] == 5, 'iscrowd'] = 1
-        out = a.to_PS_COCO(cats_infos, './data/samples/masks/panoptic_segmentation/')
-        '''
+    def to_PS_COCO(self, categories_infos: CategoriesInfos, out_dir: str, split_by_slide: bool = True) -> list[Any]:
         cols = self.df.columns
         if not all(c in cols for c in ['image_id', 'iscrowd']):
             raise KeyError('The dataframe need to have the columns `image_id`, `iscrowd`!')
 
         self.df['color'] = self.df['category_id'].apply(lambda cat_id: categories_infos.generate_random_color(cat_id))
 
+        if split_by_slide:
+            if 'slide_id' not in self.df.columns:
+                self.df['slide_id'] = self.get_slide_id()
+
+            slide_ids = self.df['slide_id'].unique()
+
+            for slide_id in slide_ids:
+                os.makedirs(os.path.join(out_dir, slide_id), exist_ok=True)
+
         cpu_num = multiprocessing.cpu_count()
         images_ids = self.df['image_id'].unique()
         images_ids_splitted = np.array_split(images_ids, cpu_num)
 
-        print(f'Start compute Statistics for {len(images_ids)} files using {cpu_num} cores with {len(images_ids_splitted[0])}'
-              'files per core...')
+        print(f'Start compute generate panoptic annotations and masks for {len(images_ids)} files using {cpu_num} cores with '
+              '{len(images_ids_splitted[0])} files per core...')
 
         workers = multiprocessing.Pool(processes=cpu_num)
         processes = []
@@ -434,7 +434,7 @@ class CCAgT():
             if len(images_ids) == 0:
                 continue
             df_to_process = self.df.loc[self.df['image_id'].isin(images_ids), :]
-            p = workers.apply_async(single_core_to_PS_COCO, (df_to_process, output_dir, output_template))
+            p = workers.apply_async(single_core_to_PS_COCO, (df_to_process, out_dir, output_template, split_by_slide))
             processes.append(p)
 
         annotations_panoptic = []
@@ -445,15 +445,19 @@ class CCAgT():
 
 
 @get_traceback
-def single_core_to_PS_COCO(df: pd.DataFrame, output_dir: str, output_template: np.ndarray) -> list[dict[str, Any]]:
+def single_core_to_PS_COCO(df: pd.DataFrame,
+                           out_dir: str,
+                           output_template: np.ndarray,
+                           split_by_slide: bool
+                           ) -> list[dict[str, Any]]:
     annotations_panoptic = []
+
+    _out_dir = out_dir
     for img_id, df_by_img in df.groupby('image_id'):
         img_name = df_by_img.iloc[0]['image_name']
         output_basename = basename(img_name) + '.png'
         panoptic_record = {'image_id': int(img_id),
                            'file_name': output_basename}
-
-        output_filename = os.path.join(output_dir, output_basename)
 
         annotations_sorted = order_annotations_to_draw([Annotation(row['geometry'],
                                                                    row['category_id'],
@@ -466,10 +470,16 @@ def single_core_to_PS_COCO(df: pd.DataFrame, output_dir: str, output_template: n
             out = draw_annotation(out, ann, ann.color.rgb, out.shape[:2])
             segments_info.append({'id': COCO_PS.color_to_id(ann.color),
                                   'category_id': ann.category_id,
+                                  'area': int(ann.geometry.area),
                                   'bbox': ann.coco_bbox,
                                   'iscrowd': ann.iscrowd})
 
         panoptic_record['segments_info'] = segments_info
+
+        if split_by_slide:
+            _out_dir = os.path.join(out_dir, df_by_img.iloc[0]['slide_id'])
+
+        output_filename = os.path.join(_out_dir, output_basename)
         Image.fromarray(out).save(output_filename)
         annotations_panoptic.append(panoptic_record)
     return annotations_panoptic
@@ -488,24 +498,27 @@ def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str
 
 
 def read_parquet(filename: str, **kwargs: Any) -> CCAgT:
+    if not filename.endswith(('.parquet.gzip', '.parquet')):
+        raise FileTypeError('The labels file is not a parquet file.')
+
     df = pd.read_parquet(filename, **kwargs)
     df['geometry'] = df['geometry'].apply(lambda x: shapely.wkt.loads(x))
 
     return CCAgT(df)
 
 
-@ get_traceback
-def single_core_to_mask(df: pd.DataFrame, output_dir: str, split_by_slide: bool, extension: str = '.png') -> None:
+@get_traceback
+def single_core_to_mask(df: pd.DataFrame, out_dir: str, split_by_slide: bool, extension: str = '.png') -> None:
     df_groupped = df.groupby('image_id')
-    _out_dir = output_dir
+    _out_dir = out_dir
 
-    for _, df_img in df_groupped:
+    for _, df_by_img in df_groupped:
         if split_by_slide:
-            _out_dir = os.path.join(output_dir, df_img.iloc[0]['slide_id'])
-        img_name = basename(df_img.iloc[0]['image_name']) + extension
+            _out_dir = os.path.join(out_dir, df_by_img.iloc[0]['slide_id'])
+        img_name = basename(df_by_img.iloc[0]['image_name']) + extension
         out_path = os.path.join(_out_dir, img_name)
 
-        annotations = [Annotation(row['geometry'], row['category_id']) for _, row in df_img.iterrows()]
+        annotations = [Annotation(row['geometry'], row['category_id']) for _, row in df_by_img.iterrows()]
         mask = annotations_to_mask(annotations)
 
         mask.save(out_path)

@@ -35,25 +35,53 @@ def test_main_labelbox_to_CCAgT(lbb_raw_sample_complete, ccagt_aux_data):
     assert out == 0
 
 
-def test_main_help():
-    with pytest.raises(SystemExit):
-        main.main(['help'])
+def test_main_CCAgT_to_COCO(ccagt_aux_data, ccagt_ann_single_nucleus, tmpdir):
+    ccagt_path = os.path.join(tmpdir, 'ccagt.parquet.gzip')
+    ccagt_ann_single_nucleus.to_parquet(ccagt_path)
+    with RawAuxFiles([{'a': None}], ccagt_aux_data) as paths:
+        temp_dir, _, aux_path = paths
+        out = main.main(['CCAgT_to_COCO', '-t', 'PS', '-l', ccagt_path, '-a', aux_path, '-o', temp_dir])
 
-    with pytest.raises(SystemExit):
+    assert out == 0
+
+
+def test_main_help():
+    with pytest.raises(SystemExit) as pytest_wrapped_e1:
+        main.main(['help'])
+    assert pytest_wrapped_e1.value.code == 0
+
+    with pytest.raises(SystemExit) as pytest_wrapped_e2:
         main.main([])
+    assert pytest_wrapped_e2.value.code == 0
 
 
 def test_main_help_other_command():
-    with pytest.raises(SystemExit):
+    with pytest.raises(SystemExit) as pytest_wrapped_e1:
         main.main(['help', 'labelbox_to_COCO'])
 
-    with pytest.raises(SystemExit):
+    assert pytest_wrapped_e1.value.code == 0
+
+    with pytest.raises(SystemExit) as pytest_wrapped_e2:
         main.main(['help', 'labelbox_to_CCAgT'])
+
+    assert pytest_wrapped_e2.value.code == 0
+
+    with pytest.raises(SystemExit) as pytest_wrapped_e3:
+        main.main(['help', 'CCAgT_to_COCO'])
+
+    assert pytest_wrapped_e3.value.code == 0
 
 
 def test_not_implemented_command():
-    exit_code = main.main(['labelbox_to_CCAgT', '-r', '', '-a', '', '-o', ''])
-    assert exit_code == 1
+    with pytest.raises(SystemExit) as pytest_wrapped_e:
+        main.main(['wrong_command', '-r', '', '-a', '', '-o', ''])
+
+    assert pytest_wrapped_e.value.code == 2
+
+
+def test_main_out():
+    out = main.main(['generate_masks', '-l', '', '-o', ''])
+    assert out == 1
 
 
 @pytest.mark.slow

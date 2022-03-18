@@ -12,6 +12,7 @@ from shapely.geometry import Polygon
 
 from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.converters import CCAgT
+from CCAgT_utils.errors import FileTypeError
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
 from CCAgT_utils.types.colors import Color
 from testing import create
@@ -261,13 +262,14 @@ def test_generate_masks(ccagt_ann_single_nucleus):
 
 
 def test_single_core_to_PS_COCO(ccagt_ann_single_nucleus, tmpdir, shape):
+    ccagt_ann_single_nucleus.df['image_name'] = 'C_xx1'
     ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
     ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
     ccagt_ann_single_nucleus.df['iscrowd'] = 0
     ccagt_ann_single_nucleus.df['color'] = Color(21, 62, 125)
 
     template = np.zeros((shape[0], shape[1], 3), dtype=np.uint8)
-    out = CCAgT.single_core_to_PS_COCO(ccagt_ann_single_nucleus.df, tmpdir, template)
+    out = CCAgT.single_core_to_PS_COCO(ccagt_ann_single_nucleus.df, tmpdir, template, False)
 
     check1 = all(y in out[0] for y in {'image_id', 'file_name', 'segments_info'})
     assert check1
@@ -276,13 +278,19 @@ def test_single_core_to_PS_COCO(ccagt_ann_single_nucleus, tmpdir, shape):
 
     assert len(os.listdir(tmpdir)) > 0
 
+    ccagt_ann_single_nucleus.df['slide_id'] = ccagt_ann_single_nucleus.get_slide_id()
+    tmpdir.mkdir('C')
+    CCAgT.single_core_to_PS_COCO(ccagt_ann_single_nucleus.df, tmpdir, template, True)
+    assert len(os.listdir(os.path.join(tmpdir, 'C/'))) > 0
+
 
 def test_CCAgT_to_PS_COCO(ccagt_ann_single_nucleus, categories_infos, tmpdir):
+    ccagt_ann_single_nucleus.df['image_name'] = 'C_xx1'
     ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
     ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
     ccagt_ann_single_nucleus.df['iscrowd'] = 0
 
-    out = ccagt_ann_single_nucleus.to_PS_COCO(categories_infos, tmpdir)
+    out = ccagt_ann_single_nucleus.to_PS_COCO(categories_infos, tmpdir, False)
 
     check1 = all(y in out[0] for y in {'image_id', 'file_name', 'segments_info'})
     assert check1
@@ -290,8 +298,17 @@ def test_CCAgT_to_PS_COCO(ccagt_ann_single_nucleus, categories_infos, tmpdir):
     assert check2
 
     assert len(os.listdir(tmpdir)) > 0
+
+    ccagt_ann_single_nucleus.to_PS_COCO(categories_infos, tmpdir, True)
+    ccagt_ann_single_nucleus.to_PS_COCO(categories_infos, tmpdir, True)
+    assert len(os.listdir(os.path.join(tmpdir, 'C/'))) > 0
 
 
 def test_CCAgT_to_PS_COCO_without_cols(ccagt_ann_single_nucleus, categories_infos, tmpdir):
     with pytest.raises(KeyError):
         ccagt_ann_single_nucleus.to_PS_COCO(categories_infos, tmpdir)
+
+
+def test_read_parquet_wrong_type():
+    with pytest.raises(FileTypeError):
+        CCAgT.read_parquet('wrong file.and.type')
