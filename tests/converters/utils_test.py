@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 import tempfile
 
@@ -49,7 +50,7 @@ def test_labelbox_to_COCO_wrong_filetypes():
 
 def test_labelbox_to_COCO_wrong_target():
     out = utils.labelbox_to_COCO('', 'raw.json', 'aux.json', 'out.json', '', 2)
-    assert out == 0
+    assert out == 1
 
 
 def test_labelbox_to_COCO_OD(lbb_raw_sample_complete, ccagt_aux_data):
@@ -114,3 +115,53 @@ def test_ccagt_generate_masks(ccagt_ann_single_nucleus):
 def test_ccagt_wrong_file():
     with pytest.raises(FileTypeError):
         utils.ccagt_generate_masks('wrong.name', '/tmp/', False)
+
+
+def test_CCAgT_to_PS_COCO(ccagt_ann_single_nucleus, categories_infos, tmpdir):
+    outfilename = os.path.join(tmpdir, 'test_CCAgT_to_PS_COCO.json')
+    ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
+    ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
+    ccagt_ann_single_nucleus.df['slide_id'] = ccagt_ann_single_nucleus.get_slide_id()
+
+    out = utils.CCAgT_to_PS_COCO(ccagt_ann_single_nucleus, categories_infos, tmpdir, outfilename, {'year': 'sample'}, False)
+
+    assert out == 0
+
+    with open(outfilename) as f:
+        itens = json.load(f)
+
+    assert all(x in itens for x in {'info', 'categories', 'images', 'annotations'})
+    assert all(x in itens['categories'][0] for x in {'supercategory', 'name', 'id'})
+    assert all(x in itens['images'][0] for x in {'file_name', 'height', 'width', 'id'})
+    assert all(x in itens['annotations'][0] for x in {'image_id', 'file_name', 'segments_info'})
+    assert all(x in j for j in itens['annotations'][0]['segments_info']
+               for x in {'id', 'category_id', 'area', 'bbox', 'iscrowd'})
+
+
+def test_CCAgT_to_COCO_NotImplemented():
+
+    with pytest.raises(NotImplementedError):
+        utils.CCAgT_to_COCO('OD', '', None, '', None, False)
+
+    with pytest.raises(NotImplementedError):
+        utils.CCAgT_to_COCO('IS', '', None, '', None, False)
+
+
+def test_CCAgT_to_COCO_PS_with_auxfile(ccagt_ann_single_nucleus, ccagt_aux_data):
+    ccagt_ann_single_nucleus.df['image_name'] = 'C_xx1'
+
+    with RawAuxFiles([{'a': None}], ccagt_aux_data) as paths:
+        temp_dir, _, aux_path = paths
+        ccagt_path = os.path.join(temp_dir, 'ccagt.parquet.gzip')
+        ccagt_ann_single_nucleus.to_parquet(ccagt_path)
+        out = utils.CCAgT_to_COCO('PS', ccagt_path, aux_path, temp_dir, None, False)
+
+        assert out == 0
+
+
+def test_CCAgT_to_COCO_wrong_target(ccagt_ann_single_nucleus, tmpdir):
+    ccagt_path = os.path.join(tmpdir, 'ccagt.parquet.gzip')
+    ccagt_ann_single_nucleus.to_parquet(ccagt_path)
+    out = utils.CCAgT_to_COCO('wrong target', ccagt_path, None, tmpdir, None, False)
+
+    assert out == 1

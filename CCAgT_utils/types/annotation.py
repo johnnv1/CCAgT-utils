@@ -6,11 +6,16 @@ from dataclasses import dataclass
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
 
+from CCAgT_utils.categories import CategoriesInfos
+from CCAgT_utils.types.colors import Color
+
 
 @dataclass
 class Annotation:
     geometry: Polygon | MultiPolygon
     category_id: int
+    iscrowd: int = 0
+    color: Color | None = None
 
     @property
     def bbox(self) -> BBox:
@@ -19,6 +24,11 @@ class Annotation:
     @property
     def _geo_type(self) -> str:
         return self.geometry.geom_type
+
+    @property
+    def coco_bbox(self) -> list[float | int]:
+        bbox = self.bbox
+        return [bbox.x_init, bbox.y_init, bbox.width, bbox.height]
 
     def __iter__(self) -> Annotation:
         self._idx = 0
@@ -136,10 +146,10 @@ def bounds_to_BBox(bounds: tuple[float], category_id: int) -> BBox:
 
 
 def count_BBox_categories(items: list[BBox],
-                          get_categories_name: dict[int, str]) -> dict[str, int]:
+                          categories_infos: CategoriesInfos) -> dict[str, int]:
     c: dict[str, int] = collections.defaultdict(int)
     for bbox in items:
-        cat_name = get_categories_name[bbox.category_id]
+        cat_name = categories_infos[bbox.category_id].name
         c[cat_name] += 1
 
     return c

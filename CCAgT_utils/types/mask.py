@@ -7,9 +7,9 @@ import matplotlib.colors as mlp_colors
 import numpy as np
 from PIL import Image
 
+from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.errors import ShapeError
 from CCAgT_utils.types.checkers import is_2d
-from CCAgT_utils.visualization import colors
 
 
 @dataclass
@@ -36,25 +36,27 @@ class Mask:
         return set(np.unique(self.categorical))
 
     def colorized(self,
-                  get_color: dict[int, list[int]]) -> np.ndarray:
+                  categories_infos: CategoriesInfos) -> np.ndarray:
         o = np.zeros((self.height, self.width, 3), dtype=np.uint8)
 
         for id in self.unique_ids:
-            o[self.categorical == id] = get_color[id]
+            o[self.categorical == id] = categories_infos[id].color.rgb
 
         return o
 
-    def cmap(self, get_color: dict[int, list[int] | list[float]]) -> mlp_colors.ListedColormap:
-        o = [colors.rgb_to_rgba(get_color[id], normalize=True) for id in self.unique_ids]
+    def cmap(self,
+             categories_infos: CategoriesInfos
+             ) -> mlp_colors.ListedColormap:
+        o = [categories_infos[id].color.rgba_normalized for id in self.unique_ids]
         return mlp_colors.ListedColormap(o)
 
     def save(self,
              filename: str,
-             get_color: dict[int, list[int]] | None = None,
+             categories_infos: CategoriesInfos | None = None,
              **kwargs: Any) -> None:
 
-        if isinstance(get_color, dict):
-            out = self.colorized(get_color)
+        if isinstance(categories_infos, CategoriesInfos):
+            out = self.colorized(categories_infos)
         else:
             out = self.categorical
 

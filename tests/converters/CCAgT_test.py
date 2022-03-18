@@ -10,8 +10,11 @@ import pytest
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
+from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.converters import CCAgT
+from CCAgT_utils.errors import FileTypeError
 from CCAgT_utils.errors import MoreThanOneIDbyItemError
+from CCAgT_utils.types.colors import Color
 from testing import create
 
 
@@ -98,12 +101,18 @@ def test_generate_ids(ccagt_ann_multi):
 def test_delete_by_area(ccagt_ann_single_nucleus, min_area, expected, compute_area):
     if compute_area:
         ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
-    df = ccagt_ann_single_nucleus.delete_by_area({1: min_area})
+
+    categories_infos = CategoriesInfos([{'name': 'Nucleus', 'id': 1, 'color': (0, 0, 0), 'minimal_area': min_area}])
+    df = ccagt_ann_single_nucleus.delete_by_area(categories_infos)
     assert df.shape[0] == expected
 
 
 def test_delete_by_area_ignore_ids(ccagt_ann_multi):
-    df = ccagt_ann_multi.delete_by_area({1: 1000, 2: 0, 3: 0, 4: 0}, set({2, 3}))
+    categories_infos = CategoriesInfos([{'name': 'Nucleus', 'id': 1, 'color': (0, 0, 0), 'minimal_area': 1000},
+                                        {'name': 'Cluster', 'id': 2, 'color': (0, 0, 0), 'minimal_area': 0},
+                                        {'name': 'Satellite', 'id': 3, 'color': (0, 0, 0), 'minimal_area': 0},
+                                        {'name': 'Nucleus_out_of_focus', 'id': 4, 'color': (0, 0, 0), 'minimal_area': 0}])
+    df = ccagt_ann_multi.delete_by_area(categories_infos, set({2, 3}))
     assert df.shape[0] == 2
 
 
@@ -169,16 +178,17 @@ def test_union_geometries(ccagt_ann_multi):
     assert df.shape == ccagt_ann_multi.df.shape
 
 
-def test_to_OD_COCO(ccagt_ann_single_nucleus, coco_ann_single_nucleus):
+def test_to_OD_COCO(ccagt_ann_single_nucleus, coco_OD_ann_single_nucleus):
     with pytest.raises(KeyError):
         ccagt_ann_single_nucleus.to_OD_COCO()
 
     ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
     ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
+    ccagt_ann_single_nucleus.df['iscrowd'] = 0
 
     coco_OD_ann = ccagt_ann_single_nucleus.to_OD_COCO()
 
-    assert coco_OD_ann == coco_ann_single_nucleus
+    assert coco_OD_ann == coco_OD_ann_single_nucleus
 
 
 def test_image_id_by_name(ccagt_ann_single_nucleus):
@@ -207,14 +217,15 @@ def test_read_and_dump_to_parquet(ccagt_ann_single_nucleus):
         assert ccagt_ann.df.equals(ccagt_ann_single_nucleus.df)
 
 
-def test_single_core_to_OD_COCO(ccagt_ann_single_nucleus, coco_ann_single_nucleus):
+def test_single_core_to_OD_COCO(ccagt_ann_single_nucleus, coco_OD_ann_single_nucleus):
     ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
     ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
+    ccagt_ann_single_nucleus.df['iscrowd'] = 0
     ccagt_ann_single_nucleus.df.index = ccagt_ann_single_nucleus.df.index + 1
 
     coco_OD_ann = CCAgT.single_core_to_OD_COCO(ccagt_ann_single_nucleus.df)
 
-    assert coco_OD_ann == coco_ann_single_nucleus
+    assert coco_OD_ann == coco_OD_ann_single_nucleus
 
 
 def test_single_core_to_mask(nucleus_ex):
@@ -248,3 +259,56 @@ def test_generate_masks(ccagt_ann_single_nucleus):
         ccagt_ann_single_nucleus.df['slide_id'] = ccagt_ann_single_nucleus.get_slide_id()
         ccagt_ann_single_nucleus.generate_masks(tmp_dir, split_by_slide=True)
         assert os.path.isfile(os.path.join(tmp_dir, 'C/C_xx1' + '.png'))
+
+
+def test_single_core_to_PS_COCO(ccagt_ann_single_nucleus, tmpdir, shape):
+    ccagt_ann_single_nucleus.df['image_name'] = 'C_xx1'
+    ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
+    ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
+    ccagt_ann_single_nucleus.df['iscrowd'] = 0
+    ccagt_ann_single_nucleus.df['color'] = Color(21, 62, 125)
+
+    template = np.zeros((shape[0], shape[1], 3), dtype=np.uint8)
+    out = CCAgT.single_core_to_PS_COCO(ccagt_ann_single_nucleus.df, tmpdir, template, False)
+
+    check1 = all(y in out[0] for y in {'image_id', 'file_name', 'segments_info'})
+    assert check1
+    check2 = all(y in x for x in out[0]['segments_info'] for y in {'id', 'category_id', 'bbox', 'iscrowd'})
+    assert check2
+
+    assert len(os.listdir(tmpdir)) > 0
+
+    ccagt_ann_single_nucleus.df['slide_id'] = ccagt_ann_single_nucleus.get_slide_id()
+    tmpdir.mkdir('C')
+    CCAgT.single_core_to_PS_COCO(ccagt_ann_single_nucleus.df, tmpdir, template, True)
+    assert len(os.listdir(os.path.join(tmpdir, 'C/'))) > 0
+
+
+def test_CCAgT_to_PS_COCO(ccagt_ann_single_nucleus, categories_infos, tmpdir):
+    ccagt_ann_single_nucleus.df['image_name'] = 'C_xx1'
+    ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
+    ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
+    ccagt_ann_single_nucleus.df['iscrowd'] = 0
+
+    out = ccagt_ann_single_nucleus.to_PS_COCO(categories_infos, tmpdir, False)
+
+    check1 = all(y in out[0] for y in {'image_id', 'file_name', 'segments_info'})
+    assert check1
+    check2 = all(y in x for x in out[0]['segments_info'] for y in {'id', 'category_id', 'bbox', 'iscrowd'})
+    assert check2
+
+    assert len(os.listdir(tmpdir)) > 0
+
+    ccagt_ann_single_nucleus.to_PS_COCO(categories_infos, tmpdir, True)
+    ccagt_ann_single_nucleus.to_PS_COCO(categories_infos, tmpdir, True)
+    assert len(os.listdir(os.path.join(tmpdir, 'C/'))) > 0
+
+
+def test_CCAgT_to_PS_COCO_without_cols(ccagt_ann_single_nucleus, categories_infos, tmpdir):
+    with pytest.raises(KeyError):
+        ccagt_ann_single_nucleus.to_PS_COCO(categories_infos, tmpdir)
+
+
+def test_read_parquet_wrong_type():
+    with pytest.raises(FileTypeError):
+        CCAgT.read_parquet('wrong file.and.type')

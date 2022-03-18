@@ -25,13 +25,13 @@ def test_unique_ids(mask):
     assert mask.unique_ids == {1, 2, 3, 4}
 
 
-def test_colorized(mask, get_color_rgb, mask_colorized):
-    colorized = mask.colorized(get_color_rgb)
+def test_colorized(mask, categories_infos, mask_colorized):
+    colorized = mask.colorized(categories_infos)
     assert np.array_equal(colorized, mask_colorized)
 
 
-def test_cmap(mask, get_color_rgba_norm):
-    cmap = mask.cmap(get_color_rgba_norm)
+def test_cmap(mask, categories_infos, get_color_rgba_norm):
+    cmap = mask.cmap(categories_infos)
     assert len(cmap.colors) == len(mask.unique_ids)
     assert cmap.colors[0] == get_color_rgba_norm[1]
 
@@ -46,10 +46,10 @@ def test_save(mask):
 
 
 @pytest.mark.slow
-def test_save_colorized(mask, get_color_rgb):
+def test_save_colorized(mask, categories_infos):
     with tempfile.TemporaryDirectory() as tmp_dir:
         out_path = os.path.join(tmp_dir, 'test_colorized.png')
-        mask.save(out_path, get_color_rgb)
+        mask.save(out_path, categories_infos)
         msk = Image.open(out_path)
         assert os.path.isfile(out_path)
-        assert np.array_equal(mask.colorized(get_color_rgb), msk)
+        assert np.array_equal(mask.colorized(categories_infos), msk)

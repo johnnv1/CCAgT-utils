@@ -6,6 +6,8 @@ from shapely.geometry import Point
 from shapely.geometry import Polygon
 
 from CCAgT_utils.converters.COCO import COCO_OD
+from CCAgT_utils.converters.COCO import COCO_PS
+from CCAgT_utils.types.colors import Color
 
 
 def test_bounds_to_coco_bb():
@@ -36,3 +38,10 @@ def test_geometry_to_coco_segment():
 def test_wrong_geometry_to_coco_segment():
     with pytest.raises(TypeError):
         COCO_OD.geometry_to_coco_segment(Point(0, 0))
+
+
+def test_COCO_PS_color_to_id(categories_infos):
+    c = Color(Red=10, Green=20, Blue=15)
+    expected = 1314570
+    out = COCO_PS.color_to_id(c)
+    assert out == expected
