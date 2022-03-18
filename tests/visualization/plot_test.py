@@ -47,8 +47,8 @@ def test_create_handles(categories_infos):
     handles1 = plot.create_handles(categories_infos)
 
     assert len(handles1) == len(categories_infos)
-    assert handles1[0].get_label() == categories_infos[1].name
-    assert tuple(handles1[0].get_edgecolor()) == categories_infos[1].color.rgba_normalized
+    assert handles1[0].get_label() == categories_infos[0].name
+    assert tuple(handles1[0].get_edgecolor()) == categories_infos[0].color.rgba_normalized
 
     selected_categories = [2, 3]
     handles2 = plot.create_handles(categories_infos, selected_categories)

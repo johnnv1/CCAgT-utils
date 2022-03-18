@@ -73,11 +73,11 @@ def mask_with_color(mask: Mask,
 
 
 def create_handles(categories_infos: CategoriesInfos,
-                   selected_categories: list[int] = []) -> list[patches.Patch]:
+                   selected_categories: set[int] = set({})) -> list[patches.Patch]:
     if len(selected_categories) > 0:
         categories_id = selected_categories
     else:
-        categories_id = list(categories_infos.keys())
+        categories_id = set(categories_infos.keys())
 
     return [patches.Patch(color=categories_infos.get_color(cat_id).rgba_normalized,
                           label=categories_infos.get_name(cat_id)) for cat_id in categories_id]

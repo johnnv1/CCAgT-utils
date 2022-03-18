@@ -59,7 +59,7 @@ def image_with_boxes(CCAgT_ann: CCAgT,
 
         counter = count_BBox_categories(image_boxes, categories_infos)
         text_counter = ' | '.join([f'{key}:: {value}' for key, value in counter.items()])
-        selected_categories = [get_id[cat_name] for cat_name in counter]
+        selected_categories = {get_id[cat_name] for cat_name in counter}
         handles = plot.create_handles(categories_infos, selected_categories)
 
         fig, ax = plt.subplots(1, 1, figsize=(16, 9))

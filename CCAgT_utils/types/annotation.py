@@ -8,6 +8,7 @@ from shapely.geometry import Polygon
 
 from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.types.colors import Color
+from CCAgT_utils.types.colors import random_color_from_base
 
 
 @dataclass
@@ -15,7 +16,7 @@ class Annotation:
     geometry: Polygon | MultiPolygon
     category_id: int
     iscrowd: int = 0
-    color: Color | None = None
+    color: Color = random_color_from_base(Color(0, 0, 0), 255)
 
     @property
     def bbox(self) -> BBox:
@@ -42,7 +43,7 @@ class Annotation:
 
         return self
 
-    def __next__(self) -> list[Polygon]:
+    def __next__(self) -> Polygon:
         if self._idx < len(self._geometries):
             out = self._geometries[self._idx]
             self._idx += 1
