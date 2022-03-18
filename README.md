@@ -76,6 +76,13 @@ $ CCAgT-converter generate_masks -l ./data/samples/out/CCAgT.parquet.gzip\
                                  -o ./data/samples/masks/semantic_segmentation/\
                                  --split-by-slide
 ```
+
+### CCAgT to Panoptic segmentation COCO
+```console
+$ CCAgT-converter CCAgT_to_COCO  -t PS -l ./data/samples/out/CCAgT.parquet.gzip\
+                                       -o ./data/samples/masks/panoptic_segmentation\
+                                       --out-file ./data/samples/out/CCAgT_COCO_PS.json
+```
 ## visualization
 Module responsible for assisting in the display or creation of figures from the dataset.
 
