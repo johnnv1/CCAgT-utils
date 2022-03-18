@@ -193,6 +193,12 @@ def test_annotation_geo_type(nucleus_ex):
     assert geo_type == 'Polygon'
 
 
+def test_annotation_coco_bbox(nucleus_ex):
+    ann = annotation.Annotation(nucleus_ex, 1)
+    min_x, min_y, max_x, max_y = nucleus_ex.bounds
+    assert ann.coco_bbox == [min_x, min_y, int(max_x) - int(min_x), int(max_y) - int(min_y)]
+
+
 def test_annotation_iter(nucleus_ex, cluster_ex):
     ann = annotation.Annotation(nucleus_ex, 1)
 

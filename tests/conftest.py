@@ -242,7 +242,7 @@ def ccagt_ann_multi(ccagt_df_multi):
 
 
 @pytest.fixture
-def coco_ann_single_nucleus(nucleus_ex):
+def coco_OD_ann_single_nucleus(nucleus_ex):
     min_x, min_y, max_x, max_y = nucleus_ex.bounds
     x, y = nucleus_ex.exterior.xy
     pol = [float(val) for pair in zip(x, y) for val in pair]

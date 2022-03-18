@@ -475,7 +475,7 @@ def single_core_to_PS_COCO(df: pd.DataFrame, output_dir: str, output_template: n
     return annotations_panoptic
 
 
-@ get_traceback
+@get_traceback
 def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str, Any]]:
     return df.apply(lambda row: {'id': row.name,
                                  'image_id': row['image_id'],
