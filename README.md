@@ -49,6 +49,7 @@ For more explanations about the dataset, see the dataset pages, or their papers.
 
 
 # Examples of use
+
 ## Converter
 To use the dataset along different approaches, different “formats” are required. This module will provide the correct transformation between the format provided by the annotation tool (LabelBox) and the current state-of-the-art formats (e.g. COCO). It will also make it possible to work with the data in DataFrame format, which I consider to be the easiest way to perform the manipulation of these annotations. The annotations dataframe format is not recommended or built for use in any specific deep learning library or approach. It was built only for manipulation of the dataset, to facilitate conversions between different formats, perform analysis, and internal use of this library.
 
@@ -83,6 +84,56 @@ $ CCAgT-converter CCAgT_to_COCO  -t PS -l ./data/samples/out/CCAgT.parquet.gzip\
                                        -o ./data/samples/masks/panoptic_segmentation\
                                        --out-file ./data/samples/out/CCAgT_COCO_PS.json
 ```
+
+
+## Create subdataset's
+Module responsible to create personalized versions of the dataset with the desired
+modifications. Things that can be done: slice the images into smaller parts, select
+just images that have specific categories, create images with a specific category.
+
+First, the tool allows selecting what will be the format of the images:
+>- `--slice-images` to slice the images into sub parts;
+>- `--extract` to create images and masks with a unique category (centralized
+into the new image);
+>- `--labels` (to be used with `--extract`) path for the CCAgT file with the labels;
+>- `--paddings` (to be used with `--extract`) in percent (float values) or pixels
+(integer values) select, the size of paddings to apply;
+>- Without any parameter, will just copy the original dataset
+
+Second, if desired, the tool will remove images that do not have the desired categories:
+>- `--remove-images-without` with the categories ids, will remove all images/masks
+that don't have the categories passed as parameter.
+
+Third, and last, can (re)check if all images has the desired categories, and delete
+with don't have.
+>- `--check-if-all-have-at-least-one-of` to verify if the image/mask have at least
+one of the categories IDs passed as parameter;
+>- `--delete` if desired, delete images that don't have at least one of the categories.
+
+
+Example creates a subdataset with images sliced into 2x2 (1 image (1600x1200) ->
+4 images (800x600)), and remove images do not have any information (images with
+just background).
+
+```console
+# Create a directory with the same structure of the dataset
+$ mkdir /tmp/example_dataset
+$ mkdir /tmp/example_dataset/images/
+$ mkdir /tmp/example_dataset/masks/
+$ cp -r ./data/samples/images/ /tmp/example_dataset/images/
+$ cp -r ./data/samples/masks/semantic_segmentation/ /tmp/example_dataset/masks/
+
+# Create the subdataset
+$ CCAgT-utils create-subdataset -name dataset_sliced_into2x2 \
+                                --original /tmp/example_dataset/ \
+                                --output /tmp/ \
+                                --slice-images 2 2 \
+                                --remove-images-without 1 2 3 4 5 6 7
+```
+
+With this tool, various datasets (based on the original dataset) can be created,
+be creative 😊 at yours experiments.
+
 ## visualization
 Module responsible for assisting in the display or creation of figures from the dataset.
 
