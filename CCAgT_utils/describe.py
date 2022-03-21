@@ -6,8 +6,12 @@ from typing import Tuple
 from typing import Union
 
 import numpy as np
+import pandas as pd
 from PIL import Image
 
+from CCAgT_utils.categories import Categories
+from CCAgT_utils.categories import CategoriesInfos
+from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.utils import find_files
 from CCAgT_utils.utils import get_traceback
 
@@ -114,5 +118,19 @@ def from_image_files(images_dir: str,
 
     print(f'Successfully computed the statstics of {out_stats.count} files with {len(processes)} processes!')
     return out_stats
+
+
+def annotations_per_image(ccagt: CCAgT, categories_infos: CategoriesInfos = CategoriesInfos()) -> pd.DataFrame:
+    df = ccagt.df
+    df_describe_images = df.groupby(['image_id', 'category_id']).size().reset_index().rename(columns={0: 'count'})
+    df_describe_images = df_describe_images.pivot(columns=['category_id'], index='image_id')
+    df_describe_images = df_describe_images.rename({c.id: c.name for c in categories_infos}, axis=1)
+    df_describe_images['qtd_annotations'] = df_describe_images.sum(axis=1)
+    df_describe_images = df_describe_images.fillna(0)
+    df_describe_images['NORs'] = df_describe_images['count',
+                                                    Categories.CLUSTER.name] + df_describe_images['count',
+                                                                                                  Categories.SATELLITE.name]
+
+    return df_describe_images
 
 # TODO: add describe for CCAgT Annotations
