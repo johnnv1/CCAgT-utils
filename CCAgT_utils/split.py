@@ -84,13 +84,3 @@ def tvt_by_nors(ccagt: CCAgT,
         test_ids.extend(ids_not_used)
 
     return train_ids, valid_ids, test_ids
-
-
-'''
-from CCAgT_utils import split
-from CCAgT_utils.converters.CCAgT import read_parquet
-from CCAgT_utils.categories import CategoriesInfos
-a = read_parquet('./data/samples/out/CCAgT.parquet.gzip')
-split.tvt(list(range(20)), (.7, .15, .10))
-train_ids, valid_ids, test_ids = split.tvt_by_nors(a, CategoriesInfos())
-'''

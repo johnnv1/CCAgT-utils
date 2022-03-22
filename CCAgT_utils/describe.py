@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 import multiprocessing
+from dataclasses import asdict
 from dataclasses import dataclass
+from typing import Any
 from typing import Tuple
 from typing import Union
 
@@ -38,6 +40,17 @@ class Statistics:
             self.max = np.max([self.max, results.max], axis=0)
             self.min = np.min([self.min, results.min], axis=0)
         self.count += results.count
+
+    def to_dict(self) -> dict[str, R | int]:
+        return asdict(self)
+
+
+def from_list(itens: list[int | float]) -> Statistics:
+    _mean = np.mean(itens)
+    _std = np.std(itens)
+    _max = np.max(itens)
+    _min = np.min(itens)
+    return Statistics(_mean, _std, _max, _min, count=len(itens))
 
 
 def from_array(array: np.ndarray) -> Statistics:
@@ -120,7 +133,8 @@ def from_image_files(images_dir: str,
     return out_stats
 
 
-def annotations_per_image(ccagt: CCAgT, categories_infos: CategoriesInfos = CategoriesInfos()) -> pd.DataFrame:
+def annotations_per_image(ccagt: CCAgT,
+                          categories_infos: CategoriesInfos) -> pd.DataFrame:
     df = ccagt.df
     df_describe_images = df.groupby(['image_id', 'category_id']).size().reset_index().rename(columns={0: 'count'})
     df_describe_images = df_describe_images.pivot(columns=['category_id'], index='image_id')
@@ -133,4 +147,68 @@ def annotations_per_image(ccagt: CCAgT, categories_infos: CategoriesInfos = Cate
 
     return df_describe_images
 
-# TODO: add describe for CCAgT Annotations
+
+def ccagt_annotations(ccagt: CCAgT,
+                      categories_infos: CategoriesInfos
+                      ) -> dict[str, Any]:
+    df = ccagt.df
+    ann_count = {cat.name: df.loc[df['category_id'] == cat.id, 'area'].shape[0] for cat in categories_infos}
+    qtd_ann = df.shape[0]
+    ann_dist = {cat_name: qtd_cat / qtd_ann for cat_name, qtd_cat in ann_count.items()}
+    area_stats = {cat.name: from_list(df.loc[df['category_id'] == cat.id, 'area'].tolist())
+                  for cat in categories_infos if ann_count[cat.name] > 0}
+
+    qtd_images = df['image_id'].nunique()
+    qtd_slides = df['slide_id'].nunique()
+    return {'qtd_images': qtd_images,
+            'qtd_slide': qtd_slides,
+            'qtd_annotations': qtd_ann,
+            'qtd_annotations_categorical': ann_count,
+            'dist_annotations': ann_dist,
+            'area_stats': area_stats}
+
+
+def tvt_annotations_as_df(train: dict[str, Any],
+                          valid: dict[str, Any],
+                          test: dict[str, Any]
+                          ) -> tuple[pd.DataFrame, ...]:
+    out = {}
+    out['train'] = train
+    out['validation'] = valid
+    out['test'] = test
+    folds = out.keys()
+
+    df_qtd = pd.DataFrame({
+        'fold': folds,
+        'images': [out[f]['qtd_images'] for f in folds],
+        'slides': [out[f]['qtd_slide'] for f in folds],
+        'annotations': [out[f]['qtd_annotations'] for f in folds]})
+    df_qtd_categorical = pd.DataFrame([{'fold': f,
+                                        **{k: v for k, v in out[f]['qtd_annotations_categorical'].items()
+                                           if k != Categories.BACKGROUND.name}}
+                                       for f in folds])
+    df_qtd = pd.merge(df_qtd, df_qtd_categorical, on='fold')
+    df_qtd.loc['total'] = df_qtd.sum()
+    df_qtd.loc[df_qtd.index == 'total', 'fold'] = 'total'
+
+    total_images = df_qtd.loc[df_qtd['fold'] == 'total', 'images'].tolist()[0]
+    total_ann = df_qtd.loc[df_qtd['fold'] == 'total', 'annotations'].tolist()[0]
+    df_dist = pd.DataFrame({
+        'fold': folds,
+        '% images': [out[f]['qtd_images'] / total_images for f in folds],
+        '% annotations': [out[f]['qtd_annotations'] / total_ann for f in folds]})
+    df_dist_categorical = pd.DataFrame([{'fold': f,
+                                         **{f'% {k}': v / out[f]['qtd_annotations']
+                                            for k, v in out[f]['qtd_annotations_categorical'].items()
+                                            if k != Categories.BACKGROUND.name}}
+                                        for f in folds])
+    df_dist = pd.merge(df_dist, df_dist_categorical, on='fold')
+
+    df_area = pd.DataFrame()
+    for f in folds:
+        _df = pd.DataFrame([{'category': k, **v.to_dict()} for k, v in out[f]['area_stats'].items()])
+        _df = _df.set_index('category').transpose()
+        _df['fold'] = f
+        df_area = pd.concat([df_area, _df])
+
+    return df_qtd, df_dist, df_area
