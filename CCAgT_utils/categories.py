@@ -79,7 +79,6 @@ class CategoriesInfos():
             for d in categories_info:
                 c = d['color']
                 d['color'] = Color(c[0], c[1], c[2])
-                d['name'] = d['name']
                 _categories_info.append(d)
 
             categories_info = _categories_info[:]
