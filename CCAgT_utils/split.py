@@ -10,8 +10,13 @@ from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.describe import annotations_per_image
 
 
-def tvt(ids: list[int], tvt_size: tuple[float, float, float], seed: int = 1609) -> tuple[list[int], list[int], list[int]]:
-    """TODO
+def tvt(ids: list[int],
+        tvt_size: tuple[float, float, float],
+        seed: int = 1609
+        ) -> tuple[list[int], list[int], list[int]]:
+    """From a list of indexes/ids (int) will generate the
+    train-validation-test data.
+
 
     Based on `github.com/scikit-learn/scikit-learn/blob/
     37ac6788c9504ee409b75e5e24ff7d86c90c2ffb/sklearn/
@@ -20,21 +25,27 @@ def tvt(ids: list[int], tvt_size: tuple[float, float, float], seed: int = 1609) 
     Parameters
     ----------
     ids : list[int]
-        _description_
+        a list of indexes/ids
     tvt_size : tuple[float, float, float]
-        _description_
+        The size of each fold (train, validation, test)
+        In general the train size, will be ignored because,
+        `train size = n samples - validation size - test size`
+
     seed : int, optional
-        _description_, by default 1609
+        The seed for the random state, by default 1609
 
     Returns
     -------
     dict[str, list[int]]
-        _description_
+        A dict, where the key is tha name of the respectively fold and
+        the value is the list of indexes/ids selected.
     """
     n_samples = len(ids)
+
     qtd = {'valid': ceil(n_samples * tvt_size[1]),
            'test': ceil(n_samples * tvt_size[2])}
     qtd['train'] = int(n_samples - qtd['valid'] - qtd['test'])
+
     rng = np.random.RandomState(seed)
     permutatation = rng.permutation(ids)
 
@@ -43,6 +54,7 @@ def tvt(ids: list[int], tvt_size: tuple[float, float, float], seed: int = 1609) 
            'test': list(permutatation[qtd['train'] + qtd['valid']:])}
 
     for k in ['train', 'valid', 'test']:
+        # Have some case that trigger this?
         if len(out[k]) != qtd[k]:
             print(f'At {k} have { len(out[k])} and as expected {qtd[k]}')
 
@@ -52,7 +64,35 @@ def tvt(ids: list[int], tvt_size: tuple[float, float, float], seed: int = 1609) 
 def tvt_by_nors(ccagt: CCAgT,
                 categories_infos: CategoriesInfos,
                 tvt_size: tuple[float, float, float] = (.7, .15, .15),
-                **kwargs: Any) -> tuple[list[int], list[int], list[int]]:
+                **kwargs: Any
+                ) -> tuple[list[int], list[int], list[int]]:
+    """This will split the CCAgT annotations based on the number of NORs
+    into each image. With a silly separation, first will split
+    between each fold images with one or less NORs, after will split
+    images with the amount of NORs is between 2 and 7, and at least will
+    split images that have more than 7 NORs.
+
+    Parameters
+    ----------
+    ccagt : CCAgT
+        The annotations of the dataset
+    categories_infos : CategoriesInfos
+        The auxiliary information's for each category at the dataset
+    tvt_size : tuple[float, float, float], optional
+        The desired size of each fold (train, validation, test),
+        by default (.7, .15, .15)
+
+    Returns
+    -------
+    tuple[list[int], list[int], list[int]]
+        A tuple with values for each fold and the value is the list of
+        indexes/ids selected. At the sequence of train, validation, test.
+
+    Raises
+    ------
+    ValueError
+        If the sum of tvt_size be different of 1 will raise
+    """
     if sum(tvt_size) != 1:
         raise ValueError('The sum of `tvt_size` need to be equals 1!')
 
