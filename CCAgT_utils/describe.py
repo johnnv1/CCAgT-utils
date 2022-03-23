@@ -138,7 +138,7 @@ def annotations_per_image(ccagt: CCAgT,
     df = ccagt.df
     df_describe_images = df.groupby(['image_id', 'category_id']).size().reset_index().rename(columns={0: 'count'})
     df_describe_images = df_describe_images.pivot(columns=['category_id'], index='image_id')
-    df_describe_images = df_describe_images.rename({c.id: c.name for c in categories_infos}, axis=1)
+    df_describe_images = df_describe_images.rename({c.id: c.name.upper() for c in categories_infos}, axis=1)
     df_describe_images['qtd_annotations'] = df_describe_images.sum(axis=1)
     df_describe_images = df_describe_images.fillna(0)
     df_describe_images['NORs'] = df_describe_images['count',

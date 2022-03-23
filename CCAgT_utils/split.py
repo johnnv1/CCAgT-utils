@@ -13,7 +13,7 @@ from CCAgT_utils.describe import annotations_per_image
 def tvt(ids: list[int],
         tvt_size: tuple[float, float, float],
         seed: int = 1609
-        ) -> tuple[list[int], list[int], list[int]]:
+        ) -> tuple[set[int], set[int], set[int]]:
     """From a list of indexes/ids (int) will generate the
     train-validation-test data.
 
@@ -36,9 +36,9 @@ def tvt(ids: list[int],
 
     Returns
     -------
-    dict[str, list[int]]
-        A dict, where the key is tha name of the respectively fold and
-        the value is the list of indexes/ids selected.
+    tuple[set[int], set[int], set[int]]
+        A tuple with values for each fold and the value is the list of
+        indexes/ids selected. At the sequence of train, validation, test.
     """
     n_samples = len(ids)
 
@@ -49,14 +49,9 @@ def tvt(ids: list[int],
     rng = np.random.RandomState(seed)
     permutatation = rng.permutation(ids)
 
-    out = {'train': list(permutatation[:qtd['train']]),
-           'valid': list(permutatation[qtd['train']:qtd['train'] + qtd['valid']]),
-           'test': list(permutatation[qtd['train'] + qtd['valid']:])}
-
-    for k in ['train', 'valid', 'test']:
-        # Have some case that trigger this?
-        if len(out[k]) != qtd[k]:
-            print(f'At {k} have { len(out[k])} and as expected {qtd[k]}')
+    out = {'train': set(permutatation[:qtd['train']]),
+           'valid': set(permutatation[qtd['train']:qtd['train'] + qtd['valid']]),
+           'test': set(permutatation[qtd['train'] + qtd['valid']:])}
 
     return out['train'], out['valid'], out['test']
 
@@ -65,7 +60,7 @@ def tvt_by_nors(ccagt: CCAgT,
                 categories_infos: CategoriesInfos,
                 tvt_size: tuple[float, float, float] = (.7, .15, .15),
                 **kwargs: Any
-                ) -> tuple[list[int], list[int], list[int]]:
+                ) -> tuple[set[int], set[int], set[int]]:
     """This will split the CCAgT annotations based on the number of NORs
     into each image. With a silly separation, first will split
     between each fold images with one or less NORs, after will split
@@ -84,7 +79,7 @@ def tvt_by_nors(ccagt: CCAgT,
 
     Returns
     -------
-    tuple[list[int], list[int], list[int]]
+    tuple[set[int], set[int], set[int]]
         A tuple with values for each fold and the value is the list of
         indexes/ids selected. At the sequence of train, validation, test.
 
@@ -103,9 +98,9 @@ def tvt_by_nors(ccagt: CCAgT,
     img_ids['medium_nors'] = df_describe_imgs[(df_describe_imgs['NORs'] >= 2) * (df_describe_imgs['NORs'] <= 7)].index
     img_ids['high_nors'] = df_describe_imgs[(df_describe_imgs['NORs'] > 7)].index
 
-    train_ids = []
-    valid_ids = []
-    test_ids = []
+    train_ids: set[int] = set({})
+    valid_ids: set[int] = set({})
+    test_ids: set[int] = set({})
 
     for k, ids in img_ids.items():
         print(f'Splitting {len(ids)} images with {k} quantity...')
@@ -113,14 +108,8 @@ def tvt_by_nors(ccagt: CCAgT,
             continue
         _train, _valid, _test = tvt(ids, tvt_size, **kwargs)
         print(f'>T: {len(_train)} V: {len(_valid)} T: {len(_test)}')
-        train_ids.extend(_train)
-        valid_ids.extend(_valid)
-        test_ids.extend(_test)
-
-    _used = train_ids + valid_ids + test_ids
-    if len(_used) != df_describe_imgs.shape[0]:
-        # Have some case that trigger this?
-        ids_not_used = df_describe_imgs[~df_describe_imgs.index.isin(_used)].index.to_list()
-        test_ids.extend(ids_not_used)
+        train_ids = train_ids.union(_train)
+        valid_ids = valid_ids.union(_valid)
+        test_ids = test_ids.union(_test)
 
     return train_ids, valid_ids, test_ids
