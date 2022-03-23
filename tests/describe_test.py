@@ -23,6 +23,23 @@ def test_statistics():
     assert a.count == 2
     assert a.mean == 1.
 
+    assert a.to_dict() == {'mean': 1.0,
+                           'std': 1.0,
+                           'max': 1.0,
+                           'min': -1.0,
+                           'count': 2}
+
+
+def test_describe_from_list():
+    data = [10, 10, 10, 20, 20, 20, 1, 2, 3]
+    stats = describe.from_list(data)
+
+    assert stats.mean == pytest.approx(10.66, 0.01)
+    assert stats.std == pytest.approx(7.378, 0.01)
+    assert stats.max == 20
+    assert stats.min == 1
+    assert stats.count == 9
+
 
 def test_describe_from_array():
     arr = np.array([[10, 10, 10], [20, 20, 20], [1, 2, 3]])
@@ -70,3 +87,57 @@ def test_from_image_files(shape, tmpdir):
 def test_from_image_files_empty(tmpdir):
     stats = describe.from_image_files(tmpdir, '.WrongExtension')
     assert stats.count == 0
+
+
+def test_annotations_per_image(ccagt_ann_multi, categories_infos):
+    ccagt_ann_multi.df['image_id'] = ccagt_ann_multi.generate_ids(ccagt_ann_multi.df['image_name'])
+    df = describe.annotations_per_image(ccagt_ann_multi, categories_infos)
+
+    assert df['NORs'].tolist() == [2., 0.]
+    assert df['count', 'NUCLEUS'].tolist() == [1., 2.]
+
+
+def test_ccagt_annotations(ccagt_ann_multi, categories_infos):
+    ccagt_ann_multi.df['image_id'] = ccagt_ann_multi.generate_ids(ccagt_ann_multi.df['image_name'])
+    ccagt_ann_multi.df['slide_id'] = ccagt_ann_multi.get_slide_id()
+    ccagt_ann_multi.df['area'] = ccagt_ann_multi.geometries_area()
+
+    out = describe.ccagt_annotations(ccagt_ann_multi, categories_infos)
+
+    assert out['qtd_images'] == 2
+    assert out['qtd_slide'] == 2
+    assert out['qtd_annotations'] == 5
+    assert out['qtd_annotations_categorical'] == {'Nucleus': 3, 'Cluster': 1, 'Satellite': 1, 'Nucleus_out_of_focus': 0,
+                                                  'Overlapped_Nuclei': 0, 'non_viable_nucleus': 0, 'Leukocyte_Nucleus': 0,
+                                                  'background': 0}
+    assert out['dist_annotations'] == {'Nucleus': 0.6, 'Cluster': 0.2, 'Satellite': 0.2, 'Nucleus_out_of_focus': 0.0,
+                                       'Overlapped_Nuclei': 0.0, 'non_viable_nucleus': 0.0, 'Leukocyte_Nucleus': 0.0,
+                                       'background': 0.0}
+    assert len(out['area_stats']) == 3
+
+
+def test_tvt_annotations_as_df(ccagt_ann_multi, categories_infos):
+    ccagt_ann_multi.df['image_id'] = ccagt_ann_multi.generate_ids(ccagt_ann_multi.df['image_name'])
+    ccagt_ann_multi.df['slide_id'] = ccagt_ann_multi.get_slide_id()
+    ccagt_ann_multi.df['area'] = ccagt_ann_multi.geometries_area()
+
+    out = describe.ccagt_annotations(ccagt_ann_multi, categories_infos)
+
+    df_qtd, df_dist, df_area = describe.tvt_annotations_as_df(out, out, out)
+
+    assert df_qtd.shape[0] == 4
+    assert df_qtd.shape[1] == len(categories_infos) + 4
+    assert df_qtd.loc[df_qtd['fold'] == 'total'].shape[0] == 1
+    assert df_qtd['images'].tolist() == [2, 2, 2, 6]
+    assert df_qtd['annotations'].tolist() == [5, 5, 5, 15]
+
+    assert df_dist.shape[0] == 3
+    assert df_dist.shape[1] == len(categories_infos) + 3
+    assert df_dist.iloc[0]['% annotations'] == pytest.approx(0.3333, 0.01)
+    assert df_dist.iloc[2]['% images'] == pytest.approx(0.3333, 0.01)
+
+    assert df_dist.shape[1] == len(categories_infos) + 3
+
+    cats_with_data = sum(True for v in out['qtd_annotations_categorical'].values() if v > 0)
+    assert df_area.shape == (15, 1 + cats_with_data)
+    assert df_area.loc[df_area['fold'] == 'train', 'Nucleus'].tolist() == [900., 0., 900., 900., 3.]
