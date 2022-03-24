@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import multiprocessing
+import os
 from dataclasses import asdict
 from dataclasses import dataclass
 from typing import Any
@@ -14,6 +15,7 @@ from PIL import Image
 from CCAgT_utils.categories import Categories
 from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.converters.CCAgT import CCAgT
+from CCAgT_utils.converters.CCAgT import read_parquet
 from CCAgT_utils.utils import find_files
 from CCAgT_utils.utils import get_traceback
 
@@ -43,6 +45,15 @@ class Statistics:
 
     def to_dict(self) -> dict[str, R | int]:
         return asdict(self)
+
+    def __str__(self) -> str:
+        _mean = f'Mean: {self.mean:.2f}'
+        _std = f'std: {self.std:.2f}'
+        _max = f'Max: {self.max:.2f}'
+        _min = f'Min: {self.min:.2f}'
+        _count = f'Quantity: {self.count}'
+
+        return f'{_count} | {_mean} | {_std}  | {_max} | {_min}'
 
 
 def from_list(itens: list[int | float]) -> Statistics:
@@ -212,3 +223,34 @@ def tvt_annotations_as_df(train: dict[str, Any],
         df_area = pd.concat([df_area, _df])
 
     return df_qtd, df_dist, df_area
+
+
+def dataset(ccagt_path: str,
+            categories_infos: CategoriesInfos,
+            dataset_dir: str,
+            extensions: tuple[str, ...] = ('.jpg', '.png')
+            ) -> None:
+    ccagt = read_parquet(ccagt_path)
+
+    name = os.path.basename(os.path.normpath(dataset_dir))
+    images_dir = os.path.join(dataset_dir, 'images/')
+    masks_dir = os.path.join(dataset_dir, 'masks/')
+
+    desc = ccagt_annotations(ccagt, categories_infos)
+    print(f'Dataset name: `{name}` | Location: `{dataset_dir}`')
+    print(f'From the annotations file ({ccagt_path}) -')
+    print(f'Quantity of images: {desc["qtd_images"]}')
+    print(f'Quantity of slides: {desc["qtd_slide"]}')
+    print(f'Quantity of annotations: {desc["qtd_annotations"]}')
+    for cat_name, qtd in desc['qtd_annotations_categorical'].items():
+        dist = desc['dist_annotations'][cat_name]
+        print(f' > Quantity of annotations for {cat_name}: {qtd} - {dist*100:.2f}%')
+    print('Statistics of the area of each category...')
+    for cat_name, area_stats in desc['area_stats'].items():
+        print(f' > Statistics of area for {cat_name}: {area_stats}')
+
+    images_quantity = len(find_files(images_dir, extensions, True))
+    masks_quantity = len(find_files(masks_dir, extensions, True))
+    print('On disk data -')
+    print(f'Total of images: {images_quantity} - at `{images_dir}`')
+    print(f'Total of masks: {masks_quantity} - at `{masks_dir}`')
