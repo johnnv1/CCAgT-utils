@@ -55,7 +55,7 @@ class LabelBox():
     def __remove_duplicated_labels(self,
                                    df: pd.DataFrame) -> pd.DataFrame:
         duplicated_idx = df['image_name'].duplicated(keep=False)
-        df_duplicated = df.loc[duplicated_idx, :]
+        df_duplicated = df.loc[duplicated_idx, :].copy()
 
         if df_duplicated.empty:
             return df

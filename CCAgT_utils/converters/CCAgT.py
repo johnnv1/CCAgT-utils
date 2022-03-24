@@ -145,7 +145,7 @@ class CCAgT():
             dif = length_before - length_after
 
             if dif > 0:
-                self.df = self.df[self.df['category_id'] != cat_info.id].append(cleaned_by_area)
+                self.df = pd.concat([self.df[self.df['category_id'] != cat_info.id], cleaned_by_area])
 
                 print(f'ATTENTION | {dif} items has been removed from category with id {cat_info.id}')
 
@@ -331,7 +331,7 @@ class CCAgT():
         df_without_news = self.df[~self.df['image_name'].isin(image_names_to_drop)]
 
         # Add the annotations that have been updates!
-        self.df = df_without_news.append(out).reset_index(drop=True)
+        self.df = pd.concat([df_without_news, out], ignore_index=True)
 
         return self.df
 
