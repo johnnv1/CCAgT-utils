@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import argparse
-import ast
 import os
 import shutil
 import sys
@@ -10,10 +9,12 @@ from typing import Sequence
 from CCAgT_utils import describe
 from CCAgT_utils import slice
 from CCAgT_utils.categories import CategoriesInfos
+from CCAgT_utils.categories import read_json
+from CCAgT_utils.constants import STRUCTURE
 from CCAgT_utils.constants import VERSION
 from CCAgT_utils.converters.CCAgT import read_parquet
 from CCAgT_utils.converters.utils import ccagt_generate_masks
-from CCAgT_utils.prepare import extract_image_and_mask_by_category
+from CCAgT_utils.prepare import ccagt_dataset
 from CCAgT_utils.utils import basename
 from CCAgT_utils.utils import find_files
 
@@ -36,72 +37,76 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
                         help=('Path to write the new subdataset. It will create a directory with this subdataset name, and '
                               'subdirectories `images/` and `masks/`'))
 
-    group_ex = parser.add_mutually_exclusive_group(required=False)
+    group_edit_image = parser.add_argument_group('Define the type of images wanted at the end. If none of these be choiced,'
+                                                 ' will just copy the original data!')
+    group_ex = group_edit_image.add_mutually_exclusive_group(required=False)
     group_ex.add_argument('--slice-images',
                           nargs=2,
                           metavar='HORIZONTAL VERTICAL',
                           type=int,
                           help=('Define that wants slice the images into smaller parts. Needs to pass the amount of slice '
                                 'desired for the horizontal and vertical split of the images.'))
-    group_extract = group_ex.add_argument_group('Extract options')
 
-    group_extract.add_argument('--extract',
-                               nargs='*',
-                               type=int,
-                               metavar='CATEGORY ID',
-                               help=('Define that wants extract based on one category. Will generate one image for each '
-                                     'instance of the desired category.'))
+    group_ex.add_argument('--extract',
+                          nargs='*',
+                          type=int,
+                          metavar='CATEGORY ID',
+                          help=('Define that wants extract based on one category. Will generate one image for each '
+                                'instance of the desired category.'))
 
+    group_extract = parser.add_argument_group('Arguments to use with `--extract` option')
     group_extract.add_argument('--paddings',
                                default=0,
                                help=('In percent (float values) or pixels (integer values) select, the size of paddings to '
                                      'apply. Just works with --extract'))
 
-    parser.add_argument('--remove-images-without',
-                        nargs='*',
-                        type=int,
-                        metavar='CATEGORY ID',
-                        help=('Define that you wants remove of this subdataset the images that does not have the categories '
-                              'passed as argument.'))
+    group_clean = parser.add_argument_group('To clear the images and/or annotations for the subdataset')
+    group_ex_clean = group_clean.add_mutually_exclusive_group(required=False)
+    group_ex_clean.add_argument('--remove-images-without',
+                                nargs='*',
+                                type=int,
+                                metavar='CATEGORY ID',
+                                help=('Define that you wants remove of this subdataset the images that does not have the '
+                                      'categories passed as argument.'))
 
-    group = parser.add_argument_group('Check if all images have at least one of the desired categories.')
-    group.add_argument('--check-if-all-have-at-least-one-of',
-                       nargs='*',
-                       metavar='CATEGORY ID',
-                       type=int,
-                       help=('Define that you wants check if all images have at least one of the categories passed as '
-                             'argument.'))
-    group.add_argument('--delete',
-                       action='store_true',
-                       help='To remove all images that do not have at least one of desired categories.')
+    group_ex_clean.add_argument('--remove-annotations-without',
+                                nargs='*',
+                                type=int,
+                                metavar='CATEGORY ID',
+                                help=('Define that you wants remove of this subdataset the annotations that does not have '
+                                      'the categories  passed as argument.'))
 
-    group.add_argument('--generate-masks',
-                       action='store_true',
-                       help='To generate the masks for semantic segmentation')
+    check_group = parser.add_argument_group('Process of checking the annotation and images.')
+    check_group.add_argument('--check-if-all-have-at-least-one-of',
+                             nargs='*',
+                             metavar='CATEGORY ID',
+                             type=int,
+                             help=('Define that you wants check if all images have at least one of the categories passed as '
+                                   'argument. Will print a information about.'))
+    check_group.add_argument('--no-check-images',
+                             action='store_false',
+                             help=('Will not check if all images at the new dataset have at least one annotation. By default '
+                                   'the process will check if all images have at least one annotation.'))
+    check_group.add_argument('--delete',
+                             action='store_true',
+                             help='Will delete images without annotation, or without the choiced categories')
 
-    parser.add_argument('--labels',
-                        help='Path for the CCAgT file with the labels. By default will look at PATH_FOR_ORIGINAL_DATASET')
-
-    parser.add_argument('--extensions',
-                        nargs='*',
-                        default=('.jpg', '.png'),
-                        help='The extensions of the images and masks.')
-
-
-STRUCTURE = {'i': 'images/', 'm': 'masks/', 'l': 'CCAgT.parquet.gzip'}
-
-
-def copy_original_dataset(original_images: str,
-                          original_annotations: str,
-                          output_images: str,
-                          output_annotations: str) -> None:
-
-    print('The images and masks of the subdataset will be copied from the original dataset!')
-    print('Coping images files...')
-    shutil.copytree(original_images, output_images)
-
-    print('Coping CCAgT annotations file...')
-    shutil.copy(original_annotations, output_annotations)
+    group_kwargs = parser.add_argument_group('Extra arguments if desired')
+    group_kwargs.add_argument('--generate-masks',
+                              action='store_true',
+                              help='To generate the masks for semantic segmentation based on the new annotations')
+    group_kwargs.add_argument('--labels',
+                              help=('Path for the CCAgT file with the labels. By default will look at '
+                                    '`PATH_FOR_ORIGINAL_DATASET/CCAgT.parquet.gzip`'))
+    group_kwargs.add_argument('--aux-file',
+                              help='Path for the CCAgT auxiliary file, by default will use default Categories Infomation!')
+    group_kwargs.add_argument('--extensions',
+                              nargs='*',
+                              default=('.jpg', '.png'),
+                              help='The extensions to look for when search the images and masks.')
+    group_kwargs.add_argument('--overwrite',
+                              action='store_true',
+                              help='With this option if already exist a dataset if this name will overwrite this!')
 
 
 def create_subdataset(name: str,
@@ -109,20 +114,27 @@ def create_subdataset(name: str,
                       output_base: str,
                       slice_images: tuple[int, ...] | None,
                       extract: set[int] | None,
-                      categories_to_keep: set[int] | None,
-                      check_if_all_have_one: set[int] | None,
+                      categories_to_keep: tuple[int, set[int]] | None,
+                      categories_to_check: set[int] | None,
                       delete: bool,
                       generate_masks: bool,
                       CCAgT_path: str | None,
                       paddings: str,
-                      extensions: tuple[str, ...] = ('.jpg', '.png')) -> int:
+                      check_if_images_have_annotations: bool,
+                      extensions: tuple[str, ...],
+                      aux_file_path: str | None,
+                      overwrite: bool
+                      ) -> int:
+
     output_dir = os.path.join(output_base, name)
 
     output_images_dir = os.path.join(output_dir, STRUCTURE['i'])
     output_masks_dir = os.path.join(output_dir, STRUCTURE['m'])
     output_annotations_path = os.path.join(output_dir, STRUCTURE['l'])
 
-    if os.path.isdir(output_images_dir) or os.path.isdir(output_masks_dir):
+    if overwrite and os.path.isdir(output_dir):
+        shutil.rmtree(output_dir)
+    elif (os.path.isdir(output_images_dir) or os.path.isdir(output_masks_dir)):
         print(f'Already exist a dataset with name={name} at {output_base}!', file=sys.stderr)
         return 1
 
@@ -130,7 +142,6 @@ def create_subdataset(name: str,
         CCAgT_path = os.path.join(original_dir, STRUCTURE['l'])
 
     input_images_dir = os.path.join(original_dir, STRUCTURE['i'])
-    input_masks_dir = os.path.join(original_dir, STRUCTURE['m'])
 
     if not os.path.isfile(CCAgT_path):
         print(f'Not found the annotations file at `{CCAgT_path}`!', file=sys.stderr)
@@ -139,80 +150,113 @@ def create_subdataset(name: str,
     if not os.path.isdir(input_images_dir):
         print(f'Not found the original data at `{input_images_dir}`!', file=sys.stderr)
         return 1
-    # elif not os.path.isdir(input_masks_dir):
-    #     print(f'Not found the original data masks at `{input_masks_dir}`!', file=sys.stderr)
-    #     return 1
 
-    print('\n\n------------------------')
-    if slice_images is not None:
-        # TODO
-        slice_images = tuple(slice_images)
-        print(f'Create images and masks splitting then into {slice_images} (horizontal, vertical) parts')
-        slice.images_and_masks(input_images_dir,
-                               input_masks_dir,
-                               output_dir,
-                               slice_images[0], slice_images[1],
-                               extension=extensions,
-                               look_recursive=True)
-    elif extract is not None:
-        # TODO
-        if CCAgT_path is not None:
-            print(f'Create images and masks for each instance of the categories {extract}')
-            extract_image_and_mask_by_category(input_images_dir,
-                                               input_masks_dir,
-                                               output_dir,
-                                               extract,
-                                               CCAgT_path,
-                                               ast.literal_eval(paddings),
-                                               extensions,
-                                               True)
-        else:
-            print('When using `--extract`, please specify the labels files with `--labels` argument', file=sys.stderr)
-            return 1
+    if isinstance(aux_file_path, str):
+        categories_infos = read_json(aux_file_path)
     else:
-        copy_original_dataset(input_images_dir, CCAgT_path, output_images_dir, output_annotations_path)
-
-    ccagt_annotations = read_parquet(output_annotations_path)
-
-    if categories_to_keep is not None:
-        categories_to_keep = set(categories_to_keep)
-        print('------------------------')
-        print(f'Delete annotations that with categories different from {categories_to_keep} ')
-        ccagt_annotations.df = ccagt_annotations.df[ccagt_annotations.df['category_id'].isin(categories_to_keep)]
-
-    if check_if_all_have_one is not None:
-        print('------------------------')
-        check_if_all_have_one = set(check_if_all_have_one)
-        if isinstance(categories_to_keep, set):
-            cats_to_have = check_if_all_have_one.union(categories_to_keep)
-
-        images_names = set(ccagt_annotations.df['image_name'].unique())
-        images_names_filtered = set(ccagt_annotations.df.loc[ccagt_annotations.df['category_id'].isin(cats_to_have),
-                                                             'image_name'].unique())
-
-        diff = images_names.difference(images_names_filtered)
-        if len(diff) > 0:
-            print(f'A total of {len(diff)} files there is not at least one of the categories {cats_to_have}',
-                  file=sys.stderr)
-
-            if delete:
-                all_images = {basename(k): v for k, v in find_files(output_images_dir, extensions, True).items()}
-                print('Deleting images that do not have at least one of the selected categories...')
-                for bn in diff:
-                    os.remove(all_images[bn])
-                print('Deleting this images from the annotations...')
-                ccagt_annotations.df = ccagt_annotations.df[ccagt_annotations.df['category_id'].isin(cats_to_have)]
-        else:
-            print(f'Everything is ok, having 0 files that do not have any of the categories {check_if_all_have_one}')
+        categories_infos = CategoriesInfos()
 
     print('------------------------')
-    print('Checking if have any image without annotation...')
-    all_images = {basename(k): v for k, v in find_files(output_images_dir, extensions, True).items()}
-    images_with_annotation = set(ccagt_annotations.df['image_name'].unique())
-    diff = set(all_images.keys()).difference(images_with_annotation)
-    if len(diff) > 0:
-        print(f'Deleting total of {len(diff)} images without annotation...')
-        for bn in diff:
+    print(f'Loading the original annotations file from `{CCAgT_path}`...')
+    ccagt_annotations = read_parquet(CCAgT_path)
+
+    print('------------------------')
+    if isinstance(categories_to_keep, tuple):
+        _choice_to_delete, _cats_to_keep = categories_to_keep
+        _str_choice = {0: 'images', 1: 'annotations'}[_choice_to_delete]
+        print(f'Delete {_str_choice} that do not have the categories: {_cats_to_keep} ')
+
+        if _choice_to_delete == 0:
+            # --remove-images-without
+            _idx_with_categories = ccagt_annotations.df['category_id'].isin(_cats_to_keep)
+            images_with_categories = set(ccagt_annotations.df.loc[_idx_with_categories, 'image_id'].unique())
+            ccagt_annotations.df = ccagt_annotations.df[ccagt_annotations.df['image_id'].isin(images_with_categories)]
+
+        elif _choice_to_delete == 1:
+            # --remove-annotations-without
+            ccagt_annotations.df = ccagt_annotations.df[ccagt_annotations.df['category_id'].isin(_cats_to_keep)]
+    else:
+        print('No process of remove choiced, just skiping.')
+
+    print('------------------------')
+    print(f'Saving the annotations to {output_annotations_path}...')
+    ccagt_annotations.to_parquet(output_annotations_path)
+
+    print('\n\n------------------------')
+    if isinstance(slice_images, tuple):
+        # --slice-images
+        print(f'Create images and masks splitting then into {slice_images} (horizontal, vertical) parts')
+        slice.images_and_annotations(input_images_dir,
+                                     output_annotations_path,
+                                     output_dir,
+                                     output_annotations_path,
+                                     slice_images[0], slice_images[1],
+                                     extension=extensions,
+                                     look_recursive=True)
+    elif extract is not None:
+        # --extract
+        # TODO
+        print(f'Create images and masks for each instance of the categories {extract}')
+        # extract_image_and_mask_by_category(input_images_dir,
+        #                                    input_masks_dir,
+        #                                    output_dir,
+        #                                    extract,
+        #                                    CCAgT_path,
+        #                                    ast.literal_eval(paddings),
+        #                                    extensions,
+        #                                    True)
+    else:
+        # if not choice between --slice-images and --extract, will just copy
+        print('The images and masks of the subdataset will be copied from the original dataset!')
+        print('Coping images files...')
+        shutil.copytree(input_images_dir, output_images_dir)
+
+    print('------------------------')
+    print(f'Loading the annotations file from `{output_annotations_path}`...')
+    ccagt_annotations = read_parquet(output_annotations_path)
+    ccagt_annotations = ccagt_dataset(ccagt_annotations, categories_infos, do_fit_geometries=False)
+
+    print('------------------------')
+    if isinstance(categories_to_check, set):
+        # --check-if-all-have-at-least-one-of
+        images_names = set(ccagt_annotations.df['image_name'].unique())
+        images_names_filtered = set(ccagt_annotations.df.loc[ccagt_annotations.df['category_id'].isin(categories_to_check),
+                                                             'image_name'].unique())
+
+        images_without_the_categories = images_names.difference(images_names_filtered)
+        if len(images_without_the_categories) > 0:
+            print((f'A total of {len(images_without_the_categories)} files there is not at least one of the categories '
+                  f'{categories_to_check}'),
+                  file=sys.stderr)
+        else:
+            print(f'Everything is ok, have 0 files that do not have at least one of the categories {categories_to_check}')
+
+    if check_if_images_have_annotations:
+        # --no-check-images to skip this
+        print('Checking if have any image without annotation...')
+        all_images = {basename(k): v for k, v in find_files(output_images_dir, extensions, True).items()}
+        images_with_annotation = set(ccagt_annotations.df['image_name'].unique())
+        images_without_the_annotations = set(all_images.keys()).difference(images_with_annotation)
+
+        if len(images_without_the_annotations) > 0:
+            print((f'A total of {len(images_without_the_annotations)} files there is not at least one annotation'),
+                  file=sys.stderr)
+        else:
+            print(f'Everything is ok, have 0 files that do not have any annotation {categories_to_check}')
+
+    if delete and (len(images_without_the_annotations) > 0 or len(images_without_the_annotations) > 0):
+        # --delete
+        if len(images_without_the_annotations) > 0:
+            print(f'Will delete images that do not have at least one of the categories {categories_to_check}')
+        if len(images_without_the_annotations) > 0:
+            print('Will delete images that do not have at least one annotation')
+        basenames_to_delete = set(images_without_the_categories).union(set(images_without_the_annotations))
+
+        print(f'Finding images on this at `{output_images_dir}`...')
+        all_images = {basename(k): v for k, v in find_files(output_images_dir, extensions, True).items()}
+
+        print(f'Deleting a total of {len(basenames_to_delete)} images...')
+        for bn in basenames_to_delete:
             os.remove(all_images[bn])
 
     print('------------------------')
@@ -226,7 +270,7 @@ def create_subdataset(name: str,
 
     print('\n------------------------')
     print('Creation of the subdataset finished!')
-    describe.dataset(output_annotations_path, CategoriesInfos(), output_dir, extensions)
+    describe.dataset(output_annotations_path, categories_infos, output_dir, extensions)
     return 0
 
 
@@ -260,18 +304,35 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.parse_args(['--help'])
 
     if args.command == 'create-subdataset' and args.name != '':
+
+        categories_to_keep = None
+        if args.remove_images_without is not None:
+            categories_to_keep = (0, set(args.remove_images_without))
+        elif args.remove_annotations_without is not None:
+            categories_to_keep = (1, set(args.remove_annotations_without))
+
+        categories_to_check = None
+        if args.check_if_all_have_at_least_one_of is not None:
+            categories_to_check = set(args.check_if_all_have_at_least_one_of)
+
+        slice_images = None if args.slice_images is None else tuple(args.slice_images)
+        extract = None if args.extract is None else set(args.extract)
+
         return create_subdataset(str(args.name),
                                  str(args.original),
                                  str(args.output),
-                                 args.slice_images,
-                                 args.extract,
-                                 args.remove_images_without,
-                                 args.check_if_all_have_at_least_one_of,
+                                 slice_images,
+                                 extract,
+                                 categories_to_keep,
+                                 categories_to_check,
                                  args.delete,
                                  args.generate_masks,
                                  args.labels,
                                  args.paddings,
-                                 tuple(args.extensions))
+                                 args.no_check_images,
+                                 tuple(args.extensions),
+                                 args.aux_file,
+                                 args.overwrite)
 
     return 1
 

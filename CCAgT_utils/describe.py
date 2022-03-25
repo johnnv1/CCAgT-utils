@@ -14,6 +14,7 @@ from PIL import Image
 
 from CCAgT_utils.categories import Categories
 from CCAgT_utils.categories import CategoriesInfos
+from CCAgT_utils.constants import STRUCTURE
 from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.converters.CCAgT import read_parquet
 from CCAgT_utils.utils import find_files
@@ -233,8 +234,8 @@ def dataset(ccagt_path: str,
     ccagt = read_parquet(ccagt_path)
 
     name = os.path.basename(os.path.normpath(dataset_dir))
-    images_dir = os.path.join(dataset_dir, 'images/')
-    masks_dir = os.path.join(dataset_dir, 'masks/')
+    images_dir = os.path.join(dataset_dir, STRUCTURE['i'])
+    masks_dir = os.path.join(dataset_dir, STRUCTURE['m'])
 
     desc = ccagt_annotations(ccagt, categories_infos)
     print(f'Dataset name: `{name}` | Location: `{dataset_dir}`')

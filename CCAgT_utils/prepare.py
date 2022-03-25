@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
+from CCAgT_utils.categories import Categories
+from CCAgT_utils.categories import CategoriesInfos
 from CCAgT_utils.checkers import masks_that_has
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.types.annotation import Annotation
@@ -137,3 +139,62 @@ def extract_image_and_mask_by_category(dir_images: str,
         mask_counter += msk_counter
 
     print(f'Successful create {image_counter}/{mask_counter} images/masks for the instances of the categories {categories}')
+
+
+def ccagt_dataset(ccagt: CCAgT.CCAgT,
+                  categories_infos: CategoriesInfos,
+                  image_extension: str = '',
+                  do_fit_geometries: bool = True
+                  ) -> CCAgT.CCAgT:
+    print('Start the preprocessing default pipeline for CCAGgT dataset...')
+    ovlp_ncl = Categories.OVERLAPPED_NUCLEI.value
+    sat = Categories.SATELLITE.value
+    cur = Categories.CLUSTER.value
+    ncl = Categories.NUCLEUS.value
+
+    print(f'Searching overlapping and joining labels for overlapping annotations (category id = {ovlp_ncl})...')
+    overlapping_annotations = ccagt.find_overlapping_annotations(categories_id={ovlp_ncl})
+    df = ccagt.union_geometries(overlapping_annotations)
+
+    print(f'Define the geometry type and transform Satellite (category id = {sat}) points into Polygons...')
+    df['geo_type'] = ccagt.geometries_type()
+    sat_series = df.loc[(df['category_id'] == sat) & (df['geo_type'] == 'Point'), 'geometry']
+
+    df.loc[(df['category_id'] == sat) &
+           (df['geo_type'] == 'Point'), 'geometry'] = ccagt.satellite_point_to_polygon(sat_series)
+
+    df['geo_type'] = ccagt.geometries_type()
+
+    if do_fit_geometries:
+        print('Verify and fit the geometries into the images boundary...')
+        df['geometry'] = ccagt.fit_geometries_to_image_boundary()
+        df.dropna(axis=0, subset=['geometry'], inplace=True)
+
+    if len(image_extension) > 0:
+        print(f'Setting {image_extension} as the images extensions')
+        df['image_name'] = df['image_name'].apply(lambda x: x + image_extension)
+
+    print('Computing the annotations area and the images IDs...')
+    df['area'] = ccagt.geometries_area()
+    df['image_id'] = ccagt.generate_ids(df['image_name'])
+    df['slide_id'] = ccagt.get_slide_id()
+
+    print('Deleting annotations based on the minimal area from categories infos')
+    df = ccagt.delete_by_area(categories_infos)
+
+    print(f'Searching intersections of nuclei with NORs labels (category id in [{ncl}] and [{cur}, {sat}])...')
+    df_base_intersects_target = ccagt.verify_if_intersects(base_categories_id={ncl}, target_categories_id={cur, sat})
+    if not df_base_intersects_target.empty:
+        index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()
+        print(f'A total of {len(index_to_drop)} of nuclei (category id = {ncl}) will be deleted.')
+        df.drop(index_to_drop, inplace=True)
+
+    print(f'Searching intersections of NORs with nuclei (normal and overlapped) labels (category id in [{cur}, {sat}] and '
+          f'[{ncl}, {ovlp_ncl}])..')
+    df_base_intersects_target = ccagt.verify_if_intersects(base_categories_id={cur, sat}, target_categories_id={ncl, ovlp_ncl})
+    if not df_base_intersects_target.empty:
+        index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()
+        print(f'A total of {len(index_to_drop)} of NORs (category id =  [{cur}, {sat}]) will be deleted.')
+        df.drop(index_to_drop, inplace=True)
+
+    return ccagt

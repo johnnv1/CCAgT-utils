@@ -8,6 +8,7 @@ from typing import Callable
 from typing import TypeVar
 
 from CCAgT_utils.constants import FILENAME_SEP
+from CCAgT_utils.constants import STRUCTURE
 
 R = TypeVar('R')
 
@@ -141,8 +142,8 @@ def find_files(dir_path: str,
 
 def create_structure(dir_path: str, slides: set[str]) -> None:
 
-    dir_images = os.path.join(dir_path, 'images/')
-    dir_masks = os.path.join(dir_path, 'masks/')
+    dir_images = os.path.join(dir_path, STRUCTURE['i'])
+    dir_masks = os.path.join(dir_path, STRUCTURE['m'])
 
     for slide in slides:
         os.makedirs(os.path.join(dir_images, slide), exist_ok=True)

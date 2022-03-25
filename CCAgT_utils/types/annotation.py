@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import collections
+from copy import copy
 from dataclasses import dataclass
 
 from shapely.geometry import MultiPolygon
@@ -50,6 +51,9 @@ class Annotation:
             return out
         else:
             raise StopIteration
+
+    def copy(self) -> Annotation:
+        return copy(self)
 
 
 @dataclass

@@ -66,6 +66,7 @@ def __build_description(template: str, df: pd.Dataframe) -> str:
 def __prepare_data(CCAgT_ann: CCAgT,
                    categories_helper_raw: list[dict[str, Any]],
                    image_extension: str) -> None:
+    # TODO: Delete this and use CCAgT_utils.prepare.
     print('\tSearching overlapping and joining labels for overlapping annotations (category id = 5)...')
     overlapping_annotations = CCAgT_ann.find_overlapping_annotations(categories_id={5})
     df = CCAgT_ann.union_geometries(overlapping_annotations)
