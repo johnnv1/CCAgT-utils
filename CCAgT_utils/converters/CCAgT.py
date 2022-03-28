@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import copy
 import multiprocessing
 import os
 from typing import Any
@@ -442,6 +443,9 @@ class CCAgT():
             annotations_panoptic.extend(p.get())
 
         return annotations_panoptic
+
+    def copy(self) -> CCAgT:
+        return copy.copy(self)
 
 
 @get_traceback

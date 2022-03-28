@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import ast
 import os
 import shutil
 import sys
@@ -15,6 +16,7 @@ from CCAgT_utils.constants import VERSION
 from CCAgT_utils.converters.CCAgT import read_parquet
 from CCAgT_utils.converters.utils import ccagt_generate_masks
 from CCAgT_utils.prepare import ccagt_dataset
+from CCAgT_utils.prepare import extract_image_and_annotations_by_category
 from CCAgT_utils.utils import basename
 from CCAgT_utils.utils import find_files
 
@@ -37,7 +39,7 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
                         help=('Path to write the new subdataset. It will create a directory with this subdataset name, and '
                               'subdirectories `images/` and `masks/`'))
 
-    group_edit_image = parser.add_argument_group('Define the type of images wanted at the end. If none of these be choiced,'
+    group_edit_image = parser.add_argument_group('Define the type of images wanted at the end. If none of these be chosen,'
                                                  ' will just copy the original data!')
     group_ex = group_edit_image.add_mutually_exclusive_group(required=False)
     group_ex.add_argument('--slice-images',
@@ -89,7 +91,7 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
                                    'the process will check if all images have at least one annotation.'))
     check_group.add_argument('--delete',
                              action='store_true',
-                             help='Will delete images without annotation, or without the choiced categories')
+                             help='Will delete images without annotation, or without the chosen categories')
 
     group_kwargs = parser.add_argument_group('Extra arguments if desired')
     group_kwargs.add_argument('--generate-masks',
@@ -176,7 +178,7 @@ def create_subdataset(name: str,
             # --remove-annotations-without
             ccagt_annotations.df = ccagt_annotations.df[ccagt_annotations.df['category_id'].isin(_cats_to_keep)]
     else:
-        print('No process of remove choiced, just skiping.')
+        print('No process of remove chosen, just skiping.')
 
     print('------------------------')
     os.makedirs(output_dir, exist_ok=True)
@@ -186,7 +188,7 @@ def create_subdataset(name: str,
     print('------------------------')
     if isinstance(slice_images, tuple):
         # --slice-images
-        print(f'Create images and masks splitting then into {slice_images} (horizontal, vertical) parts')
+        print(f'Create images and annotations splitting then into {slice_images} (horizontal, vertical) parts')
         slice.images_and_annotations(input_images_dir,
                                      output_annotations_path,
                                      output_dir,
@@ -196,16 +198,15 @@ def create_subdataset(name: str,
                                      look_recursive=True)
     elif extract is not None:
         # --extract
-        # TODO
-        print(f'Create images and masks for each instance of the categories {extract}')
-        # extract_image_and_mask_by_category(input_images_dir,
-        #                                    input_masks_dir,
-        #                                    output_dir,
-        #                                    extract,
-        #                                    CCAgT_path,
-        #                                    ast.literal_eval(paddings),
-        #                                    extensions,
-        #                                    True)
+        print(f'Create images and annotations for each instance of the categories {extract}')
+        print('  > If have the categories `Nucleus` or `Overlapped nuclei` will also keep the NORs annotations.')
+        extract_image_and_annotations_by_category(input_images_dir,
+                                                  output_dir,
+                                                  extract,
+                                                  output_annotations_path,
+                                                  ast.literal_eval(paddings),
+                                                  extensions,
+                                                  True)
     else:
         # if not choice between --slice-images and --extract, will just copy
         print('The images and masks of the subdataset will be copied from the original dataset!')

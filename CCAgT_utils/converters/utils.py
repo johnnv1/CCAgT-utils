@@ -231,8 +231,8 @@ def CCAgT_to_COCO(target: str,
                   aux_path: str | None,
                   out_dir: str,
                   out_file: str | None,
-                  split_by_slide: bool,
-                  precision: int) -> int:
+                  split_by_slide: bool = True,
+                  precision: int = 2) -> int:
     if target in ['INSTANCE-SEGMENTATION', 'IS']:
         raise NotImplementedError
 
