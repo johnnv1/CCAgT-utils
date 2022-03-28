@@ -81,6 +81,11 @@ def _add_ccagt_to_coco_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--split-by-slide',
                         help='To save the masks into subdirectories for each slide',
                         action='store_true')
+    parser.add_argument('-p',
+                        '--out-precision',
+                        help='The number of digits (decimals), for the coords at output file',
+                        default=2,
+                        metavar='OUTPUT_PRECISION')
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -157,7 +162,8 @@ def main(argv: Sequence[str] | None = None) -> int:
                              aux_path=args.aux_file,
                              out_dir=os.path.abspath(args.output_dir),
                              out_file=args.out_file,
-                             split_by_slide=args.split_by_slide)
+                             split_by_slide=args.split_by_slide,
+                             precision=int(args.out_precision))
 
     elif args.command == 'generate_masks' and args.labels_path != '':
         return ccagt_generate_masks(os.path.abspath(args.labels_path),

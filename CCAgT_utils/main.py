@@ -179,10 +179,11 @@ def create_subdataset(name: str,
         print('No process of remove choiced, just skiping.')
 
     print('------------------------')
-    print(f'Saving the annotations to {output_annotations_path}...')
+    os.makedirs(output_dir, exist_ok=True)
+    print(f'Saving the annotations to `{output_annotations_path}`...')
     ccagt_annotations.to_parquet(output_annotations_path)
 
-    print('\n\n------------------------')
+    print('------------------------')
     if isinstance(slice_images, tuple):
         # --slice-images
         print(f'Create images and masks splitting then into {slice_images} (horizontal, vertical) parts')
@@ -244,9 +245,9 @@ def create_subdataset(name: str,
         else:
             print(f'Everything is ok, have 0 files that do not have any annotation {categories_to_check}')
 
-    if delete and (len(images_without_the_annotations) > 0 or len(images_without_the_annotations) > 0):
+    if delete and (len(images_without_the_annotations) > 0 or len(images_without_the_categories) > 0):
         # --delete
-        if len(images_without_the_annotations) > 0:
+        if len(images_without_the_categories) > 0:
             print(f'Will delete images that do not have at least one of the categories {categories_to_check}')
         if len(images_without_the_annotations) > 0:
             print('Will delete images that do not have at least one annotation')

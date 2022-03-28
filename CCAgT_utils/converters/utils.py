@@ -231,10 +231,9 @@ def CCAgT_to_COCO(target: str,
                   aux_path: str | None,
                   out_dir: str,
                   out_file: str | None,
-                  split_by_slide: bool) -> int:
-    if target in ['OBJECT-DETECTION', 'OD']:
-        raise NotImplementedError
-    elif target in ['INSTANCE-SEGMENTATION', 'IS']:
+                  split_by_slide: bool,
+                  precision: int) -> int:
+    if target in ['INSTANCE-SEGMENTATION', 'IS']:
         raise NotImplementedError
 
     out_filename = out_file if out_file is not None else os.path.join(out_dir, f'CCAgT_COCO_format_{target}.json')
@@ -274,6 +273,8 @@ def CCAgT_to_COCO(target: str,
 
     if target in ['PANOPTIC-SEGMENTATION', 'PS']:
         return CCAgT_to_PS_COCO(ccagt, categories_infos, out_dir, out_filename, info_coco, split_by_slide)
+    elif target in ['OBJECT-DETECTION', 'OD']:
+        return CCAgT_to_OD_COCO(ccagt, categories_infos, out_filename, info_coco, precision)
 
     return 1
 
@@ -284,7 +285,7 @@ def CCAgT_to_PS_COCO(ccagt: CCAgT,
                      out_filename: str,
                      info_coco: dict[str, Any],
                      split_by_slide: bool) -> int:
-    print('\tSetting all overlapped nuclei as iscrowd (1), and others as 0 (false for the iscrowd)')
+    print('>Setting all overlapped nuclei as iscrowd (1), and others as 0 (false for the iscrowd)')
     ccagt.df['iscrowd'] = 0
 
     ccagt.df.loc[ccagt.df['category_id'] == 5, 'iscrowd'] = 1
@@ -309,6 +310,44 @@ def CCAgT_to_PS_COCO(ccagt: CCAgT,
                   'categories': categories_coco,
                   'images': images_coco,
                   'annotations': panoptic_records}
+
+    with open(out_filename, 'w') as outfile:
+        json.dump(CCAgT_coco, outfile)
+
+    return 0
+
+
+def CCAgT_to_OD_COCO(ccagt: CCAgT,
+                     categories_infos: categories.CategoriesInfos,
+                     out_filename: str,
+                     info_coco: dict[str, Any],
+                     decimals: int) -> int:
+    print('>Setting all overlapped nuclei as iscrowd (1), and others as 0 (false for the iscrowd)')
+    ccagt.df['iscrowd'] = 0
+
+    ccagt.df.loc[ccagt.df['category_id'] == 5, 'iscrowd'] = 1
+
+    print('>Transforming annotations from CCAgT format to COCO Object Detection Format...')
+    detection_records = ccagt.to_OD_COCO(decimals=decimals)
+
+    print('>Building COCO `categories`!')
+    categories_coco = [{'supercategory': it.supercategory,
+                        'name': it.name,
+                        'id': it.id} for it in categories_infos]
+
+    print('>Building COCO `images`!')
+    image_names = ccagt.df['image_name'].unique().tolist()
+
+    images_coco = [{'file_name': img_name,
+                    'height': ccagt.IMAGE_HEIGHT,
+                    'width': ccagt.IMAGE_WIDTH,
+                    'id': ccagt.image_id_by_name(img_name)} for img_name in image_names]
+
+    print('>Building COCO Object Detection file!')
+    CCAgT_coco = {'info': info_coco,
+                  'categories': categories_coco,
+                  'images': images_coco,
+                  'annotations': detection_records}
 
     with open(out_filename, 'w') as outfile:
         json.dump(CCAgT_coco, outfile)
