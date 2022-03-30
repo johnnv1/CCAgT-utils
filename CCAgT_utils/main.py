@@ -219,6 +219,7 @@ def create_subdataset(name: str,
     ccagt_annotations = ccagt_dataset(ccagt_annotations, categories_infos, do_fit_geometries=False)
 
     print('------------------------')
+    images_without_the_categories: set[str] = set({})
     if isinstance(categories_to_check, set):
         # --check-if-all-have-at-least-one-of
         images_names = set(ccagt_annotations.df['image_name'].unique())
@@ -233,6 +234,7 @@ def create_subdataset(name: str,
         else:
             print(f'Everything is ok, have 0 files that do not have at least one of the categories {categories_to_check}')
 
+    images_without_the_annotations: set[str] = set({})
     if check_if_images_have_annotations:
         # --no-check-images to skip this
         print('Checking if have any image without annotation...')

@@ -139,10 +139,6 @@ def test_CCAgT_to_PS_COCO(ccagt_ann_single_nucleus, categories_infos, tmpdir):
 
 
 def test_CCAgT_to_COCO_NotImplemented():
-
-    with pytest.raises(NotImplementedError):
-        utils.CCAgT_to_COCO('OD', '', None, '', None, False)
-
     with pytest.raises(NotImplementedError):
         utils.CCAgT_to_COCO('IS', '', None, '', None, False)
 
@@ -155,6 +151,18 @@ def test_CCAgT_to_COCO_PS_with_auxfile(ccagt_ann_single_nucleus, ccagt_aux_data)
         ccagt_path = os.path.join(temp_dir, 'ccagt.parquet.gzip')
         ccagt_ann_single_nucleus.to_parquet(ccagt_path)
         out = utils.CCAgT_to_COCO('PS', ccagt_path, aux_path, temp_dir, None, False)
+
+        assert out == 0
+
+
+def test_CCAgT_to_COCO_OD_with_auxfile(ccagt_ann_single_nucleus, ccagt_aux_data):
+    ccagt_ann_single_nucleus.df['image_name'] = 'C_xx1'
+
+    with RawAuxFiles([{'a': None}], ccagt_aux_data) as paths:
+        temp_dir, _, aux_path = paths
+        ccagt_path = os.path.join(temp_dir, 'ccagt.parquet.gzip')
+        ccagt_ann_single_nucleus.to_parquet(ccagt_path)
+        out = utils.CCAgT_to_COCO('OD', ccagt_path, aux_path, temp_dir, None, False)
 
         assert out == 0
 

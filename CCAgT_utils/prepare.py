@@ -104,14 +104,13 @@ def single_core_extract_image_and_annotations(image_filenames: dict[str, str],
         return [Annotation(row['geometry'], row['category_id']) for _, row in _df.iterrows()]
 
     _c = {Categories.CLUSTER.value, Categories.SATELLITE.value}
+    groups: dict[str, list[set[int]]] = {k: [] for k in ccagt_annotations.df['image_name'].unique()}
     if Categories.NUCLEUS.value in categories_to_extract:
         _c.add(Categories.NUCLEUS.value)
-        groups = ccagt_annotations.find_overlapping_annotations(_c)
+        groups.update(ccagt_annotations.find_overlapping_annotations(_c))
     elif Categories.OVERLAPPED_NUCLEI.value in categories_to_extract:
         _c.add(Categories.OVERLAPPED_NUCLEI.value)
-        groups = ccagt_annotations.find_overlapping_annotations(_c)
-    else:
-        groups = {k: [] for k in ccagt_annotations.df['image_name'].unique()}
+        groups.update(ccagt_annotations.find_overlapping_annotations(_c))
 
     df_filtered = ccagt_annotations.df.loc[ccagt_annotations.df['category_id'].isin(categories_to_extract),
                                            ['image_name', 'geometry', 'category_id']]

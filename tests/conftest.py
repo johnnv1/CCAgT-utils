@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -118,7 +120,7 @@ def nucleus_ex():
 
 @pytest.fixture
 def cluster_ex():
-    return Polygon([(10, 10), (10, 15), (15, 15), (15, 10)])
+    return Polygon([(10, 10), (10, 25), (25, 25), (25, 10)])
 
 
 @pytest.fixture
@@ -129,7 +131,7 @@ def annotations_ex(nucleus_ex, cluster_ex):
 @pytest.fixture
 def cluster_mask_ex():
     out = np.zeros((20, 20), dtype=np.uint8)
-    out[10:16, 10:16] = 2
+    out[10:26, 10:26] = 2
     return out
 
 
@@ -239,6 +241,18 @@ def ccagt_ann_single_nucleus(nucleus_ex):
 @pytest.fixture
 def ccagt_ann_multi(ccagt_df_multi):
     return CCAgT.CCAgT(ccagt_df_multi)
+
+
+@pytest.fixture
+def ccagt_ann_multi_image_names(ccagt_ann_multi):
+    return ccagt_ann_multi.df['image_name'].unique().tolist()
+
+
+@pytest.fixture
+def ccagt_ann_multi_path(ccagt_ann_multi, tmpdir):
+    path = os.path.join(tmpdir, 'CCAgT.parquet.gzip')
+    ccagt_ann_multi.to_parquet(path)
+    return path
 
 
 @pytest.fixture
