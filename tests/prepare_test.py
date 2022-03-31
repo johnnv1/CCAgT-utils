@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import os
+from copy import copy
 
 from CCAgT_utils import prepare
+from CCAgT_utils.categories import Categories
 from testing import create
 
 
@@ -40,34 +42,43 @@ def test_extract_category(shape, annotations_ex):
         assert os.path.isfile(os.path.join(tmp_dir, 'A_example_1_1.png'))
 
 
-def test_single_core_extract_image_and_annotations(shape, ccagt_ann_single_nucleus):
-    img_name = ccagt_ann_single_nucleus.df.iloc[0]['image_name']
-    slide = img_name.split('_')[0]
-    with create.ImageMaskFiles(shape[0], shape[1], [img_name]) as paths:
+def test_single_core_extract_image_and_annotations(shape, ccagt_ann_multi, ccagt_ann_multi_image_names):
+    slides = {img_name.split('_')[0] for img_name in ccagt_ann_multi_image_names}
+    with create.ImageMaskFiles(shape[0], shape[1], ccagt_ann_multi_image_names) as paths:
         tmp_dir, _, images_dir = paths
 
-        imgs = {img_name: os.path.join(images_dir, f'{img_name}.jpg')}
+        imgs = {img_name: os.path.join(images_dir, f'{img_name}.jpg') for img_name in ccagt_ann_multi_image_names}
 
-        images_dir_out = os.path.join(images_dir, f'{slide}')
-        os.makedirs(images_dir_out)
+        for slide in slides:
+            images_dir_out = os.path.join(images_dir, f'{slide}')
+            os.makedirs(images_dir_out, exist_ok=True)
 
-        extracted_quantity, annotations_items = prepare.single_core_extract_image_and_annotations(imgs,
-                                                                                                  ccagt_ann_single_nucleus,
-                                                                                                  {1},
-                                                                                                  tmp_dir,
-                                                                                                  0)
+        extracted_qtd, ann_items = prepare.single_core_extract_image_and_annotations(imgs,
+                                                                                     ccagt_ann_multi,
+                                                                                     {Categories.NUCLEUS.value},
+                                                                                     tmp_dir,
+                                                                                     0)
+        assert extracted_qtd == 5
+        assert len(ann_items) == 14
 
-        assert extracted_quantity == 1
-        assert len(annotations_items) == 1
+        extracted_qtd, ann_items = prepare.single_core_extract_image_and_annotations(imgs,
+                                                                                     ccagt_ann_multi,
+                                                                                     {Categories.BACKGROUND.value},
+                                                                                     tmp_dir,
+                                                                                     0)
+        assert extracted_qtd == 0
+        assert len(ann_items) == 0
 
-        extracted_quantity, annotations_items = prepare.single_core_extract_image_and_annotations(imgs,
-                                                                                                  ccagt_ann_single_nucleus,
-                                                                                                  {0},
-                                                                                                  tmp_dir,
-                                                                                                  0)
+        ccagt_ann_multi.df.loc[ccagt_ann_multi.df['category_id'] == Categories.NUCLEUS.value,
+                               'category_id'] = Categories.OVERLAPPED_NUCLEI.value
 
-        assert extracted_quantity == 0
-        assert len(annotations_items) == 0
+        extracted_qtd, ann_items = prepare.single_core_extract_image_and_annotations(imgs,
+                                                                                     ccagt_ann_multi,
+                                                                                     {Categories.OVERLAPPED_NUCLEI.value},
+                                                                                     tmp_dir,
+                                                                                     0)
+        assert extracted_qtd == 5
+        assert len(ann_items) == 14
 
 
 def test_extract_image_and_mask_by_category(shape,
@@ -89,3 +100,23 @@ def test_extract_image_and_mask_by_category(shape,
             )
             for _, row in df_filtered.iterrows()
         )
+
+
+def test_ccagt_dataset(ccagt_ann_multi, categories_infos):
+    in_data = copy(ccagt_ann_multi)
+    out = prepare.ccagt_dataset(in_data, categories_infos)
+    assert out.df['geo_type'].unique().tolist() == ['Polygon']
+    assert 3 not in out.df['image_id'].unique()
+    assert not out.df.equals(ccagt_ann_multi.df)
+
+    in_data = copy(ccagt_ann_multi)
+    out = prepare.ccagt_dataset(in_data, categories_infos, '.png', False)
+    assert out.df['geo_type'].unique().tolist() == ['Polygon']
+    assert 3 not in out.df['image_id'].unique()
+    assert not out.df.equals(ccagt_ann_multi.df)
+
+    # Cover skip deletion of Nucleus without NORs and NORs without nuclei
+    in_data = copy(ccagt_ann_multi)
+    in_data.df = in_data.df.loc[in_data.df['category_id'] == -99]
+    out = prepare.ccagt_dataset(in_data, categories_infos, '.png', False)
+    assert out.df.empty

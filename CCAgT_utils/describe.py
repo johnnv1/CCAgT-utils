@@ -237,21 +237,24 @@ def dataset(ccagt_path: str,
     images_dir = os.path.join(dataset_dir, STRUCTURE['i'])
     masks_dir = os.path.join(dataset_dir, STRUCTURE['m'])
 
-    desc = ccagt_annotations(ccagt, categories_infos)
     print(f'Dataset name: `{name}` | Location: `{dataset_dir}`')
     print(f'From the annotations file ({ccagt_path}) -')
-    print(f'Quantity of images: {desc["qtd_images"]}')
-    print(f'Quantity of slides: {desc["qtd_slide"]}')
-    print(f'Quantity of annotations: {desc["qtd_annotations"]}')
-    for cat_name, qtd in desc['qtd_annotations_categorical'].items():
-        dist = desc['dist_annotations'][cat_name]
-        print(f' > Quantity of annotations for {cat_name}: {qtd} - {dist*100:.2f}%')
-    print('Statistics of the area of each category...')
-    for cat_name, area_stats in desc['area_stats'].items():
-        print(f' > Statistics of area for {cat_name}: {area_stats}')
+    if ccagt.df.shape[0] == 0:
+        print('Do not have any annotation!')
+    else:
+        desc = ccagt_annotations(ccagt, categories_infos)
+        print(f'Quantity of images: {desc["qtd_images"]}')
+        print(f'Quantity of slides: {desc["qtd_slide"]}')
+        print(f'Quantity of annotations: {desc["qtd_annotations"]}')
+        for cat_name, qtd in desc['qtd_annotations_categorical'].items():
+            dist = desc['dist_annotations'][cat_name]
+            print(f' > Quantity of annotations for {cat_name}: {qtd} - {dist*100:.2f}%')
+        print('Statistics of the area of each category...')
+        for cat_name, area_stats in desc['area_stats'].items():
+            print(f' > Statistics of area for {cat_name}: {area_stats}')
 
-    images_quantity = len(find_files(images_dir, extensions, True))
-    masks_quantity = len(find_files(masks_dir, extensions, True))
-    print('On disk data -')
-    print(f'Total of images: {images_quantity} - at `{images_dir}`')
-    print(f'Total of masks: {masks_quantity} - at `{masks_dir}`')
+        images_quantity = len(find_files(images_dir, extensions, True))
+        masks_quantity = len(find_files(masks_dir, extensions, True))
+        print('On disk data -')
+        print(f'Total of images: {images_quantity} - at `{images_dir}`')
+        print(f'Total of masks: {masks_quantity} - at `{masks_dir}`')

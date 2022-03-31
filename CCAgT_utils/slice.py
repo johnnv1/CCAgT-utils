@@ -117,14 +117,13 @@ def single_core_image_and_annotations(image_filenames: dict[str, str],
     for bn, df in df_ccagt.groupby('image_name'):
         ann_items = [Annotation(r['geometry'], r['category_id']) for _, r in df.iterrows()]
 
-        if len(ann_items) > 0:
-            img_counter, ann_out = image_with_annotation(image_filenames[bn],
-                                                         os.path.join(base_dir_output, 'images/', slide_from_filename(bn)),
-                                                         ann_items,
-                                                         h_quantity,
-                                                         v_quantity)
-            image_counter += img_counter
-            annotations_out.extend(ann_out)
+        img_counter, ann_out = image_with_annotation(image_filenames[bn],
+                                                     os.path.join(base_dir_output, 'images/', slide_from_filename(bn)),
+                                                     ann_items,
+                                                     h_quantity,
+                                                     v_quantity)
+        image_counter += img_counter
+        annotations_out.extend(ann_out)
     return (image_counter, annotations_out)
 
 

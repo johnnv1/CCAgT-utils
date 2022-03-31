@@ -22,9 +22,9 @@ def test_build_description(ccagt_df_multi, ccagt_metadata):
 
     out = utils.__build_description(template, df)
     assert out == '''
-qtd of images = 2
+qtd of images = 3
 qtd of slides = 2
-qtd of annotations = 5
+qtd of annotations = 11
 '''
 
 

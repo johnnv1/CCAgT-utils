@@ -3,6 +3,7 @@ from __future__ import annotations
 import copy
 import multiprocessing
 import os
+import sys
 from typing import Any
 
 import networkx as nx
@@ -391,8 +392,13 @@ class CCAgT():
 
         cpu_num = multiprocessing.cpu_count()
 
+        img_ids = self.df['image_id'].unique()
+        if len(img_ids) == 0:
+            print('Do not have annotations to generate the masks!', file=sys.stderr)
+            return
+
         # Split equals the annotations for the cpu quantity
-        images_ids_splitted = np.array_split(self.df['image_id'].unique(), cpu_num)
+        images_ids_splitted = np.array_split(img_ids, cpu_num)
         print(f'Number of cores: {cpu_num}, images per core: {len(images_ids_splitted[0])}')
 
         workers = multiprocessing.Pool(processes=cpu_num)

@@ -121,13 +121,12 @@ def single_core_extract_image_and_annotations(image_filenames: dict[str, str],
         ann_items = [(Annotation(row['geometry'], row['category_id']),
                       get_annotations(get_match_group(groups[bn], idx))) for idx, row in sub_df.iterrows()]
 
-        if len(ann_items) > 0:
-            img_counter, ann_out = extract_category(image_filenames[bn],
-                                                    os.path.join(base_dir_output, 'images/', slide_from_filename(bn)),
-                                                    ann_items,
-                                                    padding)
-            image_counter += img_counter
-            annotations_out.extend(ann_out)
+        img_counter, ann_out = extract_category(image_filenames[bn],
+                                                os.path.join(base_dir_output, 'images/', slide_from_filename(bn)),
+                                                ann_items,
+                                                padding)
+        image_counter += img_counter
+        annotations_out.extend(ann_out)
     return (image_counter, annotations_out)
 
 
@@ -229,7 +228,7 @@ def ccagt_dataset(ccagt: CCAgT,
     df_base_intersects_target = ccagt.verify_if_intersects(base_categories_id={ncl}, target_categories_id={cur, sat})
     if not df_base_intersects_target.empty:
         index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()
-        print(f'A total of {len(index_to_drop)} of nuclei (category id = {ncl}) will be deleted.')
+        print(f'A total of {len(index_to_drop)} nuclei without NORs (category id = {ncl}) will be deleted.')
         df.drop(index_to_drop, inplace=True)
 
     print(f'Searching intersections of NORs with nuclei (normal and overlapped) labels (category id in [{cur}, {sat}] and '
@@ -237,7 +236,7 @@ def ccagt_dataset(ccagt: CCAgT,
     df_base_intersects_target = ccagt.verify_if_intersects(base_categories_id={cur, sat}, target_categories_id={ncl, ovlp_ncl})
     if not df_base_intersects_target.empty:
         index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()
-        print(f'A total of {len(index_to_drop)} of NORs (category id =  [{cur}, {sat}]) will be deleted.')
+        print(f'A total of {len(index_to_drop)} NORs without Nucleus (category id =  [{cur}, {sat}]) will be deleted.')
         df.drop(index_to_drop, inplace=True)
 
     return ccagt

@@ -5,6 +5,7 @@ import os
 import numpy as np
 import pandas as pd
 import pytest
+from shapely import affinity
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
@@ -219,11 +220,19 @@ def lbb_raw_expected_ccagt_df(satellite_ex, nucleus_ex):
 @pytest.fixture
 def ccagt_df_multi(nucleus_ex, cluster_ex, satellite_ex):
     # Using a dict with a list for each collum, will raise a warning for Points because of pandas cast type
-    d = [create.row_CCAgT(satellite_ex, 3, 'A_xx1'),
-         create.row_CCAgT(nucleus_ex, 1, 'A_xx1'),
-         create.row_CCAgT(cluster_ex, 2, 'A_xx1'),
-         create.row_CCAgT(nucleus_ex, 1, 'B_xx1'),
-         create.row_CCAgT(nucleus_ex, 1, 'B_xx1')]
+    d = [create.row_CCAgT(satellite_ex, 3, 'A_xx1', image_id=1),
+         create.row_CCAgT(nucleus_ex, 1, 'A_xx1', image_id=1),
+         create.row_CCAgT(cluster_ex, 2, 'A_xx1', image_id=1),
+
+         create.row_CCAgT(nucleus_ex, 1, 'B_xx1', image_id=2),
+         create.row_CCAgT(affinity.translate(nucleus_ex, 50, 50), 1, 'B_xx1', image_id=2),
+
+         create.row_CCAgT(satellite_ex, 3, 'A_yy2', image_id=3),
+         create.row_CCAgT(nucleus_ex, 1, 'A_yy2', image_id=3),
+         create.row_CCAgT(cluster_ex, 2, 'A_yy2', image_id=3),
+         create.row_CCAgT(affinity.translate(satellite_ex, 50, 50), 3, 'A_yy2', image_id=3),
+         create.row_CCAgT(affinity.translate(nucleus_ex, 50, 50), 1, 'A_yy2', image_id=3),
+         create.row_CCAgT(affinity.translate(cluster_ex, 50, 50), 2, 'A_yy2', image_id=3)]
     return pd.DataFrame(d)
 
 

@@ -92,7 +92,7 @@ def test_geometries_area(ccagt_ann_single_nucleus, nucleus_ex):
 
 def test_generate_ids(ccagt_ann_multi):
     img_name_series = ccagt_ann_multi.df['image_name']
-    assert ccagt_ann_multi.generate_ids(img_name_series).tolist() == [1, 1, 1, 2, 2]
+    assert ccagt_ann_multi.generate_ids(img_name_series).tolist() == [1, 1, 1, 3, 3, 2, 2, 2, 2, 2, 2]
 
 
 @pytest.mark.parametrize('min_area,expected,compute_area', [(99999, 0, False),
@@ -113,7 +113,7 @@ def test_delete_by_area_ignore_ids(ccagt_ann_multi):
                                         {'name': 'Satellite', 'id': 3, 'color': (0, 0, 0), 'minimal_area': 0},
                                         {'name': 'Nucleus_out_of_focus', 'id': 4, 'color': (0, 0, 0), 'minimal_area': 0}])
     df = ccagt_ann_multi.delete_by_area(categories_infos, set({2, 3}))
-    assert df.shape[0] == 2
+    assert df.shape[0] == 6
 
 
 def test_find_intersecting_geometries(ccagt_ann_multi, cluster_ex):
@@ -141,18 +141,18 @@ def test_has_intersecting_geometries(ccagt_ann_multi, cluster_ex):
 
 def test_verify_if_intersects(ccagt_ann_multi):
     df = ccagt_ann_multi.verify_if_intersects(set({1}), set({2}))
-    assert df['has_intersecting'].tolist() == [True, False, False]
+    assert df['has_intersecting'].tolist() == [True, True, True, False, False]
 
     df = ccagt_ann_multi.verify_if_intersects(set({1}), None)
-    assert df['has_intersecting'].tolist() == [True, True, True]
+    assert df['has_intersecting'].tolist() == [True] * 5
 
 
 def test_find_overlapping_annotations(ccagt_ann_multi):
     groups = ccagt_ann_multi.find_overlapping_annotations(set({1, 2}))
-    assert groups == {'A_xx1': [{1, 2}], 'B_xx1': [{3, 4}]}
+    assert groups == {'A_xx1': [{1, 2}], 'A_yy2': [{6, 7}, {9, 10}]}
 
     groups = ccagt_ann_multi.find_overlapping_annotations(set({1, 2}), True)
-    assert groups == {'A_xx1': [{1, 2}], 'B_xx1': [{3, 4}]}
+    assert groups == {'A_xx1': [{1, 2}], 'A_yy2': [{6, 7}, {9, 10}]}
 
     groups = ccagt_ann_multi.find_overlapping_annotations(set({3}), True)
     assert groups == {}

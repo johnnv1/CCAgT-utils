@@ -135,6 +135,7 @@ def create_subdataset(name: str,
     output_annotations_path = os.path.join(output_dir, STRUCTURE['l'])
 
     if overwrite and os.path.isdir(output_dir):
+        print(f'Deleting all outdated data from `{output_dir}`...')
         shutil.rmtree(output_dir)
     elif (os.path.isdir(output_images_dir) or os.path.isdir(output_masks_dir)):
         print(f'Already exist a dataset with name={name} at {output_base}!', file=sys.stderr)
@@ -165,22 +166,29 @@ def create_subdataset(name: str,
     print('------------------------')
     if isinstance(categories_to_keep, tuple):
         _choice_to_delete, _cats_to_keep = categories_to_keep
-        _str_choice = {0: 'images', 1: 'annotations'}[_choice_to_delete]
-        print(f'Delete {_str_choice} that do not have the categories: {_cats_to_keep} ')
 
         if _choice_to_delete == 0:
             # --remove-images-without
+            print(f'Delete images that do not have the categories: {_cats_to_keep} ')
             _idx_with_categories = ccagt_annotations.df['category_id'].isin(_cats_to_keep)
             images_with_categories = set(ccagt_annotations.df.loc[_idx_with_categories, 'image_id'].unique())
             ccagt_annotations.df = ccagt_annotations.df[ccagt_annotations.df['image_id'].isin(images_with_categories)]
 
         elif _choice_to_delete == 1:
             # --remove-annotations-without
+            print(f'Delete annotations that do not have the categories: {_cats_to_keep} ')
             ccagt_annotations.df = ccagt_annotations.df[ccagt_annotations.df['category_id'].isin(_cats_to_keep)]
+        else:
+            print('Unexpected choice for the type of removal proccess.', file=sys.stderr)
+            return 1
     else:
         print('No process of remove chosen, just skiping.')
 
     print('------------------------')
+    if ccagt_annotations.df.shape[0] == 0:
+        print('The annotations file has none annotation, just finishing the process!', file=sys.stderr)
+        return 1
+
     os.makedirs(output_dir, exist_ok=True)
     print(f'Saving the annotations to `{output_annotations_path}`...')
     ccagt_annotations.to_parquet(output_annotations_path)
@@ -209,6 +217,7 @@ def create_subdataset(name: str,
                                                   True)
     else:
         # if not choice between --slice-images and --extract, will just copy
+        # TODO: copy with multiprocess
         print('The images and masks of the subdataset will be copied from the original dataset!')
         print('Coping images files...')
         shutil.copytree(input_images_dir, output_images_dir)
@@ -216,6 +225,8 @@ def create_subdataset(name: str,
     print('------------------------')
     print(f'Loading the annotations file from `{output_annotations_path}`...')
     ccagt_annotations = read_parquet(output_annotations_path)
+
+    print('------------------------')
     ccagt_annotations = ccagt_dataset(ccagt_annotations, categories_infos, do_fit_geometries=False)
 
     print('------------------------')

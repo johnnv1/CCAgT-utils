@@ -26,9 +26,9 @@ def test_tvt_by_nors(ccagt_ann_multi, ccagt_df_multi, categories_infos):
     ccagt_ann_multi.df['slide_id'] = ccagt_ann_multi.get_slide_id()
     out = split.tvt_by_nors(ccagt_ann_multi, categories_infos, (0.6, 0.2, 0.2), seed=6547)
 
-    assert out[0] == {8, 2, 5, 6}
-    assert out[1] == {1, 4}
-    assert out[2] == {3, 7}
+    assert out[0] == {3, 6, 7}
+    assert out[1] == {2, 5}
+    assert out[2] == {1, 4, 8}
 
 
 def test_tvt_by_nors_wrong_size(ccagt_ann_multi, categories_infos):
