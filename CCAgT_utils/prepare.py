@@ -155,7 +155,7 @@ def extract_image_and_annotations_by_category(dir_images: str,
     processes = []
     for filenames in filenames_splitted:
         if len(filenames) == 0:
-            continue
+            continue  # pragma: no cover
 
         img_filenames = {k: image_filenames[k] for k in filenames}
         _ccagt = ccagt_annotations.copy()

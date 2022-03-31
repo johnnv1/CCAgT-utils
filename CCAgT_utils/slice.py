@@ -151,7 +151,7 @@ def images_and_annotations(dir_images: str,
     processes = []
     for filenames in filenames_splitted:
         if len(filenames) == 0:
-            continue
+            continue  # pragma: no cover
 
         _ccagt = ccagt.df[ccagt.df['image_name'].isin(filenames)]
         img_filenames = {k: image_filenames[k] for k in filenames}
