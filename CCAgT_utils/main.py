@@ -71,12 +71,12 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
                                 help=('Define that you wants remove of this subdataset the images that does not have the '
                                       'categories passed as argument.'))
 
-    group_ex_clean.add_argument('--remove-annotations-without',
+    group_ex_clean.add_argument('--remove-annotations-different',
                                 nargs='*',
                                 type=int,
                                 metavar='CATEGORY ID',
-                                help=('Define that you wants remove of this subdataset the annotations that does not have '
-                                      'the categories  passed as argument.'))
+                                help=('Define that you wants remove of this subdataset the annotations that have different '
+                                      'categories then the passed as argument.'))
 
     check_group = parser.add_argument_group('Process of checking the annotation and images.')
     check_group.add_argument('--check-if-all-have-at-least-one-of',
@@ -176,7 +176,7 @@ def create_subdataset(name: str,
 
         elif _choice_to_delete == 1:
             # --remove-annotations-without
-            print(f'Delete annotations that do not have the categories: {_cats_to_keep} ')
+            print(f'Delete annotations that in not in the categories: {_cats_to_keep} ')
             ccagt_annotations.df = ccagt_annotations.df[ccagt_annotations.df['category_id'].isin(_cats_to_keep)]
         else:
             print('Unexpected choice for the type of removal proccess.', file=sys.stderr)
@@ -323,8 +323,8 @@ def main(argv: Sequence[str] | None = None) -> int:
         categories_to_keep = None
         if args.remove_images_without is not None:
             categories_to_keep = (0, set(args.remove_images_without))
-        elif args.remove_annotations_without is not None:
-            categories_to_keep = (1, set(args.remove_annotations_without))
+        elif args.remove_annotations_different is not None:
+            categories_to_keep = (1, set(args.remove_annotations_different))
 
         categories_to_check = None
         if args.check_if_all_have_at_least_one_of is not None:

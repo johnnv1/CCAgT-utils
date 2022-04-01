@@ -294,6 +294,6 @@ def test_main_create_subdataset(shape, ccagt_ann_multi_path, ccagt_ann_multi_ima
         assert out == 0
 
         out = main.main(['create-subdataset', '--name', 'example2', '--original', tmp_dir, '--output', tmp_dir, '--labels',
-                         ccagt_ann_multi_path, '--remove-annotations-without', '1', '--check-if-all-have-at-least-one-of',
+                         ccagt_ann_multi_path, '--remove-annotations-different', '1', '--check-if-all-have-at-least-one-of',
                          '1'])
         assert out == 0
