@@ -90,26 +90,33 @@ $ CCAgT-converter CCAgT_to_COCO  -t PS -l ./data/samples/out/CCAgT.parquet.gzip\
 Module responsible to create personalized versions of the dataset with the desired
 modifications. Things that can be done: slice the images into smaller parts, select
 just images that have specific categories, create images with a specific category.
+This tool, will copy, or generate the images, and also generate a new CCAgT annotations
+file, based on the desired options!
 
-First, the tool allows selecting what will be the format of the images:
+First, if desired, the tool will remove images that do not have the desired categories:
+>- `--remove-images-without` with the categories ids, will remove all images
+that don't have the categories passed as parameter.
+>- `--remove-annotations-different` with the categories ids, will remove all annotations
+that have different categories than the parameter.
+
+Second, the tool allows selecting what will be the format of the images:
 >- `--slice-images` to slice the images into sub parts;
->- `--extract` to create images and masks with a unique category (centralized
+>- `--extract` to create images with a unique category (centralized
 into the new image);
 >- `--labels` (to be used with `--extract`) path for the CCAgT file with the labels;
 >- `--paddings` (to be used with `--extract`) in percent (float values) or pixels
 (integer values) select, the size of paddings to apply;
 >- Without any parameter, will just copy the original dataset
 
-Second, if desired, the tool will remove images that do not have the desired categories:
->- `--remove-images-without` with the categories ids, will remove all images/masks
-that don't have the categories passed as parameter.
-
 Third, and last, can (re)check if all images has the desired categories, and delete
 with don't have.
->- `--check-if-all-have-at-least-one-of` to verify if the image/mask have at least
+>- `--check-if-all-have-at-least-one-of` to verify if the image have at least
 one of the categories IDs passed as parameter;
 >- `--delete` if desired, delete images that don't have at least one of the categories.
+>- `--generate-masks` if desired, will generate the masks based on the new CCAgT
+annotations file.
 
+**Check all option with: ** `CCAgT-utils create-subdataset -h`
 
 Example creates a subdataset with images sliced into 2x2 (1 image (1600x1200) ->
 4 images (800x600)), and remove images do not have any information (images with
@@ -127,8 +134,8 @@ $ cp -r ./data/samples/masks/semantic_segmentation/ /tmp/example_dataset/masks/
 $ CCAgT-utils create-subdataset -name dataset_sliced_into2x2 \
                                 --original /tmp/example_dataset/ \
                                 --output /tmp/ \
-                                --slice-images 2 2 \
-                                --remove-images-without 1 2 3 4 5 6 7
+                                --remove-images-without 1 2 3 4 5 6 7\
+                                --slice-images 2 2
 ```
 
 With this tool, various datasets (based on the original dataset) can be created,
