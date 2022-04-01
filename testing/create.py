@@ -9,10 +9,11 @@ import numpy as np
 from PIL import Image
 
 
-def row_CCAgT(obj: Any, cat: int, name: str) -> dict[str, Any]:
+def row_CCAgT(obj: Any, cat: int, name: str, **kwargs: Any) -> dict[str, Any]:
     return {'image_name': name,
             'geometry': obj,
-            'category_id': cat}
+            'category_id': cat,
+            **kwargs}
 
 
 def mask_categorical(shape: tuple[int, int]) -> np.ndarray:
