@@ -50,9 +50,13 @@ def test_geometries_type(ccagt_ann_multi, ccagt_df_multi):
     assert ccagt_ann_multi.geometries_type().tolist() == geometries_type
 
 
-@pytest.mark.parametrize('area_size,resolution,tolerance', [(70, 4, 0.3),
-                                                            (120, 4, 0.3),
-                                                            (97, 4, 1)])
+@pytest.mark.parametrize(
+    'area_size,resolution,tolerance', [
+        (70, 4, 0.3),
+        (120, 4, 0.3),
+        (97, 4, 1),
+    ],
+)
 def test_satellite_point_to_polygon(ccagt_ann_multi, satellite_ex, area_size, resolution, tolerance):
     df = ccagt_ann_multi.df
     df['geo_type'] = ccagt_ann_multi.geometries_type()
@@ -61,10 +65,12 @@ def test_satellite_point_to_polygon(ccagt_ann_multi, satellite_ex, area_size, re
     area_size = 70
     resolution = 4
     tolerance = 0.3
-    sat_series_pol = ccagt_ann_multi.satellite_point_to_polygon(sat_series,
-                                                                area_size=area_size,
-                                                                resolution=resolution,
-                                                                tolerance=tolerance)
+    sat_series_pol = ccagt_ann_multi.satellite_point_to_polygon(
+        sat_series,
+        area_size=area_size,
+        resolution=resolution,
+        tolerance=tolerance,
+    )
 
     diameter = np.sqrt(area_size / np.pi)
     pol_sat = satellite_ex.buffer(diameter, resolution).simplify(tolerance)
@@ -95,9 +101,13 @@ def test_generate_ids(ccagt_ann_multi):
     assert ccagt_ann_multi.generate_ids(img_name_series).tolist() == [1, 1, 1, 3, 3, 2, 2, 2, 2, 2, 2]
 
 
-@pytest.mark.parametrize('min_area,expected,compute_area', [(99999, 0, False),
-                                                            (0, 1, False),
-                                                            (0, 1, True)])
+@pytest.mark.parametrize(
+    'min_area,expected,compute_area', [
+        (99999, 0, False),
+        (0, 1, False),
+        (0, 1, True),
+    ],
+)
 def test_delete_by_area(ccagt_ann_single_nucleus, min_area, expected, compute_area):
     if compute_area:
         ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
@@ -108,10 +118,12 @@ def test_delete_by_area(ccagt_ann_single_nucleus, min_area, expected, compute_ar
 
 
 def test_delete_by_area_ignore_ids(ccagt_ann_multi):
-    categories_infos = CategoriesInfos([{'name': 'Nucleus', 'id': 1, 'color': (0, 0, 0), 'minimal_area': 1000},
-                                        {'name': 'Cluster', 'id': 2, 'color': (0, 0, 0), 'minimal_area': 0},
-                                        {'name': 'Satellite', 'id': 3, 'color': (0, 0, 0), 'minimal_area': 0},
-                                        {'name': 'Nucleus_out_of_focus', 'id': 4, 'color': (0, 0, 0), 'minimal_area': 0}])
+    categories_infos = CategoriesInfos([
+        {'name': 'Nucleus', 'id': 1, 'color': (0, 0, 0), 'minimal_area': 1000},
+        {'name': 'Cluster', 'id': 2, 'color': (0, 0, 0), 'minimal_area': 0},
+        {'name': 'Satellite', 'id': 3, 'color': (0, 0, 0), 'minimal_area': 0},
+        {'name': 'Nucleus_out_of_focus', 'id': 4, 'color': (0, 0, 0), 'minimal_area': 0},
+    ])
     df = ccagt_ann_multi.delete_by_area(categories_infos, set({2, 3}))
     assert df.shape[0] == 6
 

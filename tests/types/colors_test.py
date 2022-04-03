@@ -30,14 +30,18 @@ def test_Color_rgba():
 
 
 def test_Color_rgba_normalizado():
-    assert colors.Color(Red=111,
-                        Green=222,
-                        Blue=25,
-                        Alpha=10,
-                        size=8).rgba_normalized == (111 / 255,
-                                                    222 / 255,
-                                                    25 / 255,
-                                                    10 / 255)
+    assert colors.Color(
+        Red=111,
+        Green=222,
+        Blue=25,
+        Alpha=10,
+        size=8,
+    ).rgba_normalized == (
+        111 / 255,
+        222 / 255,
+        25 / 255,
+        10 / 255,
+    )
 
 
 def test_from_tuple():
@@ -50,9 +54,13 @@ def test_hex_to_rgb():
     assert c_rgb == (255, 255, 170)
 
 
-@pytest.mark.parametrize('rgb, max_dist', [((111, 222, 25), 10),
-                                           ((222, 0, 80), 50),
-                                           ((25, 127, 255), 30)])
+@pytest.mark.parametrize(
+    'rgb, max_dist', [
+        ((111, 222, 25), 10),
+        ((222, 0, 80), 50),
+        ((25, 127, 255), 30),
+    ],
+)
 def test_random_color_from_base(rgb, max_dist):
     r, g, b = rgb
     base_color = colors.Color(Red=r, Green=g, Blue=b)

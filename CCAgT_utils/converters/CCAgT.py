@@ -34,13 +34,17 @@ class CCAgT():
     IMAGE_WIDTH: int = 1600
     IMAGE_HEIGHT: int = 1200
 
-    def __init__(self,
-                 df: pd.DataFrame) -> None:
+    def __init__(
+        self,
+        df: pd.DataFrame,
+    ) -> None:
 
         self.__check_and_instance_dataframe(df)
 
-    def __check_and_instance_dataframe(self,
-                                       df: pd.DataFrame) -> None:
+    def __check_and_instance_dataframe(
+        self,
+        df: pd.DataFrame,
+    ) -> None:
         need_to_have = {'image_name', 'geometry', 'category_id'}
         if isinstance(df, pd.DataFrame):
             if need_to_have.issubset(set(df.columns)):
@@ -57,18 +61,21 @@ class CCAgT():
     def geometries_type(self) -> pd.Series:
         return self.df['geometry'].apply(lambda x: x.geom_type)
 
-    def satellite_point_to_polygon(self,
-                                   satellite_geo: pd.Series,
-                                   area_size: int = 90,
-                                   resolution: int = 4,
-                                   tolerance: float = 0.3) -> pd.Series:
+    def satellite_point_to_polygon(
+        self,
+        satellite_geo: pd.Series,
+        area_size: int = 90,
+        resolution: int = 4,
+        tolerance: float = 0.3,
+    ) -> pd.Series:
         diameter = np.sqrt(area_size / np.pi)
         return satellite_geo.apply(lambda x: x.buffer(distance=diameter, resolution=resolution).simplify(tolerance=tolerance))
 
-    def fit_geometries_to_image_boundary(self,
-                                         width: int | None = None,
-                                         height: int | None = None
-                                         ) -> pd.Series:
+    def fit_geometries_to_image_boundary(
+        self,
+        width: int | None = None,
+        height: int | None = None,
+    ) -> pd.Series:
         """This method will fix the geometries that does't fit inside
         of the image size.
 
@@ -121,14 +128,18 @@ class CCAgT():
     def geometries_area(self) -> pd.Series:
         return self.df['geometry'].apply(lambda x: x.area)
 
-    def generate_ids(self,
-                     col: pd.Series) -> pd.Series:
+    def generate_ids(
+        self,
+        col: pd.Series,
+    ) -> pd.Series:
         col = col.astype('category')
         return col.cat.codes + 1
 
-    def delete_by_area(self,
-                       categories_infos: CategoriesInfos,
-                       ignore_categories: set[int] = set({})) -> pd.DataFrame:
+    def delete_by_area(
+        self,
+        categories_infos: CategoriesInfos,
+        ignore_categories: set[int] = set({}),
+    ) -> pd.DataFrame:
         if 'area' not in self.df.columns:
             self.df['area'] = self.geometries_area()
 
@@ -154,9 +165,11 @@ class CCAgT():
         return self.df
 
     @staticmethod
-    def find_intersecting_geometries(geo: Polygon,
-                                     geo_idx: int,
-                                     df: pd.DataFrame) -> list[int] | np.nan:
+    def find_intersecting_geometries(
+        geo: Polygon,
+        geo_idx: int,
+        df: pd.DataFrame,
+    ) -> list[int] | np.nan:
         """Based on a geometry, search in the dataframe for others
         geometries that intersect with the geometry passed as parameter.
 
@@ -175,11 +188,13 @@ class CCAgT():
             A list with the indexes of each geometry that intersects with
             the geometry passed as parameter
         """
-        o = df.apply(lambda row:
-                     np.nan if not row['geometry'].is_valid else
-                     np.nan if not geo.intersects(row['geometry']) or row.name == geo_idx
-                     else row.name,
-                     axis=1).dropna()
+        o = df.apply(
+            lambda row:
+            np.nan if not row['geometry'].is_valid else
+            np.nan if not geo.intersects(row['geometry']) or row.name == geo_idx
+            else row.name,
+            axis=1,
+        ).dropna()
 
         if o.shape[0] == 0:
             return np.nan
@@ -190,16 +205,20 @@ class CCAgT():
         return self.df[self.df['category_id'].isin(categories_id)]
 
     @staticmethod
-    def has_intersecting_geometries(geo: Polygon,
-                                    geometries: pd.Series) -> bool:
+    def has_intersecting_geometries(
+        geo: Polygon,
+        geometries: pd.Series,
+    ) -> bool:
         for _, g in geometries.iteritems():
             if geo.intersects(g):
                 return True
         return False
 
-    def verify_if_intersects(self,
-                             base_categories_id: set[int],
-                             target_categories_id: set[int] | None) -> pd.DataFrame:
+    def verify_if_intersects(
+        self,
+        base_categories_id: set[int],
+        target_categories_id: set[int] | None,
+    ) -> pd.DataFrame:
         df_base = self.filter_by_category(base_categories_id)
 
         if target_categories_id is None:
@@ -214,29 +233,39 @@ class CCAgT():
 
             df_base_by_image['has_intersecting'] = df_base_by_image.apply(
                 lambda row: self.has_intersecting_geometries(row['geometry'], df_target_geos),
-                axis=1
+                axis=1,
             )
 
             out = pd.concat([out, df_base_by_image])
 
         return out
 
-    def find_overlapping_annotations(self,
-                                     categories_id: set[int],
-                                     by_bbox: bool = False) -> dict[str, list[set[int]]]:
+    def find_overlapping_annotations(
+        self,
+        categories_id: set[int],
+        by_bbox: bool = False,
+    ) -> dict[str, list[set[int]]]:
         df = self.df[self.df['category_id'].isin(categories_id)].copy()
 
         df_groupped = df.groupby('image_name')
 
         if by_bbox:
-            df['geometry'] = df.apply(lambda row: bounds_to_BBox(row['geometry'].bounds,
-                                                                 row['category_id']).to_polygon(), axis=1)
+            df['geometry'] = df.apply(
+                lambda row: bounds_to_BBox(
+                    row['geometry'].bounds,
+                    row['category_id'],
+                ).to_polygon(), axis=1,
+            )
 
         out = {}
         for img_name, df_gp in df_groupped:
-            intersected_by = df_gp.apply(lambda row: self.find_intersecting_geometries(row['geometry'],
-                                                                                       int(row.name),
-                                                                                       df_gp), axis=1).dropna()
+            intersected_by = df_gp.apply(
+                lambda row: self.find_intersecting_geometries(
+                    row['geometry'],
+                    int(row.name),
+                    df_gp,
+                ), axis=1,
+            ).dropna()
 
             df_gp['intersected_by'] = intersected_by
             if len(intersected_by) > 0:
@@ -253,10 +282,11 @@ class CCAgT():
                 out[img_name] = connected_items
         return out
 
-    def union_geometries(self,
-                         groups_by_image: dict[str, list[set[int]]],
-                         out_category_id: int | None = None
-                         ) -> pd.DataFrame:
+    def union_geometries(
+        self,
+        groups_by_image: dict[str, list[set[int]]],
+        out_category_id: int | None = None,
+    ) -> pd.DataFrame:
         """Based on a dict for each image, it will join the geometries,
         so that each image can have a list of geometries groups. Each
         geometries group will be merged to a single geometry.
@@ -322,9 +352,13 @@ class CCAgT():
                 geo = unary_union(geometries_to_join).simplify(tolerance=0.3)
 
                 df_filtered = df_filtered.drop(index=group, axis=0, errors='ignore')
-                df_filtered = pd.concat([df_filtered, pd.DataFrame([{'image_name': img_name,
-                                                                     'geometry': geo,
-                                                                     'category_id': cat_id}])])
+                df_filtered = pd.concat([
+                    df_filtered, pd.DataFrame([{
+                        'image_name': img_name,
+                        'geometry': geo,
+                        'category_id': cat_id,
+                    }]),
+                ])
 
             out = pd.concat([out, df_filtered])
 
@@ -431,8 +465,10 @@ class CCAgT():
         images_ids = self.df['image_id'].unique()
         images_ids_splitted = np.array_split(images_ids, cpu_num)
 
-        print(f'Start compute generate panoptic annotations and masks for {len(images_ids)} files using {cpu_num} cores with '
-              '{len(images_ids_splitted[0])} files per core...')
+        print(
+            f'Start compute generate panoptic annotations and masks for {len(images_ids)} files using {cpu_num} cores with '
+            '{len(images_ids_splitted[0])} files per core...',
+        )
 
         workers = multiprocessing.Pool(processes=cpu_num)
         processes = []
@@ -455,34 +491,43 @@ class CCAgT():
 
 
 @get_traceback
-def single_core_to_PS_COCO(df: pd.DataFrame,
-                           out_dir: str,
-                           output_template: np.ndarray,
-                           split_by_slide: bool
-                           ) -> list[dict[str, Any]]:
+def single_core_to_PS_COCO(
+    df: pd.DataFrame,
+    out_dir: str,
+    output_template: np.ndarray,
+    split_by_slide: bool,
+) -> list[dict[str, Any]]:
     annotations_panoptic = []
 
     _out_dir = out_dir
     for img_id, df_by_img in df.groupby('image_id'):
         img_name = df_by_img.iloc[0]['image_name']
         output_basename = basename(img_name) + '.png'
-        panoptic_record = {'image_id': int(img_id),
-                           'file_name': output_basename}
+        panoptic_record = {
+            'image_id': int(img_id),
+            'file_name': output_basename,
+        }
 
-        annotations_sorted = order_annotations_to_draw([Annotation(row['geometry'],
-                                                                   row['category_id'],
-                                                                   row['iscrowd'],
-                                                                   row['color']) for _, row in df_by_img.iterrows()])
+        annotations_sorted = order_annotations_to_draw([
+            Annotation(
+                row['geometry'],
+                row['category_id'],
+                row['iscrowd'],
+                row['color'],
+            ) for _, row in df_by_img.iterrows()
+        ])
 
         segments_info = []
         out = output_template.copy()
         for ann in annotations_sorted:
             out = draw_annotation(out, ann, ann.color.rgb, out.shape[:2])
-            segments_info.append({'id': COCO_PS.color_to_id(ann.color),
-                                  'category_id': ann.category_id,
-                                  'area': int(ann.geometry.area),
-                                  'bbox': ann.coco_bbox,
-                                  'iscrowd': ann.iscrowd})
+            segments_info.append({
+                'id': COCO_PS.color_to_id(ann.color),
+                'category_id': ann.category_id,
+                'area': int(ann.geometry.area),
+                'bbox': ann.coco_bbox,
+                'iscrowd': ann.iscrowd,
+            })
 
         panoptic_record['segments_info'] = segments_info
 
@@ -497,14 +542,18 @@ def single_core_to_PS_COCO(df: pd.DataFrame,
 
 @get_traceback
 def single_core_to_OD_COCO(df: pd.DataFrame, decimals: int = 2) -> list[dict[str, Any]]:
-    return df.apply(lambda row: {'id': row.name,
-                                 'image_id': row['image_id'],
-                                 'category_id': row['category_id'],
-                                 'bbox': COCO_OD.bounds_to_coco_bb(row['geometry'].bounds, decimals),
-                                 'segmentation': COCO_OD.geometry_to_coco_segment(row['geometry'], decimals),
-                                 'area': np.round(row['area'], decimals),
-                                 'iscrowd': row['iscrowd']},
-                    axis=1).to_numpy().tolist()
+    return df.apply(
+        lambda row: {
+            'id': row.name,
+            'image_id': row['image_id'],
+            'category_id': row['category_id'],
+            'bbox': COCO_OD.bounds_to_coco_bb(row['geometry'].bounds, decimals),
+            'segmentation': COCO_OD.geometry_to_coco_segment(row['geometry'], decimals),
+            'area': np.round(row['area'], decimals),
+            'iscrowd': row['iscrowd'],
+        },
+        axis=1,
+    ).to_numpy().tolist()
 
 
 def read_parquet(filename: str, **kwargs: Any) -> CCAgT:

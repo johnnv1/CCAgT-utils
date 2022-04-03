@@ -14,12 +14,14 @@ from CCAgT_utils.converters.LabelBox import LabelBox
 from CCAgT_utils.errors import FileTypeError
 
 
-def labelbox_to_COCO(target: str,
-                     raw_path: str,
-                     aux_path: str,
-                     out_path: str,
-                     image_extension: str,
-                     decimals: int) -> int:
+def labelbox_to_COCO(
+    target: str,
+    raw_path: str,
+    aux_path: str,
+    out_path: str,
+    image_extension: str,
+    decimals: int,
+) -> int:
 
     if not raw_path.endswith('.json'):
         raise FileTypeError('The raw file is not a JSON file.')
@@ -63,9 +65,11 @@ def __build_description(template: str, df: pd.Dataframe) -> str:
     return o
 
 
-def __prepare_data(CCAgT_ann: CCAgT,
-                   categories_helper_raw: list[dict[str, Any]],
-                   image_extension: str) -> None:
+def __prepare_data(
+    CCAgT_ann: CCAgT,
+    categories_helper_raw: list[dict[str, Any]],
+    image_extension: str,
+) -> None:
     # TODO: Delete this and use CCAgT_utils.prepare.
     print('\tSearching overlapping and joining labels for overlapping annotations (category id = 5)...')
     overlapping_annotations = CCAgT_ann.find_overlapping_annotations(categories_id={5})
@@ -75,8 +79,10 @@ def __prepare_data(CCAgT_ann: CCAgT,
     df['geo_type'] = CCAgT_ann.geometries_type()
     sat_series = df.loc[(df['category_id'] == 3) & (df['geo_type'] == 'Point'), 'geometry']
 
-    df.loc[(df['category_id'] == 3) &
-           (df['geo_type'] == 'Point'), 'geometry'] = CCAgT_ann.satellite_point_to_polygon(sat_series)
+    df.loc[
+        (df['category_id'] == 3) &
+        (df['geo_type'] == 'Point'), 'geometry',
+    ] = CCAgT_ann.satellite_point_to_polygon(sat_series)
 
     df['geo_type'] = CCAgT_ann.geometries_type()
 
@@ -112,11 +118,13 @@ def __prepare_data(CCAgT_ann: CCAgT,
         df.drop(index_to_drop, inplace=True)
 
 
-def labelbox_to_OD_COCO(raw_path: str,
-                        aux_path: str,
-                        out_path: str,
-                        image_extension: str,
-                        decimals: int) -> int:
+def labelbox_to_OD_COCO(
+    raw_path: str,
+    aux_path: str,
+    out_path: str,
+    image_extension: str,
+    decimals: int,
+) -> int:
     print('Starting the conversion from label box to COCO Object Detection format...')
 
     print('\tLoading raw data...')
@@ -141,28 +149,40 @@ def labelbox_to_OD_COCO(raw_path: str,
 
     desc = __build_description(dataset_helper['metadata']['description_template'], CCAgT_ann.df)
 
-    info_coco = {'year': datetime.now().strftime('%Y'),
-                 'version': dataset_helper['metadata']['version'],
-                 'description': desc,
-                 'contributor': dataset_helper['metadata']['contributors'],
-                 'url': dataset_helper['metadata']['url'],
-                 'date_created': datetime.now().strftime('%Y-%m-%d')}
+    info_coco = {
+        'year': datetime.now().strftime('%Y'),
+        'version': dataset_helper['metadata']['version'],
+        'description': desc,
+        'contributor': dataset_helper['metadata']['contributors'],
+        'url': dataset_helper['metadata']['url'],
+        'date_created': datetime.now().strftime('%Y-%m-%d'),
+    }
 
-    categories_coco = [{'supercategory': None if it['supercategory'] == '' else it['supercategory'],
-                        'name': it['name'],
-                        'id': it['id']} for it in categories_helpper]
+    categories_coco = [
+        {
+            'supercategory': None if it['supercategory'] == '' else it['supercategory'],
+            'name': it['name'],
+            'id': it['id'],
+        } for it in categories_helpper
+    ]
 
     image_names = CCAgT_ann.df['image_name'].unique().tolist()
 
-    images_coco = [{'file_name': img_name,
-                    'height': CCAgT_ann.IMAGE_HEIGHT,
-                    'width': CCAgT_ann.IMAGE_WIDTH,
-                    'id': CCAgT_ann.image_id_by_name(img_name)} for img_name in image_names]
+    images_coco = [
+        {
+            'file_name': img_name,
+            'height': CCAgT_ann.IMAGE_HEIGHT,
+            'width': CCAgT_ann.IMAGE_WIDTH,
+            'id': CCAgT_ann.image_id_by_name(img_name),
+        } for img_name in image_names
+    ]
 
-    CCAgT_coco = {'info': info_coco,
-                  'categories': categories_coco,
-                  'images': images_coco,
-                  'annotations': annotations_coco}
+    CCAgT_coco = {
+        'info': info_coco,
+        'categories': categories_coco,
+        'images': images_coco,
+        'annotations': annotations_coco,
+    }
 
     with open(out_path, 'w') as outfile:
         json.dump(CCAgT_coco, outfile)
@@ -170,11 +190,13 @@ def labelbox_to_OD_COCO(raw_path: str,
     return 0
 
 
-def labelbox_to_CCAgT(raw_path: str,
-                      aux_path: str,
-                      out_path: str,
-                      image_extension: str,
-                      preprocess: bool = False) -> int:
+def labelbox_to_CCAgT(
+    raw_path: str,
+    aux_path: str,
+    out_path: str,
+    image_extension: str,
+    preprocess: bool = False,
+) -> int:
     if not raw_path.endswith('.json'):
         raise FileTypeError('The raw file is not a JSON file.')
     if not aux_path.endswith('.json'):
@@ -212,9 +234,11 @@ def labelbox_to_CCAgT(raw_path: str,
     return 0
 
 
-def ccagt_generate_masks(ccagt_path: str,
-                         output_dir: str,
-                         split_by_slide: bool) -> int:
+def ccagt_generate_masks(
+    ccagt_path: str,
+    output_dir: str,
+    split_by_slide: bool,
+) -> int:
     if not ccagt_path.endswith('.parquet.gzip'):
         raise FileTypeError('The labels file is not a parquet file.')
 
@@ -226,13 +250,15 @@ def ccagt_generate_masks(ccagt_path: str,
     return 0
 
 
-def CCAgT_to_COCO(target: str,
-                  ccagt_path: str,
-                  aux_path: str | None,
-                  out_dir: str,
-                  out_file: str | None,
-                  split_by_slide: bool = True,
-                  precision: int = 2) -> int:
+def CCAgT_to_COCO(
+    target: str,
+    ccagt_path: str,
+    aux_path: str | None,
+    out_dir: str,
+    out_file: str | None,
+    split_by_slide: bool = True,
+    precision: int = 2,
+) -> int:
     if target in ['INSTANCE-SEGMENTATION', 'IS']:
         raise NotImplementedError
 
@@ -252,8 +278,10 @@ def CCAgT_to_COCO(target: str,
     ccagt.df['image_id'] = ccagt.generate_ids(ccagt.df['image_name'])
     ccagt.df['slide_id'] = ccagt.get_slide_id()
 
-    info_coco = {'year': datetime.now().strftime('%Y'),
-                 'date_created': datetime.now().strftime('%Y-%m-%d')}
+    info_coco = {
+        'year': datetime.now().strftime('%Y'),
+        'date_created': datetime.now().strftime('%Y-%m-%d'),
+    }
 
     if aux_path is None:
         categories_infos = categories.CategoriesInfos()
@@ -279,12 +307,14 @@ def CCAgT_to_COCO(target: str,
     return 1
 
 
-def CCAgT_to_PS_COCO(ccagt: CCAgT,
-                     categories_infos: categories.CategoriesInfos,
-                     out_dir: str,
-                     out_filename: str,
-                     info_coco: dict[str, Any],
-                     split_by_slide: bool) -> int:
+def CCAgT_to_PS_COCO(
+    ccagt: CCAgT,
+    categories_infos: categories.CategoriesInfos,
+    out_dir: str,
+    out_filename: str,
+    info_coco: dict[str, Any],
+    split_by_slide: bool,
+) -> int:
     print('>Setting all overlapped nuclei as iscrowd (1), and others as 0 (false for the iscrowd)')
     ccagt.df['iscrowd'] = 0
 
@@ -293,23 +323,33 @@ def CCAgT_to_PS_COCO(ccagt: CCAgT,
     panoptic_records = ccagt.to_PS_COCO(categories_infos, out_dir, split_by_slide)
 
     print('>Building COCO `categories`!')
-    categories_coco = [{'supercategory': it.supercategory,
-                        'name': it.name,
-                        'id': it.id} for it in categories_infos]
+    categories_coco = [
+        {
+            'supercategory': it.supercategory,
+            'name': it.name,
+            'id': it.id,
+        } for it in categories_infos
+    ]
 
     print('>Building COCO `images`!')
     image_names = ccagt.df['image_name'].unique().tolist()
 
-    images_coco = [{'file_name': img_name,
-                    'height': ccagt.IMAGE_HEIGHT,
-                    'width': ccagt.IMAGE_WIDTH,
-                    'id': ccagt.image_id_by_name(img_name)} for img_name in image_names]
+    images_coco = [
+        {
+            'file_name': img_name,
+            'height': ccagt.IMAGE_HEIGHT,
+            'width': ccagt.IMAGE_WIDTH,
+            'id': ccagt.image_id_by_name(img_name),
+        } for img_name in image_names
+    ]
 
     print('>Building COCO panoptic segmentation file!')
-    CCAgT_coco = {'info': info_coco,
-                  'categories': categories_coco,
-                  'images': images_coco,
-                  'annotations': panoptic_records}
+    CCAgT_coco = {
+        'info': info_coco,
+        'categories': categories_coco,
+        'images': images_coco,
+        'annotations': panoptic_records,
+    }
 
     with open(out_filename, 'w') as outfile:
         json.dump(CCAgT_coco, outfile)
@@ -317,11 +357,13 @@ def CCAgT_to_PS_COCO(ccagt: CCAgT,
     return 0
 
 
-def CCAgT_to_OD_COCO(ccagt: CCAgT,
-                     categories_infos: categories.CategoriesInfos,
-                     out_filename: str,
-                     info_coco: dict[str, Any],
-                     decimals: int) -> int:
+def CCAgT_to_OD_COCO(
+    ccagt: CCAgT,
+    categories_infos: categories.CategoriesInfos,
+    out_filename: str,
+    info_coco: dict[str, Any],
+    decimals: int,
+) -> int:
     print('>Setting all overlapped nuclei as iscrowd (1), and others as 0 (false for the iscrowd)')
     ccagt.df['iscrowd'] = 0
 
@@ -331,23 +373,33 @@ def CCAgT_to_OD_COCO(ccagt: CCAgT,
     detection_records = ccagt.to_OD_COCO(decimals=decimals)
 
     print('>Building COCO `categories`!')
-    categories_coco = [{'supercategory': it.supercategory,
-                        'name': it.name,
-                        'id': it.id} for it in categories_infos]
+    categories_coco = [
+        {
+            'supercategory': it.supercategory,
+            'name': it.name,
+            'id': it.id,
+        } for it in categories_infos
+    ]
 
     print('>Building COCO `images`!')
     image_names = ccagt.df['image_name'].unique().tolist()
 
-    images_coco = [{'file_name': img_name,
-                    'height': ccagt.IMAGE_HEIGHT,
-                    'width': ccagt.IMAGE_WIDTH,
-                    'id': ccagt.image_id_by_name(img_name)} for img_name in image_names]
+    images_coco = [
+        {
+            'file_name': img_name,
+            'height': ccagt.IMAGE_HEIGHT,
+            'width': ccagt.IMAGE_WIDTH,
+            'id': ccagt.image_id_by_name(img_name),
+        } for img_name in image_names
+    ]
 
     print('>Building COCO Object Detection file!')
-    CCAgT_coco = {'info': info_coco,
-                  'categories': categories_coco,
-                  'images': images_coco,
-                  'annotations': detection_records}
+    CCAgT_coco = {
+        'info': info_coco,
+        'categories': categories_coco,
+        'images': images_coco,
+        'annotations': detection_records,
+    }
 
     with open(out_filename, 'w') as outfile:
         json.dump(CCAgT_coco, outfile)

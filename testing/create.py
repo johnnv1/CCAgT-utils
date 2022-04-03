@@ -10,10 +10,12 @@ from PIL import Image
 
 
 def row_CCAgT(obj: Any, cat: int, name: str, **kwargs: Any) -> dict[str, Any]:
-    return {'image_name': name,
-            'geometry': obj,
-            'category_id': cat,
-            **kwargs}
+    return {
+        'image_name': name,
+        'geometry': obj,
+        'category_id': cat,
+        **kwargs,
+    }
 
 
 def mask_categorical(shape: tuple[int, int]) -> np.ndarray:
@@ -60,12 +62,14 @@ class RawAuxFiles():
 
 
 class ImageMaskFiles():
-    def __init__(self,
-                 height: int = 1000,
-                 width: int = 1000,
-                 names: list[str] = ['example'],
-                 create_image: bool = True,
-                 create_mask: bool = True) -> None:
+    def __init__(
+        self,
+        height: int = 1000,
+        width: int = 1000,
+        names: list[str] = ['example'],
+        create_image: bool = True,
+        create_mask: bool = True,
+    ) -> None:
         self.tmp_dir = tempfile.TemporaryDirectory('_ImageMaskFiles', 'CCAgTutils_')
 
         self.image_dir = os.path.join(self.tmp_dir.name, 'images/')

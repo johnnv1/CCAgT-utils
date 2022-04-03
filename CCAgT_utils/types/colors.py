@@ -36,16 +36,20 @@ class Color:
 
     @property
     def rgb_normalized(self) -> tuple[float, float, float]:
-        return (self.Red / self._max_value,
-                self.Green / self._max_value,
-                self.Blue / self._max_value)
+        return (
+            self.Red / self._max_value,
+            self.Green / self._max_value,
+            self.Blue / self._max_value,
+        )
 
     @property
     def rgba_normalized(self) -> tuple[float, float, float, float]:
-        return (self.Red / self._max_value,
-                self.Green / self._max_value,
-                self.Blue / self._max_value,
-                self.Alpha / self._max_value)
+        return (
+            self.Red / self._max_value,
+            self.Green / self._max_value,
+            self.Blue / self._max_value,
+            self.Alpha / self._max_value,
+        )
 
 
 def from_tuple(t: tuple[int, int, int], alpha: int = 255, size: int = 8) -> Color:

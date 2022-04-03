@@ -85,17 +85,19 @@ def single_core_from_image_files(filenames: list[str]) -> Statistics:
         out_stats.join_stats(
             from_array(
                 np.asarray(
-                    Image.open(filename)
-                )
-            ))
+                    Image.open(filename),
+                ),
+            ),
+        )
 
     return out_stats
 
 
-def from_image_files(images_dir: str,
-                     extensions: str | tuple[str, ...] = '.jpg',
-                     selection: set[str] = set()
-                     ) -> Statistics:
+def from_image_files(
+    images_dir: str,
+    extensions: str | tuple[str, ...] = '.jpg',
+    selection: set[str] = set(),
+) -> Statistics:
     """From a directory path with images, will generate the stats of all
     images. The statistics generated are: mean, std, max, and min.
 
@@ -126,15 +128,17 @@ def from_image_files(images_dir: str,
     workers = multiprocessing.Pool(processes=cpu_num)
 
     filenames_splitted = np.array_split(all_filenames, cpu_num)
-    print(f'Start compute Statistics for {len(all_filenames)} ({extensions}) files using {cpu_num} cores with '
-          f'{len(filenames_splitted[0])} files per core...')
+    print(
+        f'Start compute Statistics for {len(all_filenames)} ({extensions}) files using {cpu_num} cores with '
+        f'{len(filenames_splitted[0])} files per core...',
+    )
 
     processes = []
     for filenames in filenames_splitted:
         if len(filenames) == 0:
             continue
 
-        p = workers.apply_async(single_core_from_image_files, (filenames.tolist(), ))
+        p = workers.apply_async(single_core_from_image_files, (filenames.tolist(),))
         processes.append(p)
 
     out_stats = Statistics()
@@ -145,45 +149,57 @@ def from_image_files(images_dir: str,
     return out_stats
 
 
-def annotations_per_image(ccagt: CCAgT,
-                          categories_infos: CategoriesInfos) -> pd.DataFrame:
+def annotations_per_image(
+    ccagt: CCAgT,
+    categories_infos: CategoriesInfos,
+) -> pd.DataFrame:
     df = ccagt.df
     df_describe_images = df.groupby(['image_id', 'category_id']).size().reset_index().rename(columns={0: 'count'})
     df_describe_images = df_describe_images.pivot(columns=['category_id'], index='image_id')
     df_describe_images = df_describe_images.rename({c.id: c.name.upper() for c in categories_infos}, axis=1)
     df_describe_images['qtd_annotations'] = df_describe_images.sum(axis=1)
     df_describe_images = df_describe_images.fillna(0)
-    df_describe_images['NORs'] = df_describe_images['count',
-                                                    Categories.CLUSTER.name] + df_describe_images['count',
-                                                                                                  Categories.SATELLITE.name]
+    df_describe_images['NORs'] = df_describe_images[
+        'count',
+        Categories.CLUSTER.name,
+    ] + df_describe_images[
+        'count',
+        Categories.SATELLITE.name,
+    ]
 
     return df_describe_images
 
 
-def ccagt_annotations(ccagt: CCAgT,
-                      categories_infos: CategoriesInfos
-                      ) -> dict[str, Any]:
+def ccagt_annotations(
+    ccagt: CCAgT,
+    categories_infos: CategoriesInfos,
+) -> dict[str, Any]:
     df = ccagt.df
     ann_count = {cat.name: df.loc[df['category_id'] == cat.id, 'area'].shape[0] for cat in categories_infos}
     qtd_ann = df.shape[0]
     ann_dist = {cat_name: qtd_cat / qtd_ann for cat_name, qtd_cat in ann_count.items()}
-    area_stats = {cat.name: from_list(df.loc[df['category_id'] == cat.id, 'area'].tolist())
-                  for cat in categories_infos if ann_count[cat.name] > 0}
+    area_stats = {
+        cat.name: from_list(df.loc[df['category_id'] == cat.id, 'area'].tolist())
+        for cat in categories_infos if ann_count[cat.name] > 0
+    }
 
     qtd_images = df['image_id'].nunique()
     qtd_slides = df['slide_id'].nunique()
-    return {'qtd_images': qtd_images,
-            'qtd_slide': qtd_slides,
-            'qtd_annotations': qtd_ann,
-            'qtd_annotations_categorical': ann_count,
-            'dist_annotations': ann_dist,
-            'area_stats': area_stats}
+    return {
+        'qtd_images': qtd_images,
+        'qtd_slide': qtd_slides,
+        'qtd_annotations': qtd_ann,
+        'qtd_annotations_categorical': ann_count,
+        'dist_annotations': ann_dist,
+        'area_stats': area_stats,
+    }
 
 
-def tvt_annotations_as_df(train: dict[str, Any],
-                          valid: dict[str, Any],
-                          test: dict[str, Any]
-                          ) -> tuple[pd.DataFrame, ...]:
+def tvt_annotations_as_df(
+    train: dict[str, Any],
+    valid: dict[str, Any],
+    test: dict[str, Any],
+) -> tuple[pd.DataFrame, ...]:
     out = {}
     out['train'] = train
     out['validation'] = valid
@@ -194,11 +210,18 @@ def tvt_annotations_as_df(train: dict[str, Any],
         'fold': folds,
         'images': [out[f]['qtd_images'] for f in folds],
         'slides': [out[f]['qtd_slide'] for f in folds],
-        'annotations': [out[f]['qtd_annotations'] for f in folds]})
-    df_qtd_categorical = pd.DataFrame([{'fold': f,
-                                        **{k: v for k, v in out[f]['qtd_annotations_categorical'].items()
-                                           if k != Categories.BACKGROUND.name}}
-                                       for f in folds])
+        'annotations': [out[f]['qtd_annotations'] for f in folds],
+    })
+    df_qtd_categorical = pd.DataFrame([
+        {
+            'fold': f,
+            **{
+                k: v for k, v in out[f]['qtd_annotations_categorical'].items()
+                if k != Categories.BACKGROUND.name
+            },
+        }
+        for f in folds
+    ])
     df_qtd = pd.merge(df_qtd, df_qtd_categorical, on='fold')
     df_qtd.loc['total'] = df_qtd.sum()
     df_qtd.loc[df_qtd.index == 'total', 'fold'] = 'total'
@@ -208,12 +231,19 @@ def tvt_annotations_as_df(train: dict[str, Any],
     df_dist = pd.DataFrame({
         'fold': folds,
         '% images': [out[f]['qtd_images'] / total_images for f in folds],
-        '% annotations': [out[f]['qtd_annotations'] / total_ann for f in folds]})
-    df_dist_categorical = pd.DataFrame([{'fold': f,
-                                         **{f'% {k}': v / out[f]['qtd_annotations']
-                                            for k, v in out[f]['qtd_annotations_categorical'].items()
-                                            if k != Categories.BACKGROUND.name}}
-                                        for f in folds])
+        '% annotations': [out[f]['qtd_annotations'] / total_ann for f in folds],
+    })
+    df_dist_categorical = pd.DataFrame([
+        {
+            'fold': f,
+            **{
+                f'% {k}': v / out[f]['qtd_annotations']
+                for k, v in out[f]['qtd_annotations_categorical'].items()
+                if k != Categories.BACKGROUND.name
+            },
+        }
+        for f in folds
+    ])
     df_dist = pd.merge(df_dist, df_dist_categorical, on='fold')
 
     df_area = pd.DataFrame()
@@ -226,11 +256,12 @@ def tvt_annotations_as_df(train: dict[str, Any],
     return df_qtd, df_dist, df_area
 
 
-def dataset(ccagt_path: str,
-            categories_infos: CategoriesInfos,
-            dataset_dir: str,
-            extensions: tuple[str, ...] = ('.jpg', '.png')
-            ) -> None:
+def dataset(
+    ccagt_path: str,
+    categories_infos: CategoriesInfos,
+    dataset_dir: str,
+    extensions: tuple[str, ...] = ('.jpg', '.png'),
+) -> None:
     ccagt = read_parquet(ccagt_path)
 
     name = os.path.basename(os.path.normpath(dataset_dir))

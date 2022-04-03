@@ -14,9 +14,11 @@ from CCAgT_utils.utils import basename
 # Just remove the class, everything can be just functions
 class LabelBox():
 
-    def __init__(self,
-                 raw_labelbox: list[dict[str, Any]],
-                 categories_map: list[dict[str, Any]] | None = None) -> None:
+    def __init__(
+        self,
+        raw_labelbox: list[dict[str, Any]],
+        categories_map: list[dict[str, Any]] | None = None,
+    ) -> None:
 
         if not isinstance(raw_labelbox, list):
             raise ValueError('Expected a list of dictionary that represents raw labelbox data!')
@@ -36,8 +38,10 @@ class LabelBox():
     def raw_dataframe(self) -> pd.DataFrame:
         return pd.DataFrame(self.raw_labelbox)
 
-    def __check_or_instance_categories_map(self,
-                                           categories_map: list[dict[str, Any]] | None) -> bool:
+    def __check_or_instance_categories_map(
+        self,
+        categories_map: list[dict[str, Any]] | None,
+    ) -> bool:
         if categories_map is None:
             if self.categories_map is None:
                 raise ValueError('You need instantiate or pass as parameter the categories_map before!')
@@ -52,8 +56,10 @@ class LabelBox():
         else:
             raise ValueError('Some problems occur in the instantiation of the category map!')
 
-    def __remove_duplicated_labels(self,
-                                   df: pd.DataFrame) -> pd.DataFrame:
+    def __remove_duplicated_labels(
+        self,
+        df: pd.DataFrame,
+    ) -> pd.DataFrame:
         duplicated_idx = df['image_name'].duplicated(keep=False)
         df_duplicated = df.loc[duplicated_idx, :].copy()
 
@@ -87,8 +93,10 @@ class LabelBox():
 
         return df_without_duplicated
 
-    def __explode_objects(self,
-                          df: pd.DataFrame) -> pd.DataFrame:
+    def __explode_objects(
+        self,
+        df: pd.DataFrame,
+    ) -> pd.DataFrame:
 
         df['objects'] = df.apply(lambda row: row['Label']['objects'], axis=1)
         df = df.explode('objects')
@@ -111,8 +119,10 @@ class LabelBox():
             geometry = np.NaN
         return geometry
 
-    def __transform_geometry(self,
-                             df: pd.DataFrame) -> pd.DataFrame:
+    def __transform_geometry(
+        self,
+        df: pd.DataFrame,
+    ) -> pd.DataFrame:
         df['geometry'] = df['objects'].apply(lambda obj: self.labelbox_to_shapely(obj))
         df_out = df.dropna(axis=0, subset=['geometry'])
 
@@ -124,15 +134,21 @@ class LabelBox():
 
         return df_out
 
-    def __prepare_data(self,
-                       df: pd.DataFrame) -> pd.DataFrame:
+    def __prepare_data(
+        self,
+        df: pd.DataFrame,
+    ) -> pd.DataFrame:
         # Drop ignored images at labelling process
         df = df.drop(df[df['Skipped']].index)
 
         # Drop irrelevant columns
-        df = df.drop(['DataRow ID', 'Labeled Data', 'Created By', 'Project Name', 'Dataset Name', 'Created At', 'Updated At',
-                      'Seconds to Label', 'Agreement', 'Benchmark Agreement', 'Benchmark ID', 'View Label',
-                      'Has Open Issues', 'Skipped'], axis=1, errors='ignore')
+        df = df.drop(
+            [
+                'DataRow ID', 'Labeled Data', 'Created By', 'Project Name', 'Dataset Name', 'Created At', 'Updated At',
+                'Seconds to Label', 'Agreement', 'Benchmark Agreement', 'Benchmark ID', 'View Label',
+                'Has Open Issues', 'Skipped',
+            ], axis=1, errors='ignore',
+        )
 
         # Get image names
         df['image_name'] = df.apply(lambda row: basename(row['External ID']), axis=1)
@@ -154,8 +170,10 @@ class LabelBox():
 
         return df
 
-    def to_CCAgT(self,
-                 categories_map: list[dict[str, Any]] | None = None) -> CCAgT:
+    def to_CCAgT(
+        self,
+        categories_map: list[dict[str, Any]] | None = None,
+    ) -> CCAgT:
 
         self.__check_or_instance_categories_map(categories_map)
 

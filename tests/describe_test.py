@@ -23,11 +23,13 @@ def test_statistics():
     assert a.count == 2
     assert a.mean == 1.
 
-    assert a.to_dict() == {'mean': 1.0,
-                           'std': 1.0,
-                           'max': 1.0,
-                           'min': -1.0,
-                           'count': 2}
+    assert a.to_dict() == {
+        'mean': 1.0,
+        'std': 1.0,
+        'max': 1.0,
+        'min': -1.0,
+        'count': 2,
+    }
 
 
 def test_describe_from_list():
@@ -107,13 +109,17 @@ def test_ccagt_annotations(ccagt_ann_multi, categories_infos):
     assert out['qtd_images'] == 3
     assert out['qtd_slide'] == 2
     assert out['qtd_annotations'] == ccagt_ann_multi.df.shape[0]
-    assert out['qtd_annotations_categorical'] == {'Nucleus': 5, 'Cluster': 3, 'Satellite': 3, 'Nucleus_out_of_focus': 0,
-                                                  'Overlapped_Nuclei': 0, 'non_viable_nucleus': 0, 'Leukocyte_Nucleus': 0,
-                                                  'background': 0}
-    assert out['dist_annotations'] == {'Nucleus': pytest.approx(0.454, 0.01), 'Cluster': pytest.approx(0.273, 0.01),
-                                       'Satellite': pytest.approx(0.273, 0.01), 'Nucleus_out_of_focus': 0.0,
-                                       'Overlapped_Nuclei': 0.0, 'non_viable_nucleus': 0.0, 'Leukocyte_Nucleus': 0.0,
-                                       'background': 0.0}
+    assert out['qtd_annotations_categorical'] == {
+        'Nucleus': 5, 'Cluster': 3, 'Satellite': 3, 'Nucleus_out_of_focus': 0,
+        'Overlapped_Nuclei': 0, 'non_viable_nucleus': 0, 'Leukocyte_Nucleus': 0,
+        'background': 0,
+    }
+    assert out['dist_annotations'] == {
+        'Nucleus': pytest.approx(0.454, 0.01), 'Cluster': pytest.approx(0.273, 0.01),
+        'Satellite': pytest.approx(0.273, 0.01), 'Nucleus_out_of_focus': 0.0,
+        'Overlapped_Nuclei': 0.0, 'non_viable_nucleus': 0.0, 'Leukocyte_Nucleus': 0.0,
+        'background': 0.0,
+    }
     assert len(out['area_stats']) == 3
 
 
