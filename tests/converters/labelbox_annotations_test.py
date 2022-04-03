@@ -75,10 +75,12 @@ def test_to_CCAgT_check_categories_maps(lbb_ann, categories_aux_data, lbb_raw_ex
         lbb_ann.to_CCAgT('a')
 
 
-def test_to_CCAgT_with_duplicated_image(lbb_ann,
-                                        categories_aux_data,
-                                        lbb_raw_single_satellite,
-                                        lbb_raw_expected_ccagt_df):
+def test_to_CCAgT_with_duplicated_image(
+    lbb_ann,
+    categories_aux_data,
+    lbb_raw_single_satellite,
+    lbb_raw_expected_ccagt_df,
+):
     sample = lbb_raw_single_satellite.copy()
     sample.update(ID='otherID-99x')
     lbb_ann.raw_labelbox.append(sample)

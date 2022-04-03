@@ -23,13 +23,15 @@ def __search_all_files(dir_path: str) -> dict[str, str]:
     return all_files
 
 
-def image_with_boxes(CCAgT_ann: CCAgT,
-                     categories_infos: categories.CategoriesInfos,
-                     dir_path: str,
-                     images_extension: str,
-                     images_names: list[str] = [],
-                     shuffle_images: bool = True,
-                     look_recursive: bool = True) -> int:
+def image_with_boxes(
+    CCAgT_ann: CCAgT,
+    categories_infos: categories.CategoriesInfos,
+    dir_path: str,
+    images_extension: str,
+    images_names: list[str] = [],
+    shuffle_images: bool = True,
+    look_recursive: bool = True,
+) -> int:
 
     images_to_plot = CCAgT_ann.df['image_name'].unique()
     if len(images_names) > 0:
@@ -52,10 +54,14 @@ def image_with_boxes(CCAgT_ann: CCAgT,
                 print(f'Not found the image {img_path}', file=sys.stderr)
                 continue
 
-        image_boxes = CCAgT_ann.df[CCAgT_ann.df['image_name'] == img_name].apply(lambda r:
-                                                                                 bounds_to_BBox(r['geometry'].bounds,
-                                                                                                r['category_id']),
-                                                                                 axis=1).to_numpy().tolist()
+        image_boxes = CCAgT_ann.df[CCAgT_ann.df['image_name'] == img_name].apply(
+            lambda r:
+            bounds_to_BBox(
+                r['geometry'].bounds,
+                r['category_id'],
+            ),
+            axis=1,
+        ).to_numpy().tolist()
 
         counter = count_BBox_categories(image_boxes, categories_infos)
         text_counter = ' | '.join([f'{key}:: {value}' for key, value in counter.items()])
@@ -67,27 +73,33 @@ def image_with_boxes(CCAgT_ann: CCAgT,
         plot.image_with_boxes(img, image_boxes, ax, categories_infos, write_names=True)
         ax.legend(handles=handles)
         ax.set_title(img_name)
-        plt.figtext(0.5, 0.01, text_counter,
-                    fontsize=10,
-                    wrap=True,
-                    horizontalalignment='center',
-                    bbox={'facecolor': 'grey',
-                          'alpha': 0.3, 'pad': 5})
+        plt.figtext(
+            0.5, 0.01, text_counter,
+            fontsize=10,
+            wrap=True,
+            horizontalalignment='center',
+            bbox={
+                'facecolor': 'grey',
+                'alpha': 0.3, 'pad': 5,
+            },
+        )
         plt.show()
         del fig
 
     return 0
 
 
-def image_and_mask(CCAgT_ann: CCAgT,
-                   categories_infos: categories.CategoriesInfos,
-                   dir_path: str,
-                   dir_mask_path: str,
-                   images_extension: str,
-                   masks_extension: str,
-                   images_names: list[str] = [],
-                   shuffle_images: bool = True,
-                   look_recursive: bool = True) -> int:
+def image_and_mask(
+    CCAgT_ann: CCAgT,
+    categories_infos: categories.CategoriesInfos,
+    dir_path: str,
+    dir_mask_path: str,
+    images_extension: str,
+    masks_extension: str,
+    images_names: list[str] = [],
+    shuffle_images: bool = True,
+    look_recursive: bool = True,
+) -> int:
 
     images_to_plot = CCAgT_ann.df['image_name'].unique()
     if len(images_names) > 0:
@@ -146,15 +158,17 @@ def image_and_mask(CCAgT_ann: CCAgT,
     return 0
 
 
-def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
-                              categories_infos: categories.CategoriesInfos,
-                              dir_path: str,
-                              dir_mask_path: str,
-                              images_extension: str,
-                              masks_extension: str,
-                              images_names: list[str] = [],
-                              shuffle_images: bool = True,
-                              look_recursive: bool = True) -> int:
+def image_with_boxes_and_mask(
+    CCAgT_ann: CCAgT,
+    categories_infos: categories.CategoriesInfos,
+    dir_path: str,
+    dir_mask_path: str,
+    images_extension: str,
+    masks_extension: str,
+    images_names: list[str] = [],
+    shuffle_images: bool = True,
+    look_recursive: bool = True,
+) -> int:
 
     images_to_plot = CCAgT_ann.df['image_name'].unique()
     if len(images_names) > 0:
@@ -188,10 +202,14 @@ def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
         msk_p = Image.open(msk_path).convert('L')
         msk = Mask(msk_p)
 
-        image_boxes = CCAgT_ann.df[CCAgT_ann.df['image_name'] == img_name].apply(lambda r:
-                                                                                 bounds_to_BBox(r['geometry'].bounds,
-                                                                                                r['category_id']),
-                                                                                 axis=1).to_numpy().tolist()
+        image_boxes = CCAgT_ann.df[CCAgT_ann.df['image_name'] == img_name].apply(
+            lambda r:
+            bounds_to_BBox(
+                r['geometry'].bounds,
+                r['category_id'],
+            ),
+            axis=1,
+        ).to_numpy().tolist()
 
         counter = count_BBox_categories(image_boxes, categories_infos)
         text_counter = ' | '.join([f'{key}:: {value}' for key, value in counter.items()])
@@ -209,12 +227,16 @@ def image_with_boxes_and_mask(CCAgT_ann: CCAgT,
 
         ax2.legend(handles=handles)
 
-        plt.figtext(0.5, 0.01, text_counter,
-                    fontsize=10,
-                    wrap=True,
-                    horizontalalignment='center',
-                    bbox={'facecolor': 'grey',
-                          'alpha': 0.3, 'pad': 5})
+        plt.figtext(
+            0.5, 0.01, text_counter,
+            fontsize=10,
+            wrap=True,
+            horizontalalignment='center',
+            bbox={
+                'facecolor': 'grey',
+                'alpha': 0.3, 'pad': 5,
+            },
+        )
         fig.suptitle(img_name)
         plt.tight_layout()
         plt.show()

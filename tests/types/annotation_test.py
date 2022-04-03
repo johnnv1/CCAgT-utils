@@ -12,11 +12,13 @@ from CCAgT_utils.types import annotation
 
 @pytest.fixture
 def bbox_params():
-    x = {'x_init': 100,
-         'y_init': 500,
-         'width': 35,
-         'height': 88,
-         'category_id': 1}
+    x = {
+        'x_init': 100,
+        'y_init': 500,
+        'width': 35,
+        'height': 88,
+        'category_id': 1,
+    }
     x['x_end'] = x['x_init'] + x['width']
     x['y_end'] = x['y_init'] + x['height']
     return x
@@ -60,8 +62,10 @@ def test_coords(bbox_example, bbox_params):
     x_end = bbox_params['x_end']
     y_end = bbox_params['y_end']
 
-    assert bbox_example.coords == [(x_init, y_init), (x_end, y_init),
-                                   (x_end, y_end), (x_init, y_end)]
+    assert bbox_example.coords == [
+        (x_init, y_init), (x_end, y_init),
+        (x_end, y_end), (x_init, y_end),
+    ]
 
 
 def test_xy(bbox_example, bbox_params):
@@ -69,8 +73,10 @@ def test_xy(bbox_example, bbox_params):
     y_init = bbox_params['y_init']
     x_end = bbox_params['x_end']
     y_end = bbox_params['y_end']
-    assert bbox_example.xy == ([x_init, x_end, x_end, x_init],
-                               [y_init, y_init, y_end, y_end])
+    assert bbox_example.xy == (
+        [x_init, x_end, x_end, x_init],
+        [y_init, y_init, y_end, y_end],
+    )
 
 
 def test_center_point(bbox_example, bbox_params):
@@ -89,15 +95,19 @@ def test_to_polygon(bbox_example, bbox_params):
     y_init = bbox_params['y_init']
     x_end = bbox_params['x_end']
     y_end = bbox_params['y_end']
-    coords = [(x_init, y_init), (x_end, y_init),
-              (x_end, y_end), (x_init, y_end)]
+    coords = [
+        (x_init, y_init), (x_end, y_init),
+        (x_end, y_end), (x_init, y_end),
+    ]
     p = Polygon(coords)
     assert bbox_example.to_polygon().equals(p)
 
 
 def test_bounds_to_BBox(bbox_example, bbox_params):
-    bounds = (bbox_params['x_init'], bbox_params['y_init'],
-              bbox_params['x_end'], bbox_params['y_end'])
+    bounds = (
+        bbox_params['x_init'], bbox_params['y_init'],
+        bbox_params['x_end'], bbox_params['y_end'],
+    )
 
     assert bbox_example == annotation.bounds_to_BBox(bounds, bbox_params['category_id'])
 
@@ -113,12 +123,16 @@ def test_count_BBox_categories(bbox_example):
     bbox_example1.category_id = cat_id_example + 1
     cat_id_example1 = bbox_example1.category_id
 
-    items = [bbox_example, bbox_example, bbox_example,
-             bbox_example1, bbox_example1]
+    items = [
+        bbox_example, bbox_example, bbox_example,
+        bbox_example1, bbox_example1,
+    ]
 
-    categories_infos = CategoriesInfos([{'name': 'Nucleus', 'id': cat_id_example, 'color': (0, 0, 0)},
-                                        {'name': 'Cluster', 'id': cat_id_example1, 'color': (0, 0, 0)},
-                                        {'name': 'Satellite', 'id': cat_id_example1 + 1, 'color': (0, 0, 0)}])
+    categories_infos = CategoriesInfos([
+        {'name': 'Nucleus', 'id': cat_id_example, 'color': (0, 0, 0)},
+        {'name': 'Cluster', 'id': cat_id_example1, 'color': (0, 0, 0)},
+        {'name': 'Satellite', 'id': cat_id_example1 + 1, 'color': (0, 0, 0)},
+    ])
 
     counter = annotation.count_BBox_categories(items, categories_infos)
 
@@ -126,8 +140,10 @@ def test_count_BBox_categories(bbox_example):
 
 
 def test_fit_inside(bbox_example, bbox_params):
-    x_init, y_init, x_end, y_end = (bbox_params['x_init'], bbox_params['y_init'],
-                                    int(bbox_params['x_end'] * 0.8), int(bbox_params['y_end'] * 0.8))
+    x_init, y_init, x_end, y_end = (
+        bbox_params['x_init'], bbox_params['y_init'],
+        int(bbox_params['x_end'] * 0.8), int(bbox_params['y_end'] * 0.8),
+    )
 
     bbox_example.fit_inside((x_init, y_init, x_end, y_end))
 
@@ -152,10 +168,14 @@ def test_add_padding_in_pixel(bbox_example, bbox_params, padding):
     y_init_expected = bbox_params['y_init'] - padding
     x_end_expected = bbox_params['x_end'] + padding
     y_end_expected = bbox_params['y_end'] + padding
-    bbox_example.add_padding(padding, (x_init_expected - 100,
-                                       y_init_expected - 100,
-                                       x_end_expected + 100,
-                                       y_end_expected + 100))
+    bbox_example.add_padding(
+        padding, (
+            x_init_expected - 100,
+            y_init_expected - 100,
+            x_end_expected + 100,
+            y_end_expected + 100,
+        ),
+    )
 
     assert bbox_example.x_init == x_init_expected
     assert bbox_example.y_init == y_init_expected
@@ -170,10 +190,14 @@ def test_add_padding_in_percentage(bbox_example, bbox_params, padding):
     x_end_expected = int(bbox_params['x_end'] + (bbox_params['width'] * padding))
     y_end_expected = int(bbox_params['y_end'] + (bbox_params['height'] * padding))
 
-    bbox_example.add_padding(padding, (x_init_expected - 100,
-                                       y_init_expected - 100,
-                                       x_end_expected + 100,
-                                       y_end_expected + 100))
+    bbox_example.add_padding(
+        padding, (
+            x_init_expected - 100,
+            y_init_expected - 100,
+            x_end_expected + 100,
+            y_end_expected + 100,
+        ),
+    )
 
     assert bbox_example.x_init == x_init_expected
     assert bbox_example.y_init == y_init_expected

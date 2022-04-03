@@ -22,19 +22,25 @@ from CCAgT_utils.utils import get_traceback
 from CCAgT_utils.utils import slide_from_filename
 
 
-def clean_images_and_masks(dir_images: str,
-                           dir_masks: str,
-                           categories: set[int],
-                           extension: str | tuple[str, ...] = ('.png', '.jpg'),
-                           look_recursive: bool = True) -> None:
+def clean_images_and_masks(
+    dir_images: str,
+    dir_masks: str,
+    categories: set[int],
+    extension: str | tuple[str, ...] = ('.png', '.jpg'),
+    look_recursive: bool = True,
+) -> None:
 
     basenames_matches = masks_that_has(dir_masks, categories, extension, look_recursive)
 
-    image_filenames_to_remove = {v for k, v in find_files(dir_images, extension, look_recursive).items()
-                                 if basename(k) not in basenames_matches}
+    image_filenames_to_remove = {
+        v for k, v in find_files(dir_images, extension, look_recursive).items()
+        if basename(k) not in basenames_matches
+    }
 
-    mask_filenames_to_remove = {v for k, v in find_files(dir_masks, extension, look_recursive).items()
-                                if basename(k) not in basenames_matches}
+    mask_filenames_to_remove = {
+        v for k, v in find_files(dir_masks, extension, look_recursive).items()
+        if basename(k) not in basenames_matches
+    }
 
     print(f'Deleting {len(image_filenames_to_remove)} images files...')
     for filename in image_filenames_to_remove:
@@ -45,10 +51,12 @@ def clean_images_and_masks(dir_images: str,
         os.remove(filename)
 
 
-def extract_category(input_path: str,
-                     output_path: str,
-                     annotations: list[tuple[Annotation, list[Annotation]]],
-                     padding: int | float) -> tuple[int, list[dict[str, Any]]]:
+def extract_category(
+    input_path: str,
+    output_path: str,
+    annotations: list[tuple[Annotation, list[Annotation]]],
+    padding: int | float,
+) -> tuple[int, list[dict[str, Any]]]:
     im = np.asarray(Image.open(input_path))
 
     bn, ext = os.path.splitext(basename(input_path, with_extension=True))
@@ -67,31 +75,39 @@ def extract_category(input_path: str,
         y_off = -1 * bbox.y_init
 
         ann.geometry = affinity.translate(ann.geometry, x_off, y_off)
-        annotations_out.append({'image_name': basename_img,
-                                'geometry': ann.geometry,
-                                'category_id': ann.category_id})
+        annotations_out.append({
+            'image_name': basename_img,
+            'geometry': ann.geometry,
+            'category_id': ann.category_id,
+        })
 
         for ann_overlapped in group:
             ann_overlapped.geometry = affinity.translate(ann_overlapped.geometry, x_off, y_off)
-            annotations_out.append({'image_name': basename_img,
-                                    'geometry': ann_overlapped.geometry,
-                                    'category_id': ann_overlapped.category_id})
+            annotations_out.append({
+                'image_name': basename_img,
+                'geometry': ann_overlapped.geometry,
+                'category_id': ann_overlapped.category_id,
+            })
 
         part = im[bbox.slice_y, bbox.slice_x]
-        Image.fromarray(part).save(os.path.join(output_path, filename_img),
-                                   quality=100,
-                                   subsampling=0)
+        Image.fromarray(part).save(
+            os.path.join(output_path, filename_img),
+            quality=100,
+            subsampling=0,
+        )
         count += 1
 
     return len(annotations), annotations_out
 
 
 @get_traceback
-def single_core_extract_image_and_annotations(image_filenames: dict[str, str],
-                                              ccagt_annotations: CCAgT,
-                                              categories_to_extract: set[int],
-                                              base_dir_output: str,
-                                              padding: int | float) -> tuple[int, list[dict[str, Any]]]:
+def single_core_extract_image_and_annotations(
+    image_filenames: dict[str, str],
+    ccagt_annotations: CCAgT,
+    categories_to_extract: set[int],
+    base_dir_output: str,
+    padding: int | float,
+) -> tuple[int, list[dict[str, Any]]]:
 
     def get_match_group(g: list[set[int]], ann_id: int) -> set[int]:
         for i in g:
@@ -112,31 +128,41 @@ def single_core_extract_image_and_annotations(image_filenames: dict[str, str],
         _c.add(Categories.OVERLAPPED_NUCLEI.value)
         groups.update(ccagt_annotations.find_overlapping_annotations(_c))
 
-    df_filtered = ccagt_annotations.df.loc[ccagt_annotations.df['category_id'].isin(categories_to_extract),
-                                           ['image_name', 'geometry', 'category_id']]
+    df_filtered = ccagt_annotations.df.loc[
+        ccagt_annotations.df['category_id'].isin(categories_to_extract),
+        ['image_name', 'geometry', 'category_id'],
+    ]
 
     image_counter = 0
     annotations_out = []
     for bn, sub_df in df_filtered.groupby('image_name'):
-        ann_items = [(Annotation(row['geometry'], row['category_id']),
-                      get_annotations(get_match_group(groups[bn], idx))) for idx, row in sub_df.iterrows()]
+        ann_items = [
+            (
+                Annotation(row['geometry'], row['category_id']),
+                get_annotations(get_match_group(groups[bn], idx)),
+            ) for idx, row in sub_df.iterrows()
+        ]
 
-        img_counter, ann_out = extract_category(image_filenames[bn],
-                                                os.path.join(base_dir_output, 'images/', slide_from_filename(bn)),
-                                                ann_items,
-                                                padding)
+        img_counter, ann_out = extract_category(
+            image_filenames[bn],
+            os.path.join(base_dir_output, 'images/', slide_from_filename(bn)),
+            ann_items,
+            padding,
+        )
         image_counter += img_counter
         annotations_out.extend(ann_out)
     return (image_counter, annotations_out)
 
 
-def extract_image_and_annotations_by_category(dir_images: str,
-                                              dir_output: str,
-                                              categories: set[int],
-                                              annotations_path: str,
-                                              paddings: int | float,
-                                              extension: str | tuple[str, ...] = ('.png', '.jpg'),
-                                              look_recursive: bool = True) -> None:
+def extract_image_and_annotations_by_category(
+    dir_images: str,
+    dir_output: str,
+    categories: set[int],
+    annotations_path: str,
+    paddings: int | float,
+    extension: str | tuple[str, ...] = ('.png', '.jpg'),
+    look_recursive: bool = True,
+) -> None:
     ccagt_annotations = read_parquet(annotations_path)
     ann_qtd = ccagt_annotations.df.shape[0]
 
@@ -149,8 +175,10 @@ def extract_image_and_annotations_by_category(dir_images: str,
     workers = multiprocessing.Pool(processes=cpu_num)
 
     filenames_splitted = np.array_split(ccagt_annotations.df['image_name'].unique(), cpu_num)
-    print(f'Start the extraction of each category instance at {len(image_filenames)} images/annotations using {cpu_num} '
-          f'cores with {len(filenames_splitted[0])} images/annotations per core...')
+    print(
+        f'Start the extraction of each category instance at {len(image_filenames)} images/annotations using {cpu_num} '
+        f'cores with {len(filenames_splitted[0])} images/annotations per core...',
+    )
 
     processes = []
     for filenames in filenames_splitted:
@@ -161,11 +189,15 @@ def extract_image_and_annotations_by_category(dir_images: str,
         _ccagt = ccagt_annotations.copy()
         _ccagt.df = _ccagt.df[_ccagt.df['image_name'].isin(filenames)]
 
-        p = workers.apply_async(single_core_extract_image_and_annotations, (img_filenames,
-                                                                            _ccagt,
-                                                                            categories,
-                                                                            dir_output,
-                                                                            paddings))
+        p = workers.apply_async(
+            single_core_extract_image_and_annotations, (
+                img_filenames,
+                _ccagt,
+                categories,
+                dir_output,
+                paddings,
+            ),
+        )
         processes.append(p)
 
     image_counter = 0
@@ -179,15 +211,18 @@ def extract_image_and_annotations_by_category(dir_images: str,
     ccagt_out = CCAgT(pd.DataFrame(ann_out))
     ccagt_out.to_parquet(annotations_path)
 
-    print(f'Successful created {len(image_filenames)}/{ann_qtd} images/annotations into {image_counter}/{len(ann_out)}'
-          ' images/annotations')
+    print(
+        f'Successful created {len(image_filenames)}/{ann_qtd} images/annotations into {image_counter}/{len(ann_out)}'
+        ' images/annotations',
+    )
 
 
-def ccagt_dataset(ccagt: CCAgT,
-                  categories_infos: CategoriesInfos,
-                  image_extension: str = '',
-                  do_fit_geometries: bool = True
-                  ) -> CCAgT:
+def ccagt_dataset(
+    ccagt: CCAgT,
+    categories_infos: CategoriesInfos,
+    image_extension: str = '',
+    do_fit_geometries: bool = True,
+) -> CCAgT:
     print('Start the preprocessing default pipeline for CCAGgT dataset...')
     ovlp_ncl = Categories.OVERLAPPED_NUCLEI.value
     sat = Categories.SATELLITE.value
@@ -202,8 +237,10 @@ def ccagt_dataset(ccagt: CCAgT,
     df['geo_type'] = ccagt.geometries_type()
     sat_series = df.loc[(df['category_id'] == sat) & (df['geo_type'] == 'Point'), 'geometry']
 
-    df.loc[(df['category_id'] == sat) &
-           (df['geo_type'] == 'Point'), 'geometry'] = ccagt.satellite_point_to_polygon(sat_series)
+    df.loc[
+        (df['category_id'] == sat) &
+        (df['geo_type'] == 'Point'), 'geometry',
+    ] = ccagt.satellite_point_to_polygon(sat_series)
 
     df['geo_type'] = ccagt.geometries_type()
 
@@ -231,8 +268,10 @@ def ccagt_dataset(ccagt: CCAgT,
         print(f'A total of {len(index_to_drop)} nuclei without NORs (category id = {ncl}) will be deleted.')
         df.drop(index_to_drop, inplace=True)
 
-    print(f'Searching intersections of NORs with nuclei (normal and overlapped) labels (category id in [{cur}, {sat}] and '
-          f'[{ncl}, {ovlp_ncl}])..')
+    print(
+        f'Searching intersections of NORs with nuclei (normal and overlapped) labels (category id in [{cur}, {sat}] and '
+        f'[{ncl}, {ovlp_ncl}])..',
+    )
     df_base_intersects_target = ccagt.verify_if_intersects(base_categories_id={cur, sat}, target_categories_id={ncl, ovlp_ncl})
     if not df_base_intersects_target.empty:
         index_to_drop = df_base_intersects_target[~df_base_intersects_target['has_intersecting']].index.to_numpy()

@@ -10,10 +10,11 @@ from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.describe import annotations_per_image
 
 
-def tvt(ids: list[int],
-        tvt_size: tuple[float, float, float],
-        seed: int = 1609
-        ) -> tuple[set[int], set[int], set[int]]:
+def tvt(
+    ids: list[int],
+    tvt_size: tuple[float, float, float],
+    seed: int = 1609,
+) -> tuple[set[int], set[int], set[int]]:
     """From a list of indexes/ids (int) will generate the
     train-validation-test data.
 
@@ -42,25 +43,30 @@ def tvt(ids: list[int],
     """
     n_samples = len(ids)
 
-    qtd = {'valid': ceil(n_samples * tvt_size[1]),
-           'test': ceil(n_samples * tvt_size[2])}
+    qtd = {
+        'valid': ceil(n_samples * tvt_size[1]),
+        'test': ceil(n_samples * tvt_size[2]),
+    }
     qtd['train'] = int(n_samples - qtd['valid'] - qtd['test'])
 
     rng = np.random.RandomState(seed)
     permutatation = rng.permutation(ids)
 
-    out = {'train': set(permutatation[:qtd['train']]),
-           'valid': set(permutatation[qtd['train']:qtd['train'] + qtd['valid']]),
-           'test': set(permutatation[qtd['train'] + qtd['valid']:])}
+    out = {
+        'train': set(permutatation[:qtd['train']]),
+        'valid': set(permutatation[qtd['train']:qtd['train'] + qtd['valid']]),
+        'test': set(permutatation[qtd['train'] + qtd['valid']:]),
+    }
 
     return out['train'], out['valid'], out['test']
 
 
-def tvt_by_nors(ccagt: CCAgT,
-                categories_infos: CategoriesInfos,
-                tvt_size: tuple[float, float, float] = (.7, .15, .15),
-                **kwargs: Any
-                ) -> tuple[set[int], set[int], set[int]]:
+def tvt_by_nors(
+    ccagt: CCAgT,
+    categories_infos: CategoriesInfos,
+    tvt_size: tuple[float, float, float] = (.7, .15, .15),
+    **kwargs: Any
+) -> tuple[set[int], set[int], set[int]]:
     """This will split the CCAgT annotations based on the number of NORs
     into each image. With a silly separation, first will split
     between each fold images with one or less NORs, after will split

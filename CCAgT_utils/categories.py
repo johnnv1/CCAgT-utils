@@ -29,7 +29,7 @@ CATS_COLORS = {
     Categories.NUCLEUS_OUT_OF_FOCUS: Color(26, 167, 238),
     Categories.OVERLAPPED_NUCLEI: Color(39, 91, 82),
     Categories.NON_VIABLE_NUCLEUS: Color(5, 207, 192),
-    Categories.LEUKOCYTE_NUCLEUS: Color(255, 0, 0)
+    Categories.LEUKOCYTE_NUCLEUS: Color(255, 0, 0),
 }
 
 CATS_MIN_AREA = {
@@ -40,7 +40,7 @@ CATS_MIN_AREA = {
     Categories.NUCLEUS_OUT_OF_FOCUS: 500,
     Categories.OVERLAPPED_NUCLEI: 500,
     Categories.NON_VIABLE_NUCLEUS: 200,
-    Categories.LEUKOCYTE_NUCLEUS: 200
+    Categories.LEUKOCYTE_NUCLEUS: 200,
 }
 
 
@@ -71,8 +71,10 @@ class CategoryInfo:
 
 
 class CategoriesInfos():
-    def __init__(self,
-                 categories_info: list[dict[str, Any]] | None = None) -> None:
+    def __init__(
+        self,
+        categories_info: list[dict[str, Any]] | None = None,
+    ) -> None:
         if isinstance(categories_info, list):
             self.__check_categories_info(categories_info)
             _categories_info = []
@@ -84,11 +86,13 @@ class CategoriesInfos():
             categories_info = _categories_info[:]
 
             if all((x['id'] != 0 and x['name'].lower() != 'background') for x in categories_info):
-                categories_info.append({'id': 0,
-                                        'color': Color(0, 0, 0),
-                                        'name': 'background',
-                                        'minimal_area': 0,
-                                        'isthing': 0})
+                categories_info.append({
+                    'id': 0,
+                    'color': Color(0, 0, 0),
+                    'name': 'background',
+                    'minimal_area': 0,
+                    'isthing': 0,
+                })
 
         elif categories_info is None:
             categories_info = []
@@ -96,11 +100,13 @@ class CategoriesInfos():
                 isthing = 1
                 if cat == Categories.BACKGROUND:
                     isthing = 0
-                categories_info.append({'color': CATS_COLORS[cat],
-                                        'name': cat.name,
-                                        'id': cat.value,
-                                        'minimal_area': CATS_MIN_AREA[cat],
-                                        'isthing': isthing})
+                categories_info.append({
+                    'color': CATS_COLORS[cat],
+                    'name': cat.name,
+                    'id': cat.value,
+                    'minimal_area': CATS_MIN_AREA[cat],
+                    'isthing': isthing,
+                })
         else:
             raise ValueError('Wrong type of categories info! Was expected a list of dicts!')
 
@@ -118,8 +124,10 @@ class CategoriesInfos():
             cat_name = cat_info['name'].upper()
             cat_id = cat_info['id']
             if Categories(cat_id).name != cat_name:
-                raise ValueError(f'The category name to id does not match with the expected! For id {id} it was expected '
-                                 f'{Categories(cat_id).name} and receive {cat_name}')
+                raise ValueError(
+                    f'The category name to id does not match with the expected! For id {id} it was expected '
+                    f'{Categories(cat_id).name} and receive {cat_name}',
+                )
 
     def __len__(self) -> int:
         return len(self._infos)

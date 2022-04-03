@@ -13,12 +13,14 @@ def test_image_and_mask(remove_plt_show, ccagt_ann_multi, categories_infos, shap
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
         _, mask_dir, image_dir = paths
-        _params = {'CCAgT_ann': ccagt_ann_multi,
-                   'categories_infos': categories_infos,
-                   'dir_path': image_dir,
-                   'dir_mask_path': mask_dir,
-                   'images_extension': '.jpg',
-                   'masks_extension': '.png'}
+        _params = {
+            'CCAgT_ann': ccagt_ann_multi,
+            'categories_infos': categories_infos,
+            'dir_path': image_dir,
+            'dir_mask_path': mask_dir,
+            'images_extension': '.jpg',
+            'masks_extension': '.png',
+        }
         out = _show.image_and_mask(**_params, images_names=['example'])
         out1 = _show.image_and_mask(**_params)
         out2 = _show.image_and_mask(**_params, look_recursive=False, shuffle_images=False)
@@ -33,12 +35,14 @@ def test_image_and_mask_not_found(capsys, ccagt_ann_multi, categories_infos, sha
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
         _, mask_dir, image_dir = paths
-        _params = {'CCAgT_ann': ccagt_ann_multi,
-                   'categories_infos': categories_infos,
-                   'dir_path': image_dir,
-                   'dir_mask_path': mask_dir,
-                   'images_extension': '.jpg',
-                   'masks_extension': '.png'}
+        _params = {
+            'CCAgT_ann': ccagt_ann_multi,
+            'categories_infos': categories_infos,
+            'dir_path': image_dir,
+            'dir_mask_path': mask_dir,
+            'images_extension': '.jpg',
+            'masks_extension': '.png',
+        }
 
         shutil.rmtree(mask_dir)
         out1 = _show.image_and_mask(**_params, look_recursive=False, shuffle_images=False)
@@ -59,10 +63,12 @@ def test_image_with_boxes(ccagt_ann_multi, categories_infos, shape, remove_plt_s
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names, create_mask=False) as paths:
         _, _, image_dir = paths
-        _params = {'CCAgT_ann': ccagt_ann_multi,
-                   'categories_infos': categories_infos,
-                   'dir_path': image_dir,
-                   'images_extension': '.jpg'}
+        _params = {
+            'CCAgT_ann': ccagt_ann_multi,
+            'categories_infos': categories_infos,
+            'dir_path': image_dir,
+            'images_extension': '.jpg',
+        }
 
         out = _show.image_with_boxes(**_params)
         out1 = _show.image_with_boxes(**_params, images_names=['example'])
@@ -79,10 +85,12 @@ def test_image_with_boxes_not_found(capsys, ccagt_ann_multi, categories_infos, s
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names, create_mask=False) as paths:
         _, _, image_dir = paths
-        _params = {'CCAgT_ann': ccagt_ann_multi,
-                   'categories_infos': categories_infos,
-                   'dir_path': image_dir,
-                   'images_extension': '.jpg'}
+        _params = {
+            'CCAgT_ann': ccagt_ann_multi,
+            'categories_infos': categories_infos,
+            'dir_path': image_dir,
+            'images_extension': '.jpg',
+        }
 
         shutil.rmtree(image_dir)
         out = _show.image_with_boxes(**_params, look_recursive=False, shuffle_images=False)
@@ -97,12 +105,14 @@ def test_image_with_boxes_and_mask(remove_plt_show, ccagt_ann_multi, categories_
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
         _, mask_dir, image_dir = paths
-        _params = {'CCAgT_ann': ccagt_ann_multi,
-                   'categories_infos': categories_infos,
-                   'dir_path': image_dir,
-                   'dir_mask_path': mask_dir,
-                   'images_extension': '.jpg',
-                   'masks_extension': '.png'}
+        _params = {
+            'CCAgT_ann': ccagt_ann_multi,
+            'categories_infos': categories_infos,
+            'dir_path': image_dir,
+            'dir_mask_path': mask_dir,
+            'images_extension': '.jpg',
+            'masks_extension': '.png',
+        }
         out = _show.image_with_boxes_and_mask(**_params, images_names=['example'])
         out1 = _show.image_with_boxes_and_mask(**_params)
         out2 = _show.image_with_boxes_and_mask(**_params, look_recursive=False, shuffle_images=False)
@@ -116,12 +126,14 @@ def test_image_with_boxes_and_mask_not_found(capsys, ccagt_ann_multi, categories
     names = ccagt_ann_multi.df['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
         _, mask_dir, image_dir = paths
-        _params = {'CCAgT_ann': ccagt_ann_multi,
-                   'categories_infos': categories_infos,
-                   'dir_path': image_dir,
-                   'dir_mask_path': mask_dir,
-                   'images_extension': '.jpg',
-                   'masks_extension': '.png'}
+        _params = {
+            'CCAgT_ann': ccagt_ann_multi,
+            'categories_infos': categories_infos,
+            'dir_path': image_dir,
+            'dir_mask_path': mask_dir,
+            'images_extension': '.jpg',
+            'masks_extension': '.png',
+        }
 
         shutil.rmtree(mask_dir)
         out1 = _show.image_with_boxes_and_mask(**_params, look_recursive=False, shuffle_images=False)

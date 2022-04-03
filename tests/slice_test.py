@@ -60,11 +60,13 @@ def test_single_core_image_and_annotations(shape, ccagt_df_single_nucleus, clust
         images_dir_out = os.path.join(images_dir, 'A')
         os.makedirs(images_dir_out)
 
-        sliced_quantity, annotations_items = slice.single_core_image_and_annotations(imgs,
-                                                                                     ccagt_df_single_nucleus,
-                                                                                     tmp_dir,
-                                                                                     2,
-                                                                                     2)
+        sliced_quantity, annotations_items = slice.single_core_image_and_annotations(
+            imgs,
+            ccagt_df_single_nucleus,
+            tmp_dir,
+            2,
+            2,
+        )
         assert sliced_quantity == 1
         assert len(annotations_items) == 1
         assert os.path.isfile(os.path.join(images_dir_out, 'A_example_1.jpg'))
@@ -75,13 +77,15 @@ def test_slice_images_and_annotations(shape, ccagt_ann_multi_image_names, ccagt_
     with create.ImageMaskFiles(shape[0], shape[1], ccagt_ann_multi_image_names) as paths:
         tmp_dir, _, images_dir = paths
         out_label = os.path.join(tmp_dir, 'CCAgT.parquet.gzip')
-        slice.images_and_annotations(dir_images=images_dir,
-                                     annotations_path=ccagt_ann_multi_path,
-                                     dir_output=tmp_dir,
-                                     output_annotations_path=out_label,
-                                     h_quantity=1,
-                                     v_quantity=2,
-                                     extension=('.png', '.jpg'))
+        slice.images_and_annotations(
+            dir_images=images_dir,
+            annotations_path=ccagt_ann_multi_path,
+            dir_output=tmp_dir,
+            output_annotations_path=out_label,
+            h_quantity=1,
+            v_quantity=2,
+            extension=('.png', '.jpg'),
+        )
 
         slides = [x.split('_')[0] for x in ccagt_ann_multi_image_names]
         slides_counter = Counter(slides)

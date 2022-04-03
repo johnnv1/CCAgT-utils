@@ -35,8 +35,10 @@ class Mask:
     def unique_ids(self) -> set[int]:
         return set(np.unique(self.categorical))
 
-    def colorized(self,
-                  categories_infos: CategoriesInfos) -> np.ndarray:
+    def colorized(
+        self,
+        categories_infos: CategoriesInfos,
+    ) -> np.ndarray:
         o = np.zeros((self.height, self.width, 3), dtype=np.uint8)
 
         for id in self.unique_ids:
@@ -44,16 +46,19 @@ class Mask:
 
         return o
 
-    def cmap(self,
-             categories_infos: CategoriesInfos
-             ) -> mlp_colors.ListedColormap:
+    def cmap(
+        self,
+        categories_infos: CategoriesInfos,
+    ) -> mlp_colors.ListedColormap:
         o = [categories_infos[id].color.rgba_normalized for id in self.unique_ids]
         return mlp_colors.ListedColormap(o)
 
-    def save(self,
-             filename: str,
-             categories_infos: CategoriesInfos | None = None,
-             **kwargs: Any) -> None:
+    def save(
+        self,
+        filename: str,
+        categories_infos: CategoriesInfos | None = None,
+        **kwargs: Any
+    ) -> None:
 
         if isinstance(categories_infos, CategoriesInfos):
             out = self.colorized(categories_infos)

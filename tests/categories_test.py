@@ -29,10 +29,12 @@ def test_CategoriesInfos_init_with_data(categories_aux_data):
 def test_CategoriesInfos_init_with_data_with_background(categories_aux_data):
     id_with_labelbox_schemaId = categories_aux_data[0]['id']
     data = categories_aux_data[:]
-    data.append({'id': 0,
-                 'color': (0, 0, 0),
-                 'name': 'background',
-                 'minimal_area': 0})
+    data.append({
+        'id': 0,
+        'color': (0, 0, 0),
+        'name': 'background',
+        'minimal_area': 0,
+    })
     categories_infos = CategoriesInfos(data)
     assert categories_infos[id_with_labelbox_schemaId].labelbox_schemaId is not None
 
@@ -68,8 +70,10 @@ def test_CategoriesInfos_iter(categories_aux_data):
 
 def test_CategoriesInfos_get_min_area(categories_aux_data):
     categories_infos = CategoriesInfos(categories_aux_data)
-    minimal_area = [categories_infos.get_min_area(1),
-                    categories_infos.get_min_area(2)]
+    minimal_area = [
+        categories_infos.get_min_area(1),
+        categories_infos.get_min_area(2),
+    ]
     expected = [i['minimal_area'] for i in categories_aux_data if i['id'] in {1, 2}]
 
     assert minimal_area == expected
@@ -77,8 +81,10 @@ def test_CategoriesInfos_get_min_area(categories_aux_data):
 
 def test_CategoriesInfos_get_name(categories_aux_data):
     categories_infos = CategoriesInfos(categories_aux_data)
-    names = [categories_infos.get_name(1),
-             categories_infos.get_name(2)]
+    names = [
+        categories_infos.get_name(1),
+        categories_infos.get_name(2),
+    ]
     expected = [i['name'] for i in categories_aux_data if i['id'] in {1, 2}]
 
     assert names == expected
@@ -86,8 +92,10 @@ def test_CategoriesInfos_get_name(categories_aux_data):
 
 def test_CategoriesInfos_get_color(categories_aux_data):
     categories_infos = CategoriesInfos(categories_aux_data)
-    colors = [categories_infos.get_color(1),
-              categories_infos.get_color(2)]
+    colors = [
+        categories_infos.get_color(1),
+        categories_infos.get_color(2),
+    ]
     expected = [i['color'] for i in categories_aux_data if i['id'] in {1, 2}]
 
     assert colors == expected
@@ -97,10 +105,12 @@ def test_CategoriesInfos_generate_random_color(categories_aux_data, monkeypatch)
     c = (127, 127, 127)
     c_color = Color(c[0], c[1], c[2])
 
-    categories_aux_data.append({'name': 'background',
-                                'id': 0,
-                                'color': c,
-                                'isthing': 0})
+    categories_aux_data.append({
+        'name': 'background',
+        'id': 0,
+        'color': c,
+        'isthing': 0,
+    })
     categories_infos = CategoriesInfos(categories_aux_data)
 
     color = categories_infos.generate_random_color(1)

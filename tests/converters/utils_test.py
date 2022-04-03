@@ -134,8 +134,10 @@ def test_CCAgT_to_PS_COCO(ccagt_ann_single_nucleus, categories_infos, tmpdir):
     assert all(x in itens['categories'][0] for x in {'supercategory', 'name', 'id'})
     assert all(x in itens['images'][0] for x in {'file_name', 'height', 'width', 'id'})
     assert all(x in itens['annotations'][0] for x in {'image_id', 'file_name', 'segments_info'})
-    assert all(x in j for j in itens['annotations'][0]['segments_info']
-               for x in {'id', 'category_id', 'area', 'bbox', 'iscrowd'})
+    assert all(
+        x in j for j in itens['annotations'][0]['segments_info']
+        for x in {'id', 'category_id', 'area', 'bbox', 'iscrowd'}
+    )
 
 
 def test_CCAgT_to_COCO_NotImplemented():

@@ -12,8 +12,10 @@ from CCAgT_utils.types.colors import Color
 class COCO_OD():
 
     @staticmethod
-    def bounds_to_coco_bb(bounds: tuple[float],
-                          decimals: int = 2) -> list[float]:
+    def bounds_to_coco_bb(
+        bounds: tuple[float],
+        decimals: int = 2,
+    ) -> list[float]:
         # bounds is in  (minx, miny, maxx, maxy)
         # bb  of coco is in [min(x), min(y), max(x)-min(x), max(y)-min(y)]
         b = tuple(np.round(x, decimals) for x in bounds)
@@ -21,8 +23,10 @@ class COCO_OD():
         return [min_x, min_y, max_x - min_x, max_y - min_y]
 
     @staticmethod
-    def geometry_to_coco_segment(geo: Polygon | MultiPolygon,
-                                 decimals: int = 2) -> list[list[float]]:
+    def geometry_to_coco_segment(
+        geo: Polygon | MultiPolygon,
+        decimals: int = 2,
+    ) -> list[list[float]]:
         # polygon of shapely is a class
         # polygon or segmentation at coco is a list of [[x0, y0, x1, y1 ...]]
 

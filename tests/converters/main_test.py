@@ -20,8 +20,10 @@ def test_main_labelbox_to_COCO(lbb_raw_sample_complete, ccagt_aux_data):
     with RawAuxFiles(lbb_raw_sample_complete, ccagt_aux_data) as paths:
         temp_dir, raw_path, aux_path = paths
         out_filename = os.path.join(temp_dir, 'out.json')
-        out = main.main(['labelbox_to_COCO', '-t', 'OD',
-                         '-r', raw_path, '-a', aux_path, '-o', out_filename])
+        out = main.main([
+            'labelbox_to_COCO', '-t', 'OD',
+            '-r', raw_path, '-a', aux_path, '-o', out_filename,
+        ])
 
     assert out == 0
 
