@@ -263,8 +263,14 @@ def create_subdataset(name: str,
         # --delete
         if len(images_without_the_categories) > 0:
             print(f'Will delete images that do not have at least one of the categories {categories_to_check}')
+            ccagt_annotations.df = ccagt_annotations.df[
+                ~ccagt_annotations.df['image_name'].isin(images_without_the_categories)
+            ]
         if len(images_without_the_annotations) > 0:
             print('Will delete images that do not have at least one annotation')
+            ccagt_annotations.df = ccagt_annotations.df[
+                ~ccagt_annotations.df['image_name'].isin(images_without_the_annotations)
+            ]
         basenames_to_delete = set(images_without_the_categories).union(set(images_without_the_annotations))
 
         print(f'Finding images on this at `{output_images_dir}`...')
