@@ -424,6 +424,10 @@ class CCAgT():
             for slide_id in slide_ids:
                 os.makedirs(os.path.join(out_dir, slide_id), exist_ok=True)
 
+        if 'image_width' not in self.df.columns or 'image_height' not in self.df.columns:
+            self.df['image_width'] = self.IMAGE_WIDTH
+            self.df['image_height'] = self.IMAGE_HEIGHT
+
         cpu_num = multiprocessing.cpu_count()
 
         img_ids = self.df['image_id'].unique()
@@ -579,6 +583,9 @@ def single_core_to_mask(df: pd.DataFrame, out_dir: str, split_by_slide: bool, ex
         out_path = os.path.join(_out_dir, img_name)
 
         annotations = [Annotation(row['geometry'], row['category_id']) for _, row in df_by_img.iterrows()]
-        mask = annotations_to_mask(annotations)
+        w = df_by_img['image_width'].unique()[0]
+        h = df_by_img['image_height'].unique()[0]
+
+        mask = annotations_to_mask(annotations, w, h)
 
         mask.save(out_path)

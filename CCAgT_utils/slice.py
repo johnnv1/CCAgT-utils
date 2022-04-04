@@ -98,6 +98,8 @@ def image_with_annotation(
                     'image_name': basename_img,
                     'geometry': ann_to_use.geometry,
                     'category_id': ann_to_use.category_id,
+                    'image_width': bbox.width,
+                    'image_height': bbox.height,
                 })
 
         if len(img_annotations) > 0:
@@ -193,6 +195,7 @@ def images_and_annotations(
 
     print('Creating the annotation file...')
     ccagt_out = CCAgT(pd.DataFrame(ann_out))
+
     ccagt_out.to_parquet(output_annotations_path)
 
     print(

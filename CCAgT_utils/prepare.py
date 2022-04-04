@@ -79,6 +79,8 @@ def extract_category(
             'image_name': basename_img,
             'geometry': ann.geometry,
             'category_id': ann.category_id,
+            'image_width': bbox.width,
+            'image_height': bbox.height,
         })
 
         for ann_overlapped in group:
@@ -87,6 +89,8 @@ def extract_category(
                 'image_name': basename_img,
                 'geometry': ann_overlapped.geometry,
                 'category_id': ann_overlapped.category_id,
+                'image_width': bbox.width,
+                'image_height': bbox.height,
             })
 
         part = im[bbox.slice_y, bbox.slice_x]
@@ -176,8 +180,8 @@ def extract_image_and_annotations_by_category(
 
     filenames_splitted = np.array_split(ccagt_annotations.df['image_name'].unique(), cpu_num)
     print(
-        f'Start the extraction of each category instance at {len(image_filenames)} images/annotations using {cpu_num} '
-        f'cores with {len(filenames_splitted[0])} images/annotations per core...',
+        f'Start the extraction of each category instance at {len(image_filenames)} images with annotations using {cpu_num} '
+        f'cores with {len(filenames_splitted[0])} images with annotations per core...',
     )
 
     processes = []
@@ -212,7 +216,7 @@ def extract_image_and_annotations_by_category(
     ccagt_out.to_parquet(annotations_path)
 
     print(
-        f'Successful created {len(image_filenames)}/{ann_qtd} images/annotations into {image_counter}/{len(ann_out)}'
+        f'Successful transformed from {len(image_filenames)}/{ann_qtd} images/annotations into {image_counter}/{len(ann_out)}'
         ' images/annotations',
     )
 
