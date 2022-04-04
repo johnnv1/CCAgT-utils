@@ -240,19 +240,21 @@ def test_single_core_to_OD_COCO(ccagt_ann_single_nucleus, coco_OD_ann_single_nuc
     assert coco_OD_ann == coco_OD_ann_single_nucleus
 
 
-def test_single_core_to_mask(nucleus_ex):
+def test_single_core_to_mask(nucleus_ex, tmpdir):
     img_name = 'C_xx1'
     df = pd.DataFrame([create.row_CCAgT(nucleus_ex, 1, img_name)])
     df['image_id'] = [1]
     df['slide_id'] = ['C']
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        outdir = os.path.join(tmp_dir, 'C/')
-        os.makedirs(outdir)
-        CCAgT.single_core_to_mask(df, tmp_dir, split_by_slide=True)
-        assert os.path.isfile(os.path.join(outdir, img_name + '.png'))
+    df['image_width'] = 1600
+    df['image_height'] = 1200
 
-        CCAgT.single_core_to_mask(df, tmp_dir, split_by_slide=False)
-        assert os.path.isfile(os.path.join(tmp_dir, img_name + '.png'))
+    outdir = os.path.join(tmpdir, 'C/')
+    os.makedirs(outdir)
+    CCAgT.single_core_to_mask(df, tmpdir, split_by_slide=True)
+    assert os.path.isfile(os.path.join(outdir, img_name + '.png'))
+
+    CCAgT.single_core_to_mask(df, tmpdir, split_by_slide=False)
+    assert os.path.isfile(os.path.join(tmpdir, img_name + '.png'))
 
 
 @pytest.mark.slow

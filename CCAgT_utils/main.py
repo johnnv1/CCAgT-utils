@@ -166,6 +166,7 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
 
 
 def create_subdataset(
+    *,
     name: str,
     original_dir: str,
     output_base: str,
@@ -413,21 +414,21 @@ def main(argv: Sequence[str] | None = None) -> int:
         extract = None if args.extract is None else set(args.extract)
 
         return create_subdataset(
-            str(args.name),
-            str(args.original),
-            str(args.output),
-            slice_images,
-            extract,
-            categories_to_keep,
-            categories_to_check,
-            args.delete,
-            args.generate_masks,
-            args.labels,
-            args.paddings,
-            args.no_check_images,
-            tuple(args.extensions),
-            args.aux_file,
-            args.overwrite,
+            name=str(args.name),
+            original_dir=str(args.original),
+            output_base=str(args.output),
+            slice_images=slice_images,
+            extract=extract,
+            categories_to_keep=categories_to_keep,
+            categories_to_check=categories_to_check,
+            delete=args.delete,
+            generate_masks=args.generate_masks,
+            CCAgT_path=args.labels,
+            paddings=args.paddings,
+            check_if_images_have_annotations=args.no_check_images,
+            extensions=tuple(args.extensions),
+            aux_file_path=args.aux_file,
+            overwrite=args.overwrite,
         )
 
     return 1

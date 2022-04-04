@@ -224,7 +224,7 @@ def test_create_subdataset_with_slice(shape, ccagt_ann_multi_path, ccagt_ann_mul
         assert out == 0
 
         out = main.create_subdataset(
-            'test1',
+            name='test1',
             original_dir=tmp_dir,
             output_base=tmp_dir,
             slice_images=(1, 2),
@@ -243,7 +243,7 @@ def test_create_subdataset_with_slice(shape, ccagt_ann_multi_path, ccagt_ann_mul
         assert out == 0
 
         out = main.create_subdataset(
-            'test2',
+            name='test2',
             original_dir=tmp_dir,
             output_base=tmp_dir,
             slice_images=(1, 2),
@@ -268,7 +268,7 @@ def test_create_subdataset_with_extraction(capsys, shape, ccagt_ann_multi_path, 
         tmp_dir, masks_dir, _ = paths
 
         out = main.create_subdataset(
-            'test',
+            name='test',
             original_dir=tmp_dir,
             output_base=tmp_dir,
             slice_images=None,
@@ -327,3 +327,5 @@ def test_main_create_subdataset(shape, ccagt_ann_multi_path, ccagt_ann_multi_ima
             '1',
         ])
         assert out == 0
+
+# TODO: a test for the pipelines -> ex: input 1 image slice and check if the output is a sliced image and masks as expected
