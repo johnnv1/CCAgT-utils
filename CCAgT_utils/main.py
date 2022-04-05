@@ -25,7 +25,7 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
 
     parser.add_argument(
         '--name',
-        metavar='SUBDATASET NAME',
+        metavar='SUBDATASET_NAME',
         required=True,
         help='The name of the subdataset that will be generated',
     )
@@ -57,7 +57,7 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
     group_ex.add_argument(
         '--slice-images',
         nargs=2,
-        metavar='HORIZONTAL VERTICAL',
+        metavar='HORIZONTA_VERTICAL',
         type=int,
         help=(
             'Define that wants slice the images into smaller parts. Needs to pass the amount of slice '
@@ -69,7 +69,7 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
         '--extract',
         nargs='*',
         type=int,
-        metavar='CATEGORY ID',
+        metavar='CATEGORY_ID',
         help=(
             'Define that wants extract based on one category. Will generate one image for each '
             'instance of the desired category.'
@@ -92,7 +92,7 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
         '--remove-images-without',
         nargs='*',
         type=int,
-        metavar='CATEGORY ID',
+        metavar='CATEGORY_ID',
         help=(
             'Define that you wants remove of this subdataset the images that does not have the '
             'categories passed as argument.'
@@ -103,7 +103,7 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
         '--remove-annotations-different',
         nargs='*',
         type=int,
-        metavar='CATEGORY ID',
+        metavar='CATEGORY_ID',
         help=(
             'Define that you wants remove of this subdataset the annotations that have different '
             'categories then the passed as argument.'
@@ -114,7 +114,7 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
     check_group.add_argument(
         '--check-if-all-have-at-least-one-of',
         nargs='*',
-        metavar='CATEGORY ID',
+        metavar='CATEGORY_ID',
         type=int,
         help=(
             'Define that you wants check if all images have at least one of the categories passed as '
@@ -219,28 +219,26 @@ def create_subdataset(
     print(f'Loading the original annotations file from `{CCAgT_path}`...')
     ccagt_annotations = read_parquet(CCAgT_path)
 
-    print('------------------------')
     if isinstance(categories_to_keep, tuple):
         _choice_to_delete, _cats_to_keep = categories_to_keep
 
         if _choice_to_delete == 0:
             # --remove-images-without
-            print(f'Delete images that do not have the categories: {_cats_to_keep} ')
+            print(f'Delete images where not have at least one annotation with the categories: {_cats_to_keep}')
             _idx_with_categories = ccagt_annotations.df['category_id'].isin(_cats_to_keep)
             images_with_categories = set(ccagt_annotations.df.loc[_idx_with_categories, 'image_id'].unique())
             ccagt_annotations.df = ccagt_annotations.df[ccagt_annotations.df['image_id'].isin(images_with_categories)]
 
         elif _choice_to_delete == 1:
             # --remove-annotations-without
-            print(f'Delete annotations that in not in the categories: {_cats_to_keep} ')
+            print(f'Delete annotations where the categories is not in: {_cats_to_keep} ')
             ccagt_annotations.df = ccagt_annotations.df[ccagt_annotations.df['category_id'].isin(_cats_to_keep)]
         else:
             print('Unexpected choice for the type of removal proccess.', file=sys.stderr)
             return 1
     else:
-        print('No process of remove chosen, just skiping.')
+        print('No process of remove chosen, just skiped.')
 
-    print('------------------------')
     if ccagt_annotations.df.shape[0] == 0:
         print('The annotations file has none annotation, just finishing the process!', file=sys.stderr)
         return 1
@@ -252,7 +250,7 @@ def create_subdataset(
     print('------------------------')
     if isinstance(slice_images, tuple):
         # --slice-images
-        print(f'Create images and annotations splitting then into {slice_images} (horizontal, vertical) parts')
+        print(f'Generate images and annotations splitting the originals into {slice_images} (horizontal, vertical) parts...')
         slice.images_and_annotations(
             input_images_dir,
             output_annotations_path,
@@ -293,6 +291,7 @@ def create_subdataset(
     images_without_the_categories: set[str] = set({})
     if isinstance(categories_to_check, set):
         # --check-if-all-have-at-least-one-of
+        print(f'Checking all images have at least one of the categories {categories_to_check}...')
         images_names = set(ccagt_annotations.df['image_name'].unique())
         images_names_filtered = set(
             ccagt_annotations.df.loc[
@@ -343,7 +342,7 @@ def create_subdataset(
             ]
         basenames_to_delete = set(images_without_the_categories).union(set(images_without_the_annotations))
 
-        print(f'Finding images on this at `{output_images_dir}`...')
+        print(f'Finding the images to delete at `{output_images_dir}`...')
         all_images = {basename(k): v for k, v in find_files(output_images_dir, extensions, True).items()}
 
         print(f'Deleting a total of {len(basenames_to_delete)} images...')

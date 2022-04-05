@@ -437,7 +437,10 @@ class CCAgT():
 
         # Split equals the annotations for the cpu quantity
         images_ids_splitted = np.array_split(img_ids, cpu_num)
-        print(f'Number of cores: {cpu_num}, images per core: {len(images_ids_splitted[0])}')
+        print(
+            f'Start to generate a total of {len(img_ids)} semantic segmentation masks based on the annotations using '
+            f'{cpu_num} cores with {len(images_ids_splitted[0])} masks with annotations per core...',
+        )
 
         workers = multiprocessing.Pool(processes=cpu_num)
         processes = []
@@ -586,6 +589,6 @@ def single_core_to_mask(df: pd.DataFrame, out_dir: str, split_by_slide: bool, ex
         w = df_by_img['image_width'].unique()[0]
         h = df_by_img['image_height'].unique()[0]
 
-        mask = annotations_to_mask(annotations, w, h)
+        mask = annotations_to_mask(annotations, int(w), int(h))
 
         mask.save(out_path)
