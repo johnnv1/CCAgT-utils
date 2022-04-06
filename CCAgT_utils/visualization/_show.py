@@ -6,7 +6,6 @@ import sys
 
 import matplotlib.pyplot as plt
 from PIL import Image
-from tqdm.auto import tqdm
 
 from CCAgT_utils import categories
 from CCAgT_utils.converters.CCAgT import CCAgT
@@ -45,7 +44,7 @@ def image_with_boxes(
 
     get_id = {cat_info.name: cat_info.id for cat_info in categories_infos}
 
-    for img_name in tqdm(images_to_plot):
+    for img_name in images_to_plot:
         if look_recursive:
             img_path = all_files[img_name + images_extension]
         else:
@@ -112,7 +111,7 @@ def image_and_mask(
     if shuffle_images:
         random.shuffle(images_to_plot)
 
-    for img_name in tqdm(images_to_plot):
+    for img_name in images_to_plot:
 
         if look_recursive:
             img_path = all_files[img_name + images_extension]
@@ -181,7 +180,7 @@ def image_with_boxes_and_mask(
     if shuffle_images:
         random.shuffle(images_to_plot)
 
-    for img_name in tqdm(images_to_plot):
+    for img_name in images_to_plot:
 
         if look_recursive:
             img_path = all_files[img_name + images_extension]
