@@ -289,3 +289,65 @@ def dataset(
         print('On disk data -')
         print(f'Total of images: {images_quantity} - at `{images_dir}`')
         print(f'Total of masks: {masks_quantity} - at `{masks_dir}`')
+
+
+def categorical_mask(mask: np.ndarray) -> dict[int, int]:
+    unique, counts = np.unique(mask, return_counts=True)
+    return dict(zip(unique, counts))
+
+
+@get_traceback
+def single_core_from_mask_files(
+    filenames: list[str],
+) -> dict[int, int]:
+    if len(filenames) == 0:
+        raise ValueError('It was expected a list of filenames with at least one value.')
+
+    out = {cat.value: 0 for cat in Categories}
+    for filename in filenames:
+        counts = categorical_mask(
+            np.asarray(
+                Image.open(filename).convert('L'),
+            ),
+        )
+        out = {k: v + counts[k] if k in counts else v for k, v in out.items()}
+
+    return out
+
+
+def from_mask_files(
+    masks_dir: str,
+    extensions: str | tuple[str, ...] = '.png',
+    selection: set[str] = set(),
+) -> dict[str, int]:
+    all_masks = find_files(masks_dir, extensions, True, selection)
+
+    all_filenames = list(all_masks.values())
+
+    cpu_num = multiprocessing.cpu_count()
+    workers = multiprocessing.Pool(processes=cpu_num)
+
+    filenames_splitted = np.array_split(all_filenames, cpu_num)
+    print(
+        f'Start count pixels quantity for {len(all_filenames)} ({extensions}) files using {cpu_num} cores with '
+        f'{len(filenames_splitted[0])} files per core...',
+    )
+
+    processes = []
+    for filenames in filenames_splitted:
+        if len(filenames) == 0:
+            continue
+
+        p = workers.apply_async(single_core_from_mask_files, (filenames.tolist(),))
+        processes.append(p)
+
+    out = {cat.value: 0 for cat in Categories}
+    for p in processes:
+        counts = p.get()
+        out = {k: v + counts[k] if k in counts else v for k, v in out.items()}
+
+    n_files = len(all_masks)
+    print(f'Successfully computed pixels quantity of each category from {n_files} files with {len(processes)} processes!')
+
+    out_by_names = {str(Categories(k).name): int(v) for k, v in out.items()}
+    return out_by_names

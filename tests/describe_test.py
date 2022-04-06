@@ -7,6 +7,7 @@ import pytest
 from PIL import Image
 
 from CCAgT_utils import describe
+from CCAgT_utils.categories import Categories
 from testing import create
 
 
@@ -148,3 +149,55 @@ def test_tvt_annotations_as_df(ccagt_ann_multi, categories_infos):
     cats_with_data = sum(True for v in out['qtd_annotations_categorical'].values() if v > 0)
     assert df_area.shape == (15, 1 + cats_with_data)
     assert df_area.loc[df_area['fold'] == 'train', 'Nucleus'].tolist() == [900., 0., 900., 900., 5.]
+
+
+def test_count_pixels(shape):
+    msk = create.mask_categorical(shape)
+    total = shape[0] * shape[1]
+    qtd_expected = int(total * 0.25)
+
+    cats = np.unique(msk)
+    expected = {cat.value: qtd_expected for cat in Categories if cat.value in cats}
+
+    counts = describe.categorical_mask(msk)
+    assert counts == expected
+    assert sum(counts.values()) == total
+
+
+def test_single_core_from_mask_files(shape, tmpdir):
+    msk = create.mask_categorical(shape)
+
+    filename = os.path.join(tmpdir, 'test.png')
+    Image.fromarray(msk).save(filename)
+
+    out = describe.single_core_from_mask_files([filename])
+
+    total = shape[0] * shape[1]
+    qtd_expected = int(total * 0.25)
+    cats = np.unique(msk)
+    expected = {cat.value: qtd_expected if cat.value in cats else 0 for cat in Categories}
+
+    assert out == expected
+    assert sum(out.values()) == total
+
+
+def test_single_core_from_mask_files_empty():
+    with pytest.raises(ValueError):
+        describe.single_core_from_mask_files([])
+
+
+@pytest.mark.slow
+def test_from_mask_files(shape, tmpdir):
+    msk = create.mask_categorical(shape)
+    for i in range(2):
+        Image.fromarray(msk).save(os.path.join(tmpdir, f'test{i}.png'))
+
+    out = describe.from_mask_files(tmpdir, '.png')
+
+    total = shape[0] * shape[1]
+    qtd_expected = int(total * 0.25)
+    cats = np.unique(msk)
+    expected = {cat.name: qtd_expected * 2 if cat.value in cats else 0 for cat in Categories}
+
+    assert out == expected
+    assert sum(out.values()) == total * 2
