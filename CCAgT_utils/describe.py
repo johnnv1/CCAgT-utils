@@ -135,6 +135,8 @@ def from_image_files(
 
     processes = []
     for filenames in filenames_splitted:
+        if len(filenames) == 0:
+            continue  # pragma: no cover
 
         p = workers.apply_async(single_core_from_image_files, (filenames.tolist(),))
         processes.append(p)
@@ -333,6 +335,8 @@ def from_mask_files(
 
     processes = []
     for filenames in filenames_splitted:
+        if len(filenames) == 0:
+            continue  # pragma: no cover
 
         p = workers.apply_async(single_core_from_mask_files, (filenames.tolist(),))
         processes.append(p)
