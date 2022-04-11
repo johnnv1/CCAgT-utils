@@ -474,17 +474,16 @@ class CCAgT():
 
         print(
             f'Start compute generate panoptic annotations and masks for {len(images_ids)} files using {cpu_num} cores with '
-            '{len(images_ids_splitted[0])} files per core...',
+            f'{len(images_ids_splitted[0])} files per core...',
         )
 
         workers = multiprocessing.Pool(processes=cpu_num)
         processes = []
-        output_template = np.zeros((self.IMAGE_HEIGHT, self.IMAGE_WIDTH, 3), dtype=np.uint8)
         for images_ids in images_ids_splitted:
             if len(images_ids) == 0:
                 continue
             df_to_process = self.df.loc[self.df['image_id'].isin(images_ids), :]
-            p = workers.apply_async(single_core_to_PS_COCO, (df_to_process, out_dir, output_template, split_by_slide))
+            p = workers.apply_async(single_core_to_PS_COCO, (df_to_process, out_dir, split_by_slide))
             processes.append(p)
 
         annotations_panoptic = []
@@ -501,12 +500,19 @@ class CCAgT():
 def single_core_to_PS_COCO(
     df: pd.DataFrame,
     out_dir: str,
-    output_template: np.ndarray,
     split_by_slide: bool,
 ) -> list[dict[str, Any]]:
     annotations_panoptic = []
 
     _out_dir = out_dir
+
+    if df['image_width'].nunique() == df['image_height'].nunique() == 1:
+        w = int(df['image_width'].unique()[0])
+        h = int(df['image_height'].unique()[0])
+        output_template = np.zeros((h, w, 3), dtype=np.uint8)
+    else:
+        output_template = None
+
     for img_id, df_by_img in df.groupby('image_id'):
         img_name = df_by_img.iloc[0]['image_name']
         output_basename = basename(img_name) + '.png'
@@ -525,7 +531,14 @@ def single_core_to_PS_COCO(
         ])
 
         segments_info = []
-        out = output_template.copy()
+
+        if isinstance(output_template, np.ndarray):
+            out = output_template.copy()
+        else:
+            w = int(df_by_img['image_width'].unique()[0])
+            h = int(df_by_img['image_height'].unique()[0])
+            out = np.zeros((h, w, 3), dtype=np.uint8)
+
         for ann in annotations_sorted:
             out = draw_annotation(out, ann, ann.color.rgb, out.shape[:2])
             segments_info.append({
