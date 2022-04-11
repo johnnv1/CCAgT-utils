@@ -281,8 +281,11 @@ def ccagt_df_single_nucleus(nucleus_ex):
 
 
 @pytest.fixture
-def ccagt_ann_single_nucleus(nucleus_ex):
+def ccagt_ann_single_nucleus(nucleus_ex, shape):
     d = pd.DataFrame([create.row_CCAgT(nucleus_ex, 1, 'C_xx1')])
+    d['image_width'] = shape[1]
+    d['image_height'] = shape[0]
+
     return CCAgT.CCAgT(d)
 
 

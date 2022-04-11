@@ -275,15 +275,14 @@ def test_generate_masks(ccagt_ann_single_nucleus):
         assert os.path.isfile(os.path.join(tmp_dir, 'C/C_xx1' + '.png'))
 
 
-def test_single_core_to_PS_COCO(ccagt_ann_single_nucleus, tmpdir, shape):
+def test_single_core_to_PS_COCO(ccagt_ann_single_nucleus, tmpdir):
     ccagt_ann_single_nucleus.df['image_name'] = 'C_xx1'
     ccagt_ann_single_nucleus.df['area'] = ccagt_ann_single_nucleus.geometries_area()
     ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
     ccagt_ann_single_nucleus.df['iscrowd'] = 0
     ccagt_ann_single_nucleus.df['color'] = Color(21, 62, 125)
 
-    template = np.zeros((shape[0], shape[1], 3), dtype=np.uint8)
-    out = CCAgT.single_core_to_PS_COCO(ccagt_ann_single_nucleus.df, tmpdir, template, False)
+    out = CCAgT.single_core_to_PS_COCO(ccagt_ann_single_nucleus.df, tmpdir, False)
 
     check1 = all(y in out[0] for y in {'image_id', 'file_name', 'segments_info'})
     assert check1
@@ -294,8 +293,26 @@ def test_single_core_to_PS_COCO(ccagt_ann_single_nucleus, tmpdir, shape):
 
     ccagt_ann_single_nucleus.df['slide_id'] = ccagt_ann_single_nucleus.get_slide_id()
     tmpdir.mkdir('C')
-    CCAgT.single_core_to_PS_COCO(ccagt_ann_single_nucleus.df, tmpdir, template, True)
+    CCAgT.single_core_to_PS_COCO(ccagt_ann_single_nucleus.df, tmpdir, True)
     assert len(os.listdir(os.path.join(tmpdir, 'C/'))) > 0
+
+
+def test_single_core_to_PS_COCO_multisizes(ccagt_ann_multi, tmpdir):
+    ccagt_ann_multi.df['area'] = ccagt_ann_multi.geometries_area()
+    ccagt_ann_multi.df['image_id'] = ccagt_ann_multi.generate_ids(ccagt_ann_multi.df['image_name'])
+    ccagt_ann_multi.df['iscrowd'] = 0
+    ccagt_ann_multi.df['color'] = Color(21, 62, 125)
+
+    ccagt_ann_multi.df['image_width'] = 1000
+    ccagt_ann_multi.df['image_height'] = 1000
+
+    ccagt_ann_multi.df.loc[ccagt_ann_multi.df['image_id'] == 1, 'image_height'] = 2000
+
+    ccagt_ann_multi.df['geo_type'] = ccagt_ann_multi.df['geometry'].apply(lambda g: g.geom_type).tolist()
+    ccagt_ann_multi.df = ccagt_ann_multi.df[ccagt_ann_multi.df['geo_type'] != 'Point']
+    CCAgT.single_core_to_PS_COCO(ccagt_ann_multi.df, tmpdir, False)
+
+    assert len(os.listdir(tmpdir)) > 0
 
 
 def test_CCAgT_to_PS_COCO(ccagt_ann_single_nucleus, categories_infos, tmpdir):
