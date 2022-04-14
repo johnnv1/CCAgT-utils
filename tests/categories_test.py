@@ -9,6 +9,7 @@ import pytest
 
 from CCAgT_utils.categories import Categories
 from CCAgT_utils.categories import CategoriesInfos
+from CCAgT_utils.categories import CategoryInfo
 from CCAgT_utils.categories import CATS_COLORS
 from CCAgT_utils.categories import read_json
 from CCAgT_utils.errors import FileTypeError
@@ -152,3 +153,14 @@ def test_wrong_read_json():
 
     with pytest.raises(FileTypeError):
         read_json(filename)
+
+
+def test_getCategory_from_categoryInfo():
+    cat = Categories.BACKGROUND
+    cat_info = CategoryInfo(
+        id=cat.value,
+        name=cat.name,
+        color=CATS_COLORS[cat],
+    )
+
+    assert cat_info.category == cat

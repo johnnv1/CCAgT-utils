@@ -69,6 +69,10 @@ class CategoryInfo:
     supercategory: str | None = None
     isthing: int = 1
 
+    @property
+    def category(self) -> Categories:
+        return Categories(self.id)
+
 
 class CategoriesInfos():
     def __init__(
