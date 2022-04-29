@@ -32,10 +32,9 @@ jobs:
       - name: Install tox-gh
         run: python -m pip install tox-gh
       - name: Setup test suite
-        run: tox4 r -vv --notest
+        run: tox -vv --notest
       - name: Run test suite
-        if: ${{ matrix.py }} != 3.10 && ${{ matrix.os }} != MacOs
-        run: tox4 r --skip-pkg-install
+        run: tox r --skip-pkg-install
         env:
           PYTEST_ADDOPTS: "-vv --durations=10"
 
@@ -49,6 +48,7 @@ jobs:
           - Windows
         py:
           - "3.9"
+          - "3.8"
     steps:
       - name: Setup python for test ${{ matrix.py }}
         uses: actions/setup-python@v2
@@ -58,10 +58,9 @@ jobs:
       - name: Install tox-gh
         run: python -m pip install tox-gh
       - name: Setup test suite
-        run: tox4 r -vv --notest
+        run: tox -vv --notest
       - name: Run test suite
-        if: ${{ matrix.py }} != 3.10 && ${{ matrix.os }} != MacOs
-        run: tox4 r --skip-pkg-install
+        run: tox r --skip-pkg-install
         env:
           PYTEST_ADDOPTS: "-vv --durations=10"
 
@@ -72,8 +71,8 @@ jobs:
       fail-fast: false
       matrix:
         os:
-          - Windows
           - Ubuntu
+          - Windows
         py:
           - "3.10"
     steps:
@@ -85,9 +84,8 @@ jobs:
       - name: Install tox-gh
         run: python -m pip install tox-gh
       - name: Setup test suite
-        run: tox4 r -vv --notest
+        run: tox -vv --notest
       - name: Run test suite
-        if: ${{ matrix.py }} != 3.10 && ${{ matrix.os }} != MacOs
-        run: tox4 r --skip-pkg-install
+        run: tox r --skip-pkg-install
         env:
           PYTEST_ADDOPTS: "-vv --durations=10"
