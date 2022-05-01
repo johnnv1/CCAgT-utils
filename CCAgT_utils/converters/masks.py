@@ -3,7 +3,8 @@ from __future__ import annotations
 import collections
 
 import numpy as np
-from skimage.draw import polygon
+from PIL import Image
+from PIL import ImageDraw
 
 from CCAgT_utils.categories import Categories
 from CCAgT_utils.types.annotation import Annotation
@@ -39,23 +40,21 @@ def annotations_to_mask(
 
     annotations_sorted = order_annotations_to_draw(annotations)
 
-    out = np.zeros(shape, dtype=np.uint8)
+    out = Image.fromarray(np.zeros(shape, dtype=np.uint8))
     for ann in annotations_sorted:
-        out = draw_annotation(out, ann, ann.category_id, shape)
+        out = draw_annotation(out, ann, ann.category_id)
 
-    return Mask(out)
+    return Mask(np.array(out))
 
 
 def draw_annotation(
-    target: np.ndarray,
+    target: Image.Image,
     annotation: Annotation,
     value: int | tuple[int, int, int],
-    shape: tuple[int, int] | None = None,
-) -> np.ndarray:
+) -> Image.Image:
     for geo in annotation:
         pol_x, pol_y = geo.exterior.coords.xy
-
-        _x, _y = polygon(pol_y, pol_x, shape)
-        target[_x, _y] = value
+        coords = list(zip(pol_x, pol_y))
+        ImageDraw.Draw(target).polygon(coords, fill=value)
 
     return target

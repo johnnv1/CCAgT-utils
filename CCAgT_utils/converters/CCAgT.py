@@ -509,7 +509,7 @@ def single_core_to_PS_COCO(
     if df['image_width'].nunique() == df['image_height'].nunique() == 1:
         w = int(df['image_width'].unique()[0])
         h = int(df['image_height'].unique()[0])
-        output_template = np.zeros((h, w, 3), dtype=np.uint8)
+        output_template = Image.fromarray(np.zeros((h, w, 3), dtype=np.uint8))
     else:
         output_template = None
 
@@ -532,15 +532,15 @@ def single_core_to_PS_COCO(
 
         segments_info = []
 
-        if isinstance(output_template, np.ndarray):
+        if isinstance(output_template, Image.Image):
             out = output_template.copy()
         else:
             w = int(df_by_img['image_width'].unique()[0])
             h = int(df_by_img['image_height'].unique()[0])
-            out = np.zeros((h, w, 3), dtype=np.uint8)
+            out = Image.fromarray(np.zeros((h, w, 3), dtype=np.uint8))
 
         for ann in annotations_sorted:
-            out = draw_annotation(out, ann, ann.color.rgb, out.shape[:2])
+            out = draw_annotation(out, ann, ann.color.rgb)
             segments_info.append({
                 'id': COCO_PS.color_to_id(ann.color),
                 'category_id': ann.category_id,
@@ -555,7 +555,7 @@ def single_core_to_PS_COCO(
             _out_dir = os.path.join(out_dir, df_by_img.iloc[0]['slide_id'])
 
         output_filename = os.path.join(_out_dir, output_basename)
-        Image.fromarray(out).save(output_filename)
+        out.save(output_filename)
         annotations_panoptic.append(panoptic_record)
     return annotations_panoptic
 
