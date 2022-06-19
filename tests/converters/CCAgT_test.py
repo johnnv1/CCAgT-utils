@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import copy
 import os
-import tempfile
 
 import numpy as np
 import pandas as pd
@@ -217,16 +216,15 @@ def test_image_id_by_name(ccagt_ann_single_nucleus):
         ccagt_ann_single_nucleus.image_id_by_name('C_xx1')
 
 
-def test_read_and_dump_to_parquet(ccagt_ann_single_nucleus):
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, 'ccagt_test.parquet')
+def test_read_and_dump_to_parquet(ccagt_ann_single_nucleus, tmpdir):
+    filename = tmpdir.join('ccagt_test.parquet')
 
-        ccagt_ann_single_nucleus.to_parquet(filename)
+    ccagt_ann_single_nucleus.to_parquet(filename)
 
-        assert os.path.exists(filename)
+    assert filename.check()
 
-        ccagt_ann = CCAgT.read_parquet(filename)
-        assert ccagt_ann.df.equals(ccagt_ann_single_nucleus.df)
+    ccagt_ann = CCAgT.read_parquet(str(filename))
+    assert ccagt_ann.df.equals(ccagt_ann_single_nucleus.df)
 
 
 def test_single_core_to_OD_COCO(ccagt_ann_single_nucleus, coco_OD_ann_single_nucleus):
@@ -258,21 +256,20 @@ def test_single_core_to_mask(nucleus_ex, tmpdir):
 
 
 @pytest.mark.slow
-def test_generate_masks(ccagt_ann_single_nucleus):
+def test_generate_masks(ccagt_ann_single_nucleus, tmpdir):
 
     ccagt_ann_single_nucleus.df['image_name'] = 'C_xx1'
     ccagt_ann_single_nucleus.df['image_id'] = ccagt_ann_single_nucleus.generate_ids(ccagt_ann_single_nucleus.df['image_name'])
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        ccagt_ann_single_nucleus.generate_masks(tmp_dir, split_by_slide=True)
-        assert os.path.isfile(os.path.join(tmp_dir, 'C/C_xx1' + '.png'))
+    ccagt_ann_single_nucleus.generate_masks(tmpdir, split_by_slide=True)
+    assert os.path.isfile(tmpdir.join('C/C_xx1.png'))
 
-        ccagt_ann_single_nucleus.generate_masks(tmp_dir, split_by_slide=False)
-        assert os.path.isfile(os.path.join(tmp_dir, 'C_xx1' + '.png'))
+    ccagt_ann_single_nucleus.generate_masks(tmpdir, split_by_slide=False)
+    assert os.path.isfile(tmpdir.join('C_xx1.png'))
 
-        ccagt_ann_single_nucleus.df['slide_id'] = ccagt_ann_single_nucleus.get_slide_id()
-        ccagt_ann_single_nucleus.generate_masks(tmp_dir, split_by_slide=True)
-        assert os.path.isfile(os.path.join(tmp_dir, 'C/C_xx1' + '.png'))
+    ccagt_ann_single_nucleus.df['slide_id'] = ccagt_ann_single_nucleus.get_slide_id()
+    ccagt_ann_single_nucleus.generate_masks(tmpdir, split_by_slide=True)
+    assert os.path.isfile(tmpdir.join('C/C_xx1.png'))
 
 
 def test_single_core_to_PS_COCO(ccagt_ann_single_nucleus, tmpdir):
