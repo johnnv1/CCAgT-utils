@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import os
-import tempfile
-
 import pytest
 
 from CCAgT_utils import utils
@@ -41,32 +38,25 @@ def test_slide_from_filename():
     assert slide_id == 'G'
 
 
-def test_find_files():
+def test_find_files(tmpdir):
+    subdir = tmpdir.mkdir('test')
+    filename_txt = tmpdir.join('file.txt')
+    filename_txt.write('content')
 
-    with tempfile.TemporaryDirectory() as tmpdir:
-        subdir = os.path.join(tmpdir, 'test')
-        os.makedirs(subdir)
-        filename_txt = os.path.join(tmpdir, 'file.txt')
-        f = open(filename_txt, 'w')
-        f.close()
+    filename_bin = subdir.join('file.bin')
+    filename_bin.write('content')
 
-        filename_bin = os.path.join(subdir, 'file.bin')
-        f = open(filename_bin, 'w')
-        f.close()
+    files = utils.find_files(str(tmpdir), ('.txt', '.bin'), False)
+    expected = {'file.txt': str(filename_txt)}
+    assert files == expected
 
-        files = utils.find_files(tmpdir, ('.txt', '.bin'), False)
-        expected = {'file.txt': filename_txt}
-        assert files == expected
+    files = utils.find_files(str(tmpdir), ('.txt', '.bin'), True)
 
-        files = utils.find_files(tmpdir, ('.txt', '.bin'), True)
-
-        expected['file.bin'] = filename_bin
-        assert files == expected
+    expected['file.bin'] = str(filename_bin)
+    assert files == expected
 
 
-def test_create_structure():
-    with tempfile.TemporaryDirectory() as tmpdir:
-
-        utils.create_structure(tmpdir, {'A'})
-        assert os.path.isdir(os.path.join(tmpdir, 'images', 'A'))
-        assert os.path.isdir(os.path.join(tmpdir, 'masks', 'A'))
+def test_create_structure(tmpdir):
+    utils.create_structure(tmpdir, {'A'})
+    assert tmpdir.join('images').join('A').check()
+    assert tmpdir.join('masks').join('A').check()

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import tempfile
 
 import pytest
 
@@ -9,15 +8,14 @@ from CCAgT_utils import checkers
 from testing import create
 
 
-def test_has_all_into_dir():
-    with tempfile.TemporaryDirectory() as tmpdir:
-        f = open(os.path.join(tmpdir, 'file.png'), 'w')
-        f.close()
+def test_has_all_into_dir(tmpdir):
+    f = open(os.path.join(tmpdir, 'file.png'), 'w')
+    f.close()
 
-        f = open(os.path.join(tmpdir, 'file.jpg'), 'w')
-        f.close()
+    f = open(os.path.join(tmpdir, 'file.jpg'), 'w')
+    f.close()
 
-        assert checkers.has_all_into_dir(tmpdir, ['file.png'], extension=('.png'))
+    assert checkers.has_all_into_dir(tmpdir, ['file.png'], extension=('.png'))
 
 
 def test_single_core_mask_has(shape):

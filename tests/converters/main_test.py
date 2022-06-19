@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import tempfile
 
 import pytest
 
@@ -87,12 +86,12 @@ def test_main_out():
 
 
 @pytest.mark.slow
-def test_main_ccagt_generate_masks(ccagt_ann_single_nucleus):
+def test_main_ccagt_generate_masks(ccagt_ann_single_nucleus, tmpdir):
     ccagt_ann_single_nucleus.df['image_id'] = 1
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        ccagt_path = os.path.join(tmp_dir, 'ccagt.parquet.gzip')
-        ccagt_ann_single_nucleus.to_parquet(ccagt_path)
+    ccagt_path = tmpdir.join('ccagt.parquet.gzip')
+    ccagt_ann_single_nucleus.to_parquet(str(ccagt_path))
 
-        out = main.main(['generate_masks', '-l', ccagt_path, '-o', tmp_dir])
+    out = main.main(['generate_masks', '-l', str(ccagt_path), '-o', str(tmpdir)])
 
     assert out == 0
+    assert len(tmpdir.listdir()) == 2

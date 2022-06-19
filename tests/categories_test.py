@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import tempfile
 
 import numpy as np
 import pytest
@@ -133,15 +132,14 @@ def test_CategoriesInfos_generate_random_color(categories_aux_data, monkeypatch)
     assert np.minimum(0, expected_b - 30) <= out_b <= np.minimum(color._max_value, expected_b + 30)
 
 
-def test_read_json():
+def test_read_json(tmpdir):
     d = {'categories': [{'id': 0, 'color': (0, 255, 0), 'name': 'background'}]}
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        filename = os.path.join(tmp_dir, 'helper_file.json')
-        with open(filename, 'w') as f:
-            json.dump(d, f)
+    filename = os.path.join(tmpdir, 'helper_file.json')
+    with open(filename, 'w') as f:
+        json.dump(d, f)
 
-        ccagt_helper = read_json(filename)
+    ccagt_helper = read_json(filename)
 
     assert ccagt_helper._infos[0].id == d['categories'][0]['id']
     assert ccagt_helper._infos[0].name == d['categories'][0]['name']

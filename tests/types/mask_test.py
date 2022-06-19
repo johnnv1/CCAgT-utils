@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import tempfile
 
 import numpy as np
 import pytest
@@ -36,20 +35,19 @@ def test_cmap(mask, categories_infos, get_color_rgba_norm):
     assert cmap.colors[0] == get_color_rgba_norm[1]
 
 
-def test_save(mask):
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        out_path = os.path.join(tmp_dir, 'test.png')
-        mask.save(out_path)
-        assert os.path.isfile(out_path)
-        msk = Image.open(out_path).convert('L')
+def test_save(mask, tmpdir):
+    out_path = os.path.join(tmpdir, 'test.png')
+    mask.save(out_path)
+    assert os.path.isfile(out_path)
+
+    msk = Image.open(out_path).convert('L')
     assert np.array_equal(mask.categorical, msk)
 
 
 @pytest.mark.slow
-def test_save_colorized(mask, categories_infos):
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        out_path = os.path.join(tmp_dir, 'test_colorized.png')
-        mask.save(out_path, categories_infos)
-        msk = Image.open(out_path)
-        assert os.path.isfile(out_path)
-        assert np.array_equal(mask.colorized(categories_infos), msk)
+def test_save_colorized(mask, categories_infos, tmpdir):
+    out_path = os.path.join(tmpdir, 'test_colorized.png')
+    mask.save(out_path, categories_infos)
+    msk = Image.open(out_path)
+    assert os.path.isfile(out_path)
+    assert np.array_equal(mask.colorized(categories_infos), msk)
