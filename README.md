@@ -35,7 +35,7 @@ package.
 # Links to download the CCAgT dataset
 
 1. Version 1.1 - [drive](https://drive.google.com/drive/folders/1TBpYCv6S1ydASLauSzcsvO7Wc5O-WUw0?usp=sharing) or [UFSC repository](https://arquivos.ufsc.br/d/373be2177a33426a9e6c/)
-2. Version 2.1 (will be available soon) - [Mendeley data](https://doi.org/10.17632/wg4bpm33hj.1)
+2. Version 2 - [Mendeley data](https://doi.org/10.17632/wg4bpm33hj.2)
 
 # What does this data set look like?
 Explanations and examples around the `>=2.0` version of the
