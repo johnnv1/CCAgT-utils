@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import collections
+from itertools import chain
 from typing import Any
 
 import numpy as np
 import pandas as pd
 from PIL import Image
 from PIL import ImageDraw
+from shapely.geometry import MultiPolygon
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
@@ -142,8 +144,6 @@ def from_labelbox(
 
 # -----------------------------------------------------------------------
 # Functions to generate masks
-
-
 # Order of categories IDs available at the metadata
 DRAW_ORDER = (
     Categories.LEUKOCYTE_NUCLEUS,
@@ -192,3 +192,37 @@ def draw_annotation(
         ImageDraw.Draw(target).polygon(coords, fill=value)
 
     return target
+
+
+# -----------------------------------------------------------------------
+# Functions work with data to COCO
+def bounds_to_coco_bb(
+    bounds: tuple[float],
+    decimals: int = 2,
+) -> list[float]:
+    # bounds is in  (minx, miny, maxx, maxy)
+    # bb  of coco is in [min(x), min(y), max(x)-min(x), max(y)-min(y)]
+    b = tuple(np.round(x, decimals) for x in bounds)
+    min_x, min_y, max_x, max_y = b
+    return [min_x, min_y, max_x - min_x, max_y - min_y]
+
+
+def pol_to_coco_segment(
+    geo: Polygon | MultiPolygon,
+    decimals: int = 2,
+) -> list[list[float]]:
+    # polygon of shapely is a class
+    # polygon or segmentation at coco is a list of [[x0, y0, x1, y1 ...]]
+
+    def coco_pol(geometry: Polygon, decimals: int = decimals) -> list[float]:
+        list_of_points = list(zip(*geometry.exterior.coords.xy))
+        geometry = list(chain(*list_of_points))
+        geometry = list(np.around(np.array(geometry), decimals))
+        return geometry
+
+    if geo.geom_type == 'Polygon':
+        return [coco_pol(geo)]
+    elif geo.geom_type == 'MultiPolygon':
+        return [coco_pol(g) for g in geo.geoms]
+    else:
+        raise TypeError(f'Geometry shape is not a polygon or MultiPolygon. This is a {geo.geom_type}.')

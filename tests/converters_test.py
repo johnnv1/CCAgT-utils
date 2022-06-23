@@ -3,11 +3,16 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 import pytest
+from shapely.geometry import MultiPolygon
+from shapely.geometry import Point
+from shapely.geometry import Polygon
 
 from CCAgT_utils.converters import annotations_to_mask
+from CCAgT_utils.converters import bounds_to_coco_bb
 from CCAgT_utils.converters import from_labelbox
 from CCAgT_utils.converters import lbox_geo_to_shapely
 from CCAgT_utils.converters import order_annotations_to_draw
+from CCAgT_utils.converters import pol_to_coco_segment
 from CCAgT_utils.formats.annotation import Annotation
 
 
@@ -63,3 +68,33 @@ def test_annotations_to_mask(cluster_ex, cluster_mask_ex):
     shape = cluster_mask_ex.shape
     msk = annotations_to_mask([Annotation(cluster_ex, 2)], shape[0], shape[1])
     assert np.array_equal(cluster_mask_ex, msk.categorical)
+
+
+def test_bounds_to_coco_bb():
+    p = Polygon([(0, 0), (0, 10), (10, 10), (10, 0)])
+    bounds = p.bounds
+    coco_bb = bounds_to_coco_bb(bounds, decimals=2)
+
+    assert coco_bb == [0., 0., 10, 10]
+
+
+def test_pol_to_coco_segment():
+    coords_1 = [(0, 0), (0, 10), (10, 10), (10, 0)]
+    p = Polygon(coords_1)
+    seg = pol_to_coco_segment(p)
+
+    coords_1_out = [0., 0., 0., 10., 10., 10., 10., 0., 0., 0.]
+    assert seg == [coords_1_out]
+
+    coords_2 = [(20, 20), (20, 210), (210, 210), (210, 20)]
+
+    mp = MultiPolygon([p, Polygon(coords_2)])
+    seg = pol_to_coco_segment(mp)
+
+    coords_2_out = [20., 20., 20., 210., 210., 210., 210., 20., 20., 20.]
+    assert seg == [coords_1_out, coords_2_out]
+
+
+def test_wrong_pol_to_coco_segment():
+    with pytest.raises(TypeError):
+        pol_to_coco_segment(Point(0, 0))
