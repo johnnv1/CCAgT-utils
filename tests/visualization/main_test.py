@@ -34,8 +34,8 @@ def test_not_implemented_command():
 
 
 @pytest.mark.slow
-def test_main_show_images_with_boxes(ccagt_ann_multi, lbb_raw_sample_complete, ccagt_aux_data):
-    with create.RawAuxFiles(lbb_raw_sample_complete, ccagt_aux_data) as paths:
+def test_main_show_images_with_boxes(ccagt_ann_multi, lbox_raw_sample_complete, ccagt_aux_data):
+    with create.RawAuxFiles(lbox_raw_sample_complete, ccagt_aux_data) as paths:
         temp_dir, _, aux_path = paths
         labels_path = os.path.join(temp_dir, 'labels.parquet.gzip')
         ccagt_ann_multi.to_parquet(labels_path)
@@ -48,8 +48,8 @@ def test_main_show_images_with_boxes(ccagt_ann_multi, lbb_raw_sample_complete, c
 
 
 @pytest.mark.slow
-def test_main_show_image_and_mask(ccagt_ann_multi, lbb_raw_sample_complete, ccagt_aux_data):
-    with create.RawAuxFiles(lbb_raw_sample_complete, ccagt_aux_data) as paths:
+def test_main_show_image_and_mask(ccagt_ann_multi, lbox_raw_sample_complete, ccagt_aux_data):
+    with create.RawAuxFiles(lbox_raw_sample_complete, ccagt_aux_data) as paths:
         temp_dir, _, aux_path = paths
         labels_path = os.path.join(temp_dir, 'labels.parquet.gzip')
         ccagt_ann_multi.to_parquet(labels_path)
@@ -67,8 +67,8 @@ def test_main_show_image_and_mask(ccagt_ann_multi, lbb_raw_sample_complete, ccag
     assert exit_code == 1
 
 
-def test_main_show_image_with_boxes_and_mask(ccagt_ann_multi, lbb_raw_sample_complete, ccagt_aux_data):
-    with create.RawAuxFiles(lbb_raw_sample_complete, ccagt_aux_data) as paths:
+def test_main_show_image_with_boxes_and_mask(ccagt_ann_multi, lbox_raw_sample_complete, ccagt_aux_data):
+    with create.RawAuxFiles(lbox_raw_sample_complete, ccagt_aux_data) as paths:
         temp_dir, _, aux_path = paths
         labels_path = os.path.join(temp_dir, 'labels.parquet.gzip')
         ccagt_ann_multi.to_parquet(labels_path)

@@ -27,14 +27,14 @@ qtd of annotations = 11
 '''
 
 
-def test_open_and_read_json(lbb_raw_sample_complete):
+def test_open_and_read_json(lbox_raw_sample_complete):
     aux = [{'': None}]
-    with RawAuxFiles(lbb_raw_sample_complete, aux) as paths:
+    with RawAuxFiles(lbox_raw_sample_complete, aux) as paths:
         _, raw_path, aux_path = paths
         out = utils.open_and_read_json(raw_path)
         out1 = utils.open_and_read_json(aux_path)
 
-    assert out == lbb_raw_sample_complete
+    assert out == lbox_raw_sample_complete
     assert out1 == aux
 
 
@@ -52,8 +52,8 @@ def test_labelbox_to_COCO_wrong_target():
     assert out == 1
 
 
-def test_labelbox_to_COCO_OD(lbb_raw_sample_complete, ccagt_aux_data):
-    with RawAuxFiles(lbb_raw_sample_complete, ccagt_aux_data) as paths:
+def test_labelbox_to_COCO_OD(lbox_raw_sample_complete, ccagt_aux_data):
+    with RawAuxFiles(lbox_raw_sample_complete, ccagt_aux_data) as paths:
         temp_dir, raw_path, aux_path = paths
         out_filename = os.path.join(temp_dir, 'out.json')
         o = utils.labelbox_to_COCO('OD', raw_path, aux_path, out_filename, '', 2)
@@ -81,8 +81,8 @@ def test_labelbox_to_CCAgT_wrong_filetypes():
         utils.labelbox_to_CCAgT('raw.json', 'aux.json', 'out.json', '')
 
 
-def test_labelbox_to_CCAgT(lbb_raw_sample_complete, ccagt_aux_data):
-    with RawAuxFiles(lbb_raw_sample_complete, ccagt_aux_data) as paths:
+def test_labelbox_to_CCAgT(lbox_raw_sample_complete, ccagt_aux_data):
+    with RawAuxFiles(lbox_raw_sample_complete, ccagt_aux_data) as paths:
         temp_dir, raw_path, aux_path = paths
         out_filename = os.path.join(temp_dir, 'out.parquet')
         out = utils.labelbox_to_CCAgT(raw_path, aux_path, out_filename, '.jpg', True)
@@ -93,8 +93,8 @@ def test_labelbox_to_CCAgT(lbb_raw_sample_complete, ccagt_aux_data):
     assert out == out1 == 0
 
 
-def test_labelbox_to_CCAgT_without_valid_geometries(lbb_raw_single_wrong_nucleus, ccagt_aux_data):
-    with RawAuxFiles([lbb_raw_single_wrong_nucleus], ccagt_aux_data) as paths:
+def test_labelbox_to_CCAgT_without_valid_geometries(lbox_raw_single_wrong_nucleus, ccagt_aux_data):
+    with RawAuxFiles([lbox_raw_single_wrong_nucleus], ccagt_aux_data) as paths:
         temp_dir, raw_path, aux_path = paths
         out_filename = os.path.join(temp_dir, 'out.parquet')
         out = utils.labelbox_to_CCAgT(raw_path, aux_path, out_filename, '', True)

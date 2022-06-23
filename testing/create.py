@@ -41,10 +41,15 @@ def mask_colorized(shape: tuple[int, int]) -> np.ndarray:
 
 
 class RawAuxFiles():
-    def __init__(self, raw_data: list[dict[str, Any]], aux_data: list[dict[str, Any]]) -> None:
+    def __init__(
+            self,
+            raw_data: list[dict[str, Any]],
+            aux_data: list[dict[str, Any]],
+            tmpdir: str,
+    ) -> None:
         self.raw_data = raw_data
         self.aux_data = aux_data
-        self.tmp_dir = tempfile.TemporaryDirectory('_RawAuxFiles', 'CCAgTutils_')
+        self.tmp_dir = tmpdir
         self.raw_path = os.path.join(self.tmp_dir.name, 'raw_file.json')
         self.aux_path = os.path.join(self.tmp_dir.name, 'aux_file.json')
 

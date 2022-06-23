@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import functools
+import json
 import os
 import traceback
 from enum import Enum
+from typing import Any
 from typing import Callable
 from typing import TypeVar
 
@@ -154,3 +156,8 @@ def create_structure(dir_path: str, slides: set[str]) -> None:
     for slide in slides:
         os.makedirs(os.path.join(dir_images, slide), exist_ok=True)
         os.makedirs(os.path.join(dir_masks, slide), exist_ok=True)
+
+
+def open_and_read_json(path: str) -> Any:
+    with open(path) as f:
+        return json.load(f)
