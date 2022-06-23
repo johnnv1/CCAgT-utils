@@ -1,21 +1,33 @@
 from __future__ import annotations
 
 import copy
-import os
 
 import numpy as np
 import pandas as pd
 import pytest
-from distutils.command.sdist import sdist
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
 from CCAgT_utils.base.categories import CategoriesInfos
-from CCAgT_utils.base.colors import Color
 from CCAgT_utils.base.errors import FileTypeError
 from CCAgT_utils.base.errors import MoreThanOneIDbyItemError
 from CCAgT_utils.formats import CCAgT
-from testing import create
+
+
+def test_load_wrong_type():
+    with pytest.raises(FileTypeError):
+        CCAgT.load('wrong file.and.type')
+
+
+def test_load_and_save(ccagt_df_single_nucleus, tmpdir):
+    filename = tmpdir.join('ccagt_test.parquet')
+
+    CCAgT.save(ccagt_df_single_nucleus, filename)
+
+    assert filename.check()
+
+    ccagt_ann = CCAgT.load(str(filename))
+    assert ccagt_ann.equals(ccagt_df_single_nucleus)
 
 
 def test_slides_ids(ccagt_df_single_nucleus):
