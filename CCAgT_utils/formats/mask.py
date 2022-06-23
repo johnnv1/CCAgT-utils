@@ -7,9 +7,9 @@ import matplotlib.colors as mlp_colors
 import numpy as np
 from PIL import Image
 
-from CCAgT_utils.categories import CategoriesInfos
-from CCAgT_utils.errors import ShapeError
-from CCAgT_utils.types.checkers import is_2d
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.base.errors import ShapeError
+from CCAgT_utils.formats.checkers import is_2d
 
 
 @dataclass

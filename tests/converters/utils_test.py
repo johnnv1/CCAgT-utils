@@ -5,9 +5,9 @@ import os
 
 import pytest
 
+from CCAgT_utils.base.errors import FileTypeError
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.converters import utils
-from CCAgT_utils.errors import FileTypeError
 from testing.create import RawAuxFiles
 
 

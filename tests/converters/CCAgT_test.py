@@ -9,11 +9,11 @@ import pytest
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
-from CCAgT_utils.categories import CategoriesInfos
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.base.colors import Color
+from CCAgT_utils.base.errors import FileTypeError
+from CCAgT_utils.base.errors import MoreThanOneIDbyItemError
 from CCAgT_utils.converters import CCAgT
-from CCAgT_utils.errors import FileTypeError
-from CCAgT_utils.errors import MoreThanOneIDbyItemError
-from CCAgT_utils.types.colors import Color
 from testing import create
 
 

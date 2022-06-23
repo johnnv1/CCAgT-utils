@@ -6,9 +6,9 @@ import numpy as np
 from PIL import Image
 from PIL import ImageDraw
 
-from CCAgT_utils.categories import Categories
-from CCAgT_utils.types.annotation import Annotation
-from CCAgT_utils.types.mask import Mask
+from CCAgT_utils.base.categories import Categories
+from CCAgT_utils.formats.annotation import Annotation
+from CCAgT_utils.formats.mask import Mask
 
 # Order of categories IDs available at the metadata
 DRAW_ORDER = (

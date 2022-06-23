@@ -9,11 +9,10 @@ from shapely import affinity
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
-from CCAgT_utils.categories import CategoriesInfos
-from CCAgT_utils.converters import CCAgT
+from CCAgT_utils.base.categories import CategoriesInfos
 from CCAgT_utils.converters.LabelBox import LabelBox
-from CCAgT_utils.types.annotation import Annotation
-from CCAgT_utils.types.mask import Mask
+from CCAgT_utils.formats.annotation import Annotation
+from CCAgT_utils.formats.mask import Mask
 from testing import create
 
 
@@ -258,19 +257,19 @@ def lbb_raw_expected_ccagt_df(satellite_ex, nucleus_ex):
 def ccagt_df_multi(nucleus_ex, cluster_ex, satellite_ex):
     # Using a dict with a list for each collum, will raise a warning for Points because of pandas cast type
     d = [
-        create.row_CCAgT(satellite_ex, 3, 'A_xx1', image_id=1),
-        create.row_CCAgT(nucleus_ex, 1, 'A_xx1', image_id=1),
-        create.row_CCAgT(cluster_ex, 2, 'A_xx1', image_id=1),
+        create.row_CCAgT(satellite_ex, 3, 'A_xx1', image_id=1, **{'geo_type': 'Point'}),
+        create.row_CCAgT(nucleus_ex, 1, 'A_xx1', image_id=1, **{'geo_type': 'Polygon'}),
+        create.row_CCAgT(cluster_ex, 2, 'A_xx1', image_id=1, **{'geo_type': 'Polygon'}),
 
-        create.row_CCAgT(nucleus_ex, 1, 'B_xx1', image_id=2),
-        create.row_CCAgT(affinity.translate(nucleus_ex, 50, 50), 1, 'B_xx1', image_id=2),
+        create.row_CCAgT(nucleus_ex, 1, 'B_xx1', image_id=2, **{'geo_type': 'Polygon'}),
+        create.row_CCAgT(affinity.translate(nucleus_ex, 50, 50), 1, 'B_xx1', image_id=2, **{'geo_type': 'Polygon'}),
 
-        create.row_CCAgT(satellite_ex, 3, 'A_yy2', image_id=3),
-        create.row_CCAgT(nucleus_ex, 1, 'A_yy2', image_id=3),
-        create.row_CCAgT(cluster_ex, 2, 'A_yy2', image_id=3),
-        create.row_CCAgT(affinity.translate(satellite_ex, 50, 50), 3, 'A_yy2', image_id=3),
-        create.row_CCAgT(affinity.translate(nucleus_ex, 50, 50), 1, 'A_yy2', image_id=3),
-        create.row_CCAgT(affinity.translate(cluster_ex, 50, 50), 2, 'A_yy2', image_id=3),
+        create.row_CCAgT(satellite_ex, 3, 'A_yy2', image_id=3, **{'geo_type': 'Point'}),
+        create.row_CCAgT(nucleus_ex, 1, 'A_yy2', image_id=3, **{'geo_type': 'Polygon'}),
+        create.row_CCAgT(cluster_ex, 2, 'A_yy2', image_id=3, **{'geo_type': 'Polygon'}),
+        create.row_CCAgT(affinity.translate(satellite_ex, 50, 50), 3, 'A_yy2', image_id=3, **{'geo_type': 'Point'}),
+        create.row_CCAgT(affinity.translate(nucleus_ex, 50, 50), 1, 'A_yy2', image_id=3, **{'geo_type': 'Polygon'}),
+        create.row_CCAgT(affinity.translate(cluster_ex, 50, 50), 2, 'A_yy2', image_id=3, **{'geo_type': 'Polygon'}),
     ]
     return pd.DataFrame(d)
 
@@ -278,20 +277,6 @@ def ccagt_df_multi(nucleus_ex, cluster_ex, satellite_ex):
 @pytest.fixture
 def ccagt_df_single_nucleus(nucleus_ex):
     return pd.DataFrame([create.row_CCAgT(nucleus_ex, 1, 'C_xx1')])
-
-
-@pytest.fixture
-def ccagt_ann_single_nucleus(nucleus_ex, shape):
-    d = pd.DataFrame([create.row_CCAgT(nucleus_ex, 1, 'C_xx1')])
-    d['image_width'] = shape[1]
-    d['image_height'] = shape[0]
-
-    return CCAgT.CCAgT(d)
-
-
-@pytest.fixture
-def ccagt_ann_multi(ccagt_df_multi):
-    return CCAgT.CCAgT(ccagt_df_multi)
 
 
 @pytest.fixture

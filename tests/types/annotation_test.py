@@ -6,8 +6,8 @@ import pytest
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
 
-from CCAgT_utils.categories import CategoriesInfos
-from CCAgT_utils.types import annotation
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.formats import annotation
 
 
 @pytest.fixture

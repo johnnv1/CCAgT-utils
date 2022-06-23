@@ -7,7 +7,7 @@ import pytest
 from PIL import Image
 
 from CCAgT_utils import describe
-from CCAgT_utils.categories import Categories
+from CCAgT_utils.base.categories import Categories
 from testing import create
 
 

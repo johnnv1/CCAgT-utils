@@ -7,8 +7,8 @@ import pandas as pd
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
+from CCAgT_utils.base.utils import basename
 from CCAgT_utils.converters.CCAgT import CCAgT
-from CCAgT_utils.utils import basename
 
 
 # Just remove the class, everything can be just functions

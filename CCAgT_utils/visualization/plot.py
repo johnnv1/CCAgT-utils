@@ -8,9 +8,9 @@ import PIL.Image
 from matplotlib import patches
 from matplotlib import patheffects
 
-from CCAgT_utils.categories import CategoriesInfos
-from CCAgT_utils.types.annotation import BBox
-from CCAgT_utils.types.mask import Mask
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.formats.annotation import BBox
+from CCAgT_utils.formats.mask import Mask
 
 
 def bbox(

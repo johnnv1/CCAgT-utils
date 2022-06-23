@@ -5,9 +5,9 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from CCAgT_utils.errors import FileTypeError
-from CCAgT_utils.types.colors import Color
-from CCAgT_utils.types.colors import random_color_from_base
+from CCAgT_utils.base.colors import Color
+from CCAgT_utils.base.colors import random_color_from_base
+from CCAgT_utils.base.errors import FileTypeError
 
 
 class Categories(Enum):

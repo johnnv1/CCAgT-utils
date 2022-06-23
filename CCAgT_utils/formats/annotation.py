@@ -7,9 +7,9 @@ from dataclasses import dataclass
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
 
-from CCAgT_utils.categories import CategoriesInfos
-from CCAgT_utils.types.colors import Color
-from CCAgT_utils.types.colors import random_color_from_base
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.base.colors import Color
+from CCAgT_utils.base.colors import random_color_from_base
 
 
 @dataclass

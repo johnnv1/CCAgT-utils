@@ -7,11 +7,11 @@ from typing import Any
 
 import pandas as pd
 
-from CCAgT_utils import categories
+from CCAgT_utils.base import categories
+from CCAgT_utils.base.errors import FileTypeError
 from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.converters.CCAgT import read_parquet
 from CCAgT_utils.converters.LabelBox import LabelBox
-from CCAgT_utils.errors import FileTypeError
 
 
 def labelbox_to_COCO(

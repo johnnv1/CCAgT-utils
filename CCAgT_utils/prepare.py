@@ -9,17 +9,17 @@ import pandas as pd
 from PIL import Image
 from shapely import affinity
 
-from CCAgT_utils.categories import Categories
-from CCAgT_utils.categories import CategoriesInfos
+from CCAgT_utils.base.categories import Categories
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.base.utils import basename
+from CCAgT_utils.base.utils import create_structure
+from CCAgT_utils.base.utils import find_files
+from CCAgT_utils.base.utils import get_traceback
+from CCAgT_utils.base.utils import slide_from_filename
 from CCAgT_utils.checkers import masks_that_has
 from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.converters.CCAgT import read_parquet
-from CCAgT_utils.types.annotation import Annotation
-from CCAgT_utils.utils import basename
-from CCAgT_utils.utils import create_structure
-from CCAgT_utils.utils import find_files
-from CCAgT_utils.utils import get_traceback
-from CCAgT_utils.utils import slide_from_filename
+from CCAgT_utils.formats.annotation import Annotation
 
 
 def clean_images_and_masks(

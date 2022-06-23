@@ -7,7 +7,7 @@ import pytest
 from shapely import affinity
 
 from CCAgT_utils import slice
-from CCAgT_utils.types.annotation import Annotation
+from CCAgT_utils.formats.annotation import Annotation
 from testing import create
 
 

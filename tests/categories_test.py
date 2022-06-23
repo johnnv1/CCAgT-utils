@@ -6,13 +6,13 @@ import os
 import numpy as np
 import pytest
 
-from CCAgT_utils.categories import Categories
-from CCAgT_utils.categories import CategoriesInfos
-from CCAgT_utils.categories import CategoryInfo
-from CCAgT_utils.categories import CATS_COLORS
-from CCAgT_utils.categories import read_json
-from CCAgT_utils.errors import FileTypeError
-from CCAgT_utils.types.colors import Color
+from CCAgT_utils.base.categories import Categories
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.base.categories import CategoryInfo
+from CCAgT_utils.base.categories import CATS_COLORS
+from CCAgT_utils.base.categories import read_json
+from CCAgT_utils.base.colors import Color
+from CCAgT_utils.base.errors import FileTypeError
 
 
 def test_CategoriesInfos_init_without_data():

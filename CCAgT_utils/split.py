@@ -5,7 +5,7 @@ from typing import Any
 
 import numpy as np
 
-from CCAgT_utils.categories import CategoriesInfos
+from CCAgT_utils.base.categories import CategoriesInfos
 from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.describe import annotations_per_image
 

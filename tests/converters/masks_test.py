@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 
 from CCAgT_utils.converters import masks
-from CCAgT_utils.types.annotation import Annotation
+from CCAgT_utils.formats.annotation import Annotation
 
 
 def test_order_annotations_to_draw(cluster_ex, satellite_ex, nucleus_ex):
