@@ -37,6 +37,18 @@ package.
 1. Version 1.1 - [drive](https://drive.google.com/drive/folders/1TBpYCv6S1ydASLauSzcsvO7Wc5O-WUw0?usp=sharing) or [UFSC repository](https://arquivos.ufsc.br/d/373be2177a33426a9e6c/)
 2. Version 2 - [Mendeley data](https://doi.org/10.17632/wg4bpm33hj.2)
 
+## Using HF datasets
+
+The [Hugging Face datasets API](https://github.com/huggingface/datasets) provides a easily way to download and use various datasets. One of these datasets is CCAgT dataset, which can be found at [huggingface.co/datasets/lapix/CCAgT/](https://huggingface.co/datasets/lapix/CCAgT/).
+
+```python
+from datasets import load_dataset
+
+dataset = load_dataset("lapix/CCAgT")
+
+# ...
+```
+
 # What does this data set look like?
 Explanations and examples around the `>=2.0` version of the
 dataset. If you want to use older versions of the dataset,
