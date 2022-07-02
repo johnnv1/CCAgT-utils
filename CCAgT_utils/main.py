@@ -57,7 +57,7 @@ def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:
     group_ex.add_argument(
         '--slice-images',
         nargs=2,
-        metavar='HORIZONTA_VERTICAL',
+        metavar=('HORIZONTAL', 'VERTICAL'),
         type=int,
         help=(
             'Define that wants slice the images into smaller parts. Needs to pass the amount of slice '
