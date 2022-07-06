@@ -62,9 +62,8 @@ def extract_category(
     bn, ext = os.path.splitext(basename(input_path, with_extension=True))
 
     height, width = im.shape[:2]
-    count = 1
     annotations_out = []
-    for ann, group in annotations:
+    for count, (ann, group) in enumerate(annotations, start=1):
         basename_img = f'{bn}_{ann.category_id}_{count}'
         filename_img = os.path.join(output_path, f'{basename_img}{ext}')
 
@@ -99,7 +98,6 @@ def extract_category(
             quality=100,
             subsampling=0,
         )
-        count += 1
 
     return len(annotations), annotations_out
 
