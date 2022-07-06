@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import os
 
 import numpy as np
@@ -9,11 +10,9 @@ from shapely import affinity
 from shapely.geometry import Point
 from shapely.geometry import Polygon
 
-from CCAgT_utils.categories import CategoriesInfos
-from CCAgT_utils.converters import CCAgT
-from CCAgT_utils.converters.LabelBox import LabelBox
-from CCAgT_utils.types.annotation import Annotation
-from CCAgT_utils.types.mask import Mask
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.formats.annotation import Annotation
+from CCAgT_utils.formats.mask import Mask
 from testing import create
 
 
@@ -154,7 +153,7 @@ def satellite_ex():
 
 
 @pytest.fixture
-def lbb_raw_single_satellite(satellite_ex):
+def lbox_raw_single_satellite(satellite_ex):
     return {
         'ID': 'a1', 'External ID': 'tmp/A_xxx.png', 'Skipped': False, 'Reviews': [{
             'score': 1,
@@ -178,7 +177,7 @@ def lbb_raw_single_satellite(satellite_ex):
 
 
 @pytest.fixture
-def lbb_raw_single_nucleus(nucleus_ex):
+def lbox_raw_single_nucleus(nucleus_ex):
     return {
         'ID': 'a1', 'External ID': 'tmp/A_xxx.png', 'Skipped': False, 'Reviews': [{
             'score': 1,
@@ -199,7 +198,7 @@ def lbb_raw_single_nucleus(nucleus_ex):
 
 
 @pytest.fixture
-def lbb_raw_single_wrong_nucleus():
+def lbox_raw_single_wrong_nucleus():
     return {
         'ID': 'a1', 'External ID': 'tmp/A_xxx.png', 'Skipped': False, 'Reviews': [{
             'score': 1,
@@ -231,22 +230,27 @@ def lbb_raw_single_wrong_nucleus():
 
 
 @pytest.fixture
-def lbb_raw_sample_complete(lbb_raw_single_satellite, lbb_raw_single_nucleus):
+def lbox_raw_sample_complete(lbox_raw_single_satellite, lbox_raw_single_nucleus):
     o = [
-        lbb_raw_single_satellite,
-        lbb_raw_single_nucleus,
+        lbox_raw_single_satellite,
+        lbox_raw_single_nucleus,
         {'ID': 'a2', 'External ID': 'tmp/B_xxx', 'Skipped': True},
     ]
     return o
 
 
 @pytest.fixture
-def lbb_ann(categories_aux_data, lbb_raw_sample_complete):
-    return LabelBox(lbb_raw_sample_complete, categories_aux_data)
+def lbox_sample_complete(tmpdir, lbox_raw_sample_complete):
+    filename = tmpdir.join('lbox_sample_complete.json')
+
+    with open(str(filename), 'w') as outfile:
+        json.dump(lbox_raw_sample_complete, outfile)
+
+    return str(filename)
 
 
 @pytest.fixture
-def lbb_raw_expected_ccagt_df(satellite_ex, nucleus_ex):
+def lbox_raw_expected_ccagt_df(satellite_ex, nucleus_ex):
     d = [
         create.row_CCAgT(satellite_ex, 3, 'A_xxx'),
         create.row_CCAgT(nucleus_ex, 1, 'A_xxx'),
@@ -258,19 +262,19 @@ def lbb_raw_expected_ccagt_df(satellite_ex, nucleus_ex):
 def ccagt_df_multi(nucleus_ex, cluster_ex, satellite_ex):
     # Using a dict with a list for each collum, will raise a warning for Points because of pandas cast type
     d = [
-        create.row_CCAgT(satellite_ex, 3, 'A_xx1', image_id=1),
-        create.row_CCAgT(nucleus_ex, 1, 'A_xx1', image_id=1),
-        create.row_CCAgT(cluster_ex, 2, 'A_xx1', image_id=1),
+        create.row_CCAgT(satellite_ex, 3, 'A_xx1', image_id=1, **{'geo_type': 'Point'}),
+        create.row_CCAgT(nucleus_ex, 1, 'A_xx1', image_id=1, **{'geo_type': 'Polygon'}),
+        create.row_CCAgT(cluster_ex, 2, 'A_xx1', image_id=1, **{'geo_type': 'Polygon'}),
 
-        create.row_CCAgT(nucleus_ex, 1, 'B_xx1', image_id=2),
-        create.row_CCAgT(affinity.translate(nucleus_ex, 50, 50), 1, 'B_xx1', image_id=2),
+        create.row_CCAgT(nucleus_ex, 1, 'B_xx1', image_id=2, **{'geo_type': 'Polygon'}),
+        create.row_CCAgT(affinity.translate(nucleus_ex, 50, 50), 1, 'B_xx1', image_id=2, **{'geo_type': 'Polygon'}),
 
-        create.row_CCAgT(satellite_ex, 3, 'A_yy2', image_id=3),
-        create.row_CCAgT(nucleus_ex, 1, 'A_yy2', image_id=3),
-        create.row_CCAgT(cluster_ex, 2, 'A_yy2', image_id=3),
-        create.row_CCAgT(affinity.translate(satellite_ex, 50, 50), 3, 'A_yy2', image_id=3),
-        create.row_CCAgT(affinity.translate(nucleus_ex, 50, 50), 1, 'A_yy2', image_id=3),
-        create.row_CCAgT(affinity.translate(cluster_ex, 50, 50), 2, 'A_yy2', image_id=3),
+        create.row_CCAgT(satellite_ex, 3, 'A_yy2', image_id=3, **{'geo_type': 'Point'}),
+        create.row_CCAgT(nucleus_ex, 1, 'A_yy2', image_id=3, **{'geo_type': 'Polygon'}),
+        create.row_CCAgT(cluster_ex, 2, 'A_yy2', image_id=3, **{'geo_type': 'Polygon'}),
+        create.row_CCAgT(affinity.translate(satellite_ex, 50, 50), 3, 'A_yy2', image_id=3, **{'geo_type': 'Point'}),
+        create.row_CCAgT(affinity.translate(nucleus_ex, 50, 50), 1, 'A_yy2', image_id=3, **{'geo_type': 'Polygon'}),
+        create.row_CCAgT(affinity.translate(cluster_ex, 50, 50), 2, 'A_yy2', image_id=3, **{'geo_type': 'Polygon'}),
     ]
     return pd.DataFrame(d)
 
@@ -278,20 +282,6 @@ def ccagt_df_multi(nucleus_ex, cluster_ex, satellite_ex):
 @pytest.fixture
 def ccagt_df_single_nucleus(nucleus_ex):
     return pd.DataFrame([create.row_CCAgT(nucleus_ex, 1, 'C_xx1')])
-
-
-@pytest.fixture
-def ccagt_ann_single_nucleus(nucleus_ex, shape):
-    d = pd.DataFrame([create.row_CCAgT(nucleus_ex, 1, 'C_xx1')])
-    d['image_width'] = shape[1]
-    d['image_height'] = shape[0]
-
-    return CCAgT.CCAgT(d)
-
-
-@pytest.fixture
-def ccagt_ann_multi(ccagt_df_multi):
-    return CCAgT.CCAgT(ccagt_df_multi)
 
 
 @pytest.fixture

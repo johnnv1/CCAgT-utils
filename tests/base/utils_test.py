@@ -2,18 +2,25 @@ from __future__ import annotations
 
 import pytest
 
-from CCAgT_utils import utils
+from CCAgT_utils.base.utils import basename
+from CCAgT_utils.base.utils import create_structure
+from CCAgT_utils.base.utils import find_files
+from CCAgT_utils.base.utils import get_traceback
+from CCAgT_utils.base.utils import items_from_filename
+from CCAgT_utils.base.utils import open_and_read_json
+from CCAgT_utils.base.utils import slide_from_filename
+from testing.create import RawAuxFiles
 
 
 def test_get_basename():
     filename = 'tmp/example/file.json'
 
-    assert utils.basename(filename) == 'file'
-    assert utils.basename(filename, True) == 'file.json'
+    assert basename(filename) == 'file'
+    assert basename(filename, True) == 'file.json'
 
 
 def test_get_traceback():
-    assert utils.get_traceback(lambda: 'test')() == 'test'
+    assert get_traceback(lambda: 'test')() == 'test'
 
 
 def test_get_traceback_raise():
@@ -21,19 +28,19 @@ def test_get_traceback_raise():
         raise Exception
 
     with pytest.raises(Exception):
-        utils.get_traceback(raise_exception)()
+        get_traceback(raise_exception)()
 
 
 def test_items_from_filename():
     filename = '/tmp/G_11_000_999.jpg'
-    items = utils.items_from_filename(filename)
+    items = items_from_filename(filename)
 
     assert items == ['G', '11', '000', '999']
 
 
 def test_slide_from_filename():
     filename = '/tmp/G_11_000_999.jpg'
-    slide_id = utils.slide_from_filename(filename)
+    slide_id = slide_from_filename(filename)
 
     assert slide_id == 'G'
 
@@ -46,17 +53,22 @@ def test_find_files(tmpdir):
     filename_bin = subdir.join('file.bin')
     filename_bin.write('content')
 
-    files = utils.find_files(str(tmpdir), ('.txt', '.bin'), False)
+    files = find_files(str(tmpdir), ('.txt', '.bin'), False)
     expected = {'file.txt': str(filename_txt)}
     assert files == expected
 
-    files = utils.find_files(str(tmpdir), ('.txt', '.bin'), True)
+    files = find_files(str(tmpdir), ('.txt', '.bin'), True)
 
     expected['file.bin'] = str(filename_bin)
     assert files == expected
 
 
 def test_create_structure(tmpdir):
-    utils.create_structure(tmpdir, {'A'})
+    create_structure(tmpdir, {'A'})
     assert tmpdir.join('images').join('A').check()
     assert tmpdir.join('masks').join('A').check()
+
+
+def test_open_and_read_json(lbox_raw_sample_complete, lbox_sample_complete):
+    out = open_and_read_json(lbox_sample_complete)
+    assert out == lbox_raw_sample_complete

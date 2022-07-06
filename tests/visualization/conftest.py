@@ -3,7 +3,7 @@ from __future__ import annotations
 import matplotlib.pyplot as plt
 import pytest
 
-from CCAgT_utils.types.annotation import BBox
+from CCAgT_utils.formats.annotation import BBox
 
 
 @pytest.fixture

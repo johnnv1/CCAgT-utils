@@ -7,11 +7,11 @@ import sys
 import matplotlib.pyplot as plt
 from PIL import Image
 
-from CCAgT_utils import categories
+from CCAgT_utils.base import categories
 from CCAgT_utils.converters.CCAgT import CCAgT
-from CCAgT_utils.types.annotation import bounds_to_BBox
-from CCAgT_utils.types.annotation import count_BBox_categories
-from CCAgT_utils.types.mask import Mask
+from CCAgT_utils.formats.annotation import bounds_to_BBox
+from CCAgT_utils.formats.annotation import count_BBox_categories
+from CCAgT_utils.formats.mask import Mask
 from CCAgT_utils.visualization import plot
 
 

@@ -9,16 +9,16 @@ from typing import Sequence
 
 from CCAgT_utils import describe
 from CCAgT_utils import slice
-from CCAgT_utils.categories import CategoriesInfos
-from CCAgT_utils.categories import read_json
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.base.categories import read_json
+from CCAgT_utils.base.utils import basename
+from CCAgT_utils.base.utils import find_files
 from CCAgT_utils.constants import STRUCTURE
 from CCAgT_utils.constants import VERSION
 from CCAgT_utils.converters.CCAgT import read_parquet
 from CCAgT_utils.converters.utils import ccagt_generate_masks
 from CCAgT_utils.prepare import ccagt_dataset
 from CCAgT_utils.prepare import extract_image_and_annotations_by_category
-from CCAgT_utils.utils import basename
-from CCAgT_utils.utils import find_files
 
 
 def _add_create_subdataset_options(parser: argparse.ArgumentParser) -> None:

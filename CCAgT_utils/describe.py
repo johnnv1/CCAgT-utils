@@ -12,13 +12,13 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 
-from CCAgT_utils.categories import Categories
-from CCAgT_utils.categories import CategoriesInfos
+from CCAgT_utils.base.categories import Categories
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.base.utils import find_files
+from CCAgT_utils.base.utils import get_traceback
 from CCAgT_utils.constants import STRUCTURE
 from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.converters.CCAgT import read_parquet
-from CCAgT_utils.utils import find_files
-from CCAgT_utils.utils import get_traceback
 
 R = Union[float, Tuple[float, float, float]]
 

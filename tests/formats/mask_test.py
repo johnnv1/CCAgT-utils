@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from CCAgT_utils.errors import ShapeError
-from CCAgT_utils.types.mask import Mask
+from CCAgT_utils.base.errors import ShapeError
+from CCAgT_utils.formats.mask import Mask
 
 
 def test_wrong_init():

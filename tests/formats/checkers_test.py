@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from CCAgT_utils.types import checkers
+from CCAgT_utils.formats import checkers
 
 
 def test_is_2d():

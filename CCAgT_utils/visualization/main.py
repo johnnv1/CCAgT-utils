@@ -4,7 +4,7 @@ import argparse
 import sys
 from typing import Sequence
 
-from CCAgT_utils import categories
+from CCAgT_utils.base import categories
 from CCAgT_utils.converters import CCAgT
 from CCAgT_utils.visualization import _show
 

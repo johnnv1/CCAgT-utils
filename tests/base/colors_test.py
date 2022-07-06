@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from CCAgT_utils.types import colors
+from CCAgT_utils.base import colors
 
 
 def test_Color_with_wrong_values():

@@ -6,9 +6,9 @@ from typing import Any
 import numpy as np
 from PIL import Image
 
-from CCAgT_utils.utils import basename
-from CCAgT_utils.utils import find_files
-from CCAgT_utils.utils import get_traceback
+from CCAgT_utils.base.utils import basename
+from CCAgT_utils.base.utils import find_files
+from CCAgT_utils.base.utils import get_traceback
 
 
 def has_all_into_dir(dir_images: str, filenames: list[str], **kwargs: Any) -> bool:

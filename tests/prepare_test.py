@@ -4,7 +4,7 @@ import os
 from copy import copy
 
 from CCAgT_utils import prepare
-from CCAgT_utils.categories import Categories
+from CCAgT_utils.base.categories import Categories
 from testing import create
 
 

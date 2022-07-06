@@ -15,8 +15,8 @@ def test_main_error_with_empty_string():
     assert pytest_wrapped_e.value.code == 2
 
 
-def test_main_labelbox_to_COCO(lbb_raw_sample_complete, ccagt_aux_data):
-    with RawAuxFiles(lbb_raw_sample_complete, ccagt_aux_data) as paths:
+def test_main_labelbox_to_COCO(lbox_raw_sample_complete, ccagt_aux_data):
+    with RawAuxFiles(lbox_raw_sample_complete, ccagt_aux_data) as paths:
         temp_dir, raw_path, aux_path = paths
         out_filename = os.path.join(temp_dir, 'out.json')
         out = main.main([
@@ -27,8 +27,8 @@ def test_main_labelbox_to_COCO(lbb_raw_sample_complete, ccagt_aux_data):
     assert out == 0
 
 
-def test_main_labelbox_to_CCAgT(lbb_raw_sample_complete, ccagt_aux_data):
-    with RawAuxFiles(lbb_raw_sample_complete, ccagt_aux_data) as paths:
+def test_main_labelbox_to_CCAgT(lbox_raw_sample_complete, ccagt_aux_data):
+    with RawAuxFiles(lbox_raw_sample_complete, ccagt_aux_data) as paths:
         temp_dir, raw_path, aux_path = paths
         out_filename = os.path.join(temp_dir, 'out.parquet')
         out = main.main(['labelbox_to_CCAgT', '-r', raw_path, '-a', aux_path, '-o', out_filename])

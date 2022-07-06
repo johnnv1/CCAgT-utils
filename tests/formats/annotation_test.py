@@ -6,8 +6,8 @@ import pytest
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
 
-from CCAgT_utils.categories import CategoriesInfos
-from CCAgT_utils.types import annotation
+from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.formats import annotation
 
 
 @pytest.fixture
@@ -237,3 +237,12 @@ def test_annotation_iter(nucleus_ex, cluster_ex):
 def test_annotation_iter_wrong_geo(satellite_ex):
     with pytest.raises(TypeError):
         iter(annotation.Annotation(satellite_ex, 3))
+
+
+def test_annotation_copy(nucleus_ex):
+    ann = annotation.Annotation(nucleus_ex, 1)
+    ann2 = ann.copy()
+
+    assert ann == ann2
+    ann2.geometry = ann2.geometry.buffer(10)
+    assert not ann.geometry.equals(ann2.geometry)
