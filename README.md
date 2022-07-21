@@ -28,7 +28,7 @@ package.
 ## Contents
 
 1. [Links to download the dataset](#links-to-download-the-ccagt-dataset)
-2. [What is this dataset like?](#what-is-this-dataset-looks-like)
+2. [What does this dataset look like?](#what-does-this-dataset-look-like)
 3. [Examples of use of this package](#examples-of-use)
 
 
@@ -49,7 +49,7 @@ dataset = load_dataset("lapix/CCAgT")
 # ...
 ```
 
-# What does this data set look like?
+# What does this dataset look like?
 Explanations and examples around the `>=2.0` version of the
 dataset. If you want to use older versions of the dataset,
 you will need to make some modifications to the data directory
