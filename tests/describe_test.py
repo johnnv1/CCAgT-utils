@@ -1,9 +1,9 @@
 from __future__ import annotations
-import pandas as pd
 
 import os
 
 import numpy as np
+import pandas as pd
 import pytest
 from PIL import Image
 
