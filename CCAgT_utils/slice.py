@@ -15,8 +15,7 @@ from CCAgT_utils.base.utils import create_structure
 from CCAgT_utils.base.utils import find_files
 from CCAgT_utils.base.utils import get_traceback
 from CCAgT_utils.base.utils import slide_from_filename
-from CCAgT_utils.converters.CCAgT import CCAgT
-from CCAgT_utils.converters.CCAgT import read_parquet
+from CCAgT_utils.formats import CCAgT
 from CCAgT_utils.formats.annotation import Annotation
 from CCAgT_utils.formats.annotation import BBox
 
@@ -155,8 +154,8 @@ def images_and_annotations(
 
     image_filenames = {basename(k): v for k, v in find_files(dir_images, **kwargs).items()}
 
-    ccagt = read_parquet(annotations_path)
-    ann_qtd = ccagt.df.shape[0]
+    df = CCAgT.load(annotations_path)
+    ann_qtd = df.shape[0]
     slides = {slide_from_filename(i) for i in image_filenames}
     create_structure(dir_output, slides)
 
@@ -173,7 +172,7 @@ def images_and_annotations(
         if len(filenames) == 0:
             continue  # pragma: no cover
 
-        _ccagt = ccagt.df[ccagt.df['image_name'].isin(filenames)]
+        _ccagt = df[df['image_name'].isin(filenames)]
         img_filenames = {k: image_filenames[k] for k in filenames}
         p = workers.apply_async(
             single_core_image_and_annotations, (
@@ -194,9 +193,7 @@ def images_and_annotations(
         ann_out.extend(_ann_out)
 
     print('Creating the annotation file...')
-    ccagt_out = CCAgT(pd.DataFrame(ann_out))
-
-    ccagt_out.to_parquet(output_annotations_path)
+    CCAgT.save(pd.DataFrame(ann_out), output_annotations_path)
 
     print(
         f'Successful splitted {len(image_filenames)}/{ann_qtd} images/annotations into {image_counter}/{len(ann_out)}'

@@ -9,7 +9,6 @@ from CCAgT_utils.base.utils import get_traceback
 from CCAgT_utils.base.utils import items_from_filename
 from CCAgT_utils.base.utils import open_and_read_json
 from CCAgT_utils.base.utils import slide_from_filename
-from testing.create import RawAuxFiles
 
 
 def test_get_basename():

@@ -11,6 +11,7 @@ from shapely.geometry import Point
 from shapely.geometry import Polygon
 
 from CCAgT_utils.base.categories import CategoriesInfos
+from CCAgT_utils.formats import CCAgT
 from CCAgT_utils.formats.annotation import Annotation
 from CCAgT_utils.formats.mask import Mask
 from testing import create
@@ -69,30 +70,30 @@ def categories_infos(categories_aux_data):
     return CategoriesInfos(categories_aux_data)
 
 
-@pytest.fixture
-def ccagt_metadata():
-    template = '''
-qtd of images = {number_of_images}
-qtd of slides = {number_of_slides}
-qtd of annotations = {number_of_annotations}
-'''
+# @pytest.fixture
+# def ccagt_metadata():
+#     template = '''
+# qtd of images = {number_of_images}
+# qtd of slides = {number_of_slides}
+# qtd of annotations = {number_of_annotations}
+# '''
 
-    return {
-        'url': 'https://127.0.0.1:5000/tests/CCAgT-utils',
-        'version': 'test version',
-        'description_template': template,
-        'university': {
-            'name': 'university testname',
-            'link': 'https:///127.0.0.1:5000/tests/CCAgT-utils/university',
-            'short_name': 'UTEST',
-        },
-        'contributors': 'Contrib A, Contrib B, Contrib tests',
-    }
+#     return {
+#         'url': 'https://127.0.0.1:5000/tests/CCAgT-utils',
+#         'version': 'test version',
+#         'description_template': template,
+#         'university': {
+#             'name': 'university testname',
+#             'link': 'https:///127.0.0.1:5000/tests/CCAgT-utils/university',
+#             'short_name': 'UTEST',
+#         },
+#         'contributors': 'Contrib A, Contrib B, Contrib tests',
+#     }
 
 
-@pytest.fixture
-def ccagt_aux_data(categories_aux_data, ccagt_metadata):
-    return {'categories': categories_aux_data, 'metadata': ccagt_metadata}
+# @pytest.fixture
+# def ccagt_aux_data(categories_aux_data, ccagt_metadata):
+#     return {'categories': categories_aux_data, 'metadata': ccagt_metadata}
 
 
 @pytest.fixture
@@ -197,36 +198,36 @@ def lbox_raw_single_nucleus(nucleus_ex):
     }
 
 
-@pytest.fixture
-def lbox_raw_single_wrong_nucleus():
-    return {
-        'ID': 'a1', 'External ID': 'tmp/A_xxx.png', 'Skipped': False, 'Reviews': [{
-            'score': 1,
-            'labelId': 'a1',
-        }],
-        'Label': {
-            'objects': [{
-                'featureId': '<ID for this annotation - 1>',
-                'schemaId': '<Unique ID for category Nucleus>',
-                'color': '#1CE6FF',
-                'title': 'nucleus',
-                'value': 'nucleus',
-                'polygon': [
-                    {
-                        'x': 450,
-                        'y': 450,
-                    }, {
-                        'x': 460,
-                        'y': 460,
-                    }, {
-                        'x': 470,
-                        'y': 460,
-                    },
-                ],
-                'instanceURI': '<URL for this annotation>',
-            }],
-        },
-    }
+# @pytest.fixture
+# def lbox_raw_single_wrong_nucleus():
+#     return {
+#         'ID': 'a1', 'External ID': 'tmp/A_xxx.png', 'Skipped': False, 'Reviews': [{
+#             'score': 1,
+#             'labelId': 'a1',
+#         }],
+#         'Label': {
+#             'objects': [{
+#                 'featureId': '<ID for this annotation - 1>',
+#                 'schemaId': '<Unique ID for category Nucleus>',
+#                 'color': '#1CE6FF',
+#                 'title': 'nucleus',
+#                 'value': 'nucleus',
+#                 'polygon': [
+#                     {
+#                         'x': 450,
+#                         'y': 450,
+#                     }, {
+#                         'x': 460,
+#                         'y': 460,
+#                     }, {
+#                         'x': 470,
+#                         'y': 460,
+#                     },
+#                 ],
+#                 'instanceURI': '<URL for this annotation>',
+#             }],
+#         },
+#     }
 
 
 @pytest.fixture
@@ -285,14 +286,14 @@ def ccagt_df_single_nucleus(nucleus_ex):
 
 
 @pytest.fixture
-def ccagt_ann_multi_image_names(ccagt_ann_multi):
-    return ccagt_ann_multi.df['image_name'].unique().tolist()
+def ccagt_multi_image_names(ccagt_df_multi):
+    return ccagt_df_multi['image_name'].unique().tolist()
 
 
 @pytest.fixture
-def ccagt_ann_multi_path(ccagt_ann_multi, tmpdir):
+def ccagt_ann_multi_path(ccagt_df_multi, tmpdir):
     path = os.path.join(tmpdir, 'CCAgT.parquet.gzip')
-    ccagt_ann_multi.to_parquet(path)
+    CCAgT.save(ccagt_df_multi, path)
     return path
 
 

@@ -73,8 +73,8 @@ def test_single_core_image_and_annotations(shape, ccagt_df_single_nucleus, clust
 
 
 @pytest.mark.slow
-def test_slice_images_and_annotations(shape, ccagt_ann_multi_image_names, ccagt_ann_multi_path):
-    with create.ImageMaskFiles(shape[0], shape[1], ccagt_ann_multi_image_names) as paths:
+def test_slice_images_and_annotations(shape, ccagt_multi_image_names, ccagt_ann_multi_path):
+    with create.ImageMaskFiles(shape[0], shape[1], ccagt_multi_image_names) as paths:
         tmp_dir, _, images_dir = paths
         out_label = os.path.join(tmp_dir, 'CCAgT.parquet.gzip')
         slice.images_and_annotations(
@@ -87,7 +87,7 @@ def test_slice_images_and_annotations(shape, ccagt_ann_multi_image_names, ccagt_
             extension=('.png', '.jpg'),
         )
 
-        slides = [x.split('_')[0] for x in ccagt_ann_multi_image_names]
+        slides = [x.split('_')[0] for x in ccagt_multi_image_names]
         slides_counter = Counter(slides)
         assert os.path.isfile(out_label)
         assert all(len(os.listdir(os.path.join(tmp_dir, 'images', s))) == qtd for s, qtd in slides_counter.items())

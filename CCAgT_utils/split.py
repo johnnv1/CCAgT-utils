@@ -4,9 +4,9 @@ from math import ceil
 from typing import Any
 
 import numpy as np
+import pandas as pd
 
 from CCAgT_utils.base.categories import CategoriesInfos
-from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.describe import annotations_per_image
 
 
@@ -62,7 +62,7 @@ def tvt(
 
 
 def tvt_by_nors(
-    ccagt: CCAgT,
+    df: pd.DataFrame,
     categories_infos: CategoriesInfos,
     tvt_size: tuple[float, float, float] = (.7, .15, .15),
     **kwargs: Any
@@ -75,7 +75,7 @@ def tvt_by_nors(
 
     Parameters
     ----------
-    ccagt : CCAgT
+    df : pd.DataFrame
         The annotations of the dataset
     categories_infos : CategoriesInfos
         The auxiliary information's for each category at the dataset
@@ -97,7 +97,7 @@ def tvt_by_nors(
     if sum(tvt_size) != 1:
         raise ValueError('The sum of `tvt_size` need to be equals 1!')
 
-    df_describe_imgs = annotations_per_image(ccagt, categories_infos)
+    df_describe_imgs = annotations_per_image(df, categories_infos)
 
     img_ids = {}
     img_ids['low_nors'] = df_describe_imgs.loc[(df_describe_imgs['NORs'] < 2)].index

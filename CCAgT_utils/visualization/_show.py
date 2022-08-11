@@ -5,10 +5,10 @@ import random
 import sys
 
 import matplotlib.pyplot as plt
+import pandas as pd
 from PIL import Image
 
 from CCAgT_utils.base import categories
-from CCAgT_utils.converters.CCAgT import CCAgT
 from CCAgT_utils.formats.annotation import bounds_to_BBox
 from CCAgT_utils.formats.annotation import count_BBox_categories
 from CCAgT_utils.formats.mask import Mask
@@ -23,7 +23,7 @@ def __search_all_files(dir_path: str) -> dict[str, str]:
 
 
 def image_with_boxes(
-    CCAgT_ann: CCAgT,
+    df: pd.DataFrame,
     categories_infos: categories.CategoriesInfos,
     dir_path: str,
     images_extension: str,
@@ -32,7 +32,7 @@ def image_with_boxes(
     look_recursive: bool = True,
 ) -> int:
 
-    images_to_plot = CCAgT_ann.df['image_name'].unique()
+    images_to_plot = df['image_name'].unique()
     if len(images_names) > 0:
         images_to_plot = [i for i in images_to_plot if i in images_names]
 
@@ -53,7 +53,7 @@ def image_with_boxes(
                 print(f'Not found the image {img_path}', file=sys.stderr)
                 continue
 
-        image_boxes = CCAgT_ann.df[CCAgT_ann.df['image_name'] == img_name].apply(
+        image_boxes = df[df['image_name'] == img_name].apply(
             lambda r:
             bounds_to_BBox(
                 r['geometry'].bounds,
@@ -89,7 +89,7 @@ def image_with_boxes(
 
 
 def image_and_mask(
-    CCAgT_ann: CCAgT,
+    df: pd.DataFrame,
     categories_infos: categories.CategoriesInfos,
     dir_path: str,
     dir_mask_path: str,
@@ -100,7 +100,7 @@ def image_and_mask(
     look_recursive: bool = True,
 ) -> int:
 
-    images_to_plot = CCAgT_ann.df['image_name'].unique()
+    images_to_plot = df['image_name'].unique()
     if len(images_names) > 0:
         images_to_plot = [i for i in images_to_plot if i in images_names]
 
@@ -158,7 +158,7 @@ def image_and_mask(
 
 
 def image_with_boxes_and_mask(
-    CCAgT_ann: CCAgT,
+    df: pd.DataFrame,
     categories_infos: categories.CategoriesInfos,
     dir_path: str,
     dir_mask_path: str,
@@ -169,7 +169,7 @@ def image_with_boxes_and_mask(
     look_recursive: bool = True,
 ) -> int:
 
-    images_to_plot = CCAgT_ann.df['image_name'].unique()
+    images_to_plot = df['image_name'].unique()
     if len(images_names) > 0:
         images_to_plot = [i for i in images_to_plot if i in images_names]
 
@@ -201,7 +201,7 @@ def image_with_boxes_and_mask(
         msk_p = Image.open(msk_path).convert('L')
         msk = Mask(msk_p)
 
-        image_boxes = CCAgT_ann.df[CCAgT_ann.df['image_name'] == img_name].apply(
+        image_boxes = df[df['image_name'] == img_name].apply(
             lambda r:
             bounds_to_BBox(
                 r['geometry'].bounds,

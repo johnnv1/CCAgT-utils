@@ -26,8 +26,10 @@ def load(
         raise FileTypeError('The labels file is not a parquet file.')
 
     df = pd.read_parquet(filename, **kwargs)
-    # buffer(0) applied to fix invalid geomtries. From shapely issue #278
-    df['geometry'] = df['geometry'].apply(lambda x: shapely.wkt.loads(x).buffer(0))
+
+    if 'geometry' in df.columns:
+        # buffer(0) applied to fix invalid geomtries. From shapely issue #278
+        df['geometry'] = df['geometry'].apply(lambda x: shapely.wkt.loads(x).buffer(0))
 
     return df
 

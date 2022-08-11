@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import os
-
 import numpy as np
 import pandas as pd
 import pytest
@@ -239,4 +237,10 @@ def test_to_PS_COCO(ccagt_df_single_nucleus, categories_infos, tmpdir):
     assert len(tmpdir.listdir()) > 0
 
     to_PS_COCO(ccagt_df_single_nucleus, categories_infos, tmpdir, True)
+    assert len(tmpdir.join('C/').listdir()) > 0
+
+    # With slide id
+    df = ccagt_df_single_nucleus.copy()
+    df['slide_id'] = CCAgT.slides_ids(df)
+    to_PS_COCO(df, categories_infos, tmpdir, True)
     assert len(tmpdir.join('C/').listdir()) > 0

@@ -3,14 +3,14 @@ from __future__ import annotations
 from CCAgT_utils.base.colors import Color
 
 
-def load():
-    ...  # TODO:
+# def load():
+# TODO:
 
 
-def validate():
-    ...  # TODO:
-    # Based on https://github.com/cocodataset/panopticapi/blob/master/converters/detection2panoptic_coco_format.py
-    """
+# def validate():
+# TODO:
+# Based on https://github.com/cocodataset/panopticapi/blob/master/converters/detection2panoptic_coco_format.py
+"""
     COCO_OD
         annotation{
             "id": int,
