@@ -3,11 +3,13 @@ from __future__ import annotations
 import os
 
 import numpy as np
+import pandas as pd
 import pytest
 from PIL import Image
 
 from CCAgT_utils import describe
 from CCAgT_utils.base.categories import Categories
+from CCAgT_utils.formats import CCAgT
 from testing import create
 
 
@@ -31,6 +33,8 @@ def test_statistics():
         'min': -1.0,
         'count': 2,
     }
+
+    assert str(a) == 'Quantity: 2 | Mean: 1.00 | std: 1.00  | Max: 1.00 | Min: -1.00'
 
 
 def test_describe_from_list():
@@ -92,24 +96,27 @@ def test_from_image_files_empty(tmpdir):
     assert stats.count == 0
 
 
-def test_annotations_per_image(ccagt_ann_multi, categories_infos):
-    ccagt_ann_multi.df['image_id'] = ccagt_ann_multi.generate_ids(ccagt_ann_multi.df['image_name'])
-    df = describe.annotations_per_image(ccagt_ann_multi, categories_infos)
+def test_annotations_per_image(ccagt_df_multi, categories_infos):
+    df = ccagt_df_multi.copy()
+    df['image_id'] = CCAgT.generate_ids(df['image_name'])
+
+    df = describe.annotations_per_image(df, categories_infos)
 
     assert df['NORs'].tolist() == [2., 4., 0.]
     assert df['count', 'NUCLEUS'].tolist() == [1., 2., 2.]
 
 
-def test_ccagt_annotations(ccagt_ann_multi, categories_infos):
-    ccagt_ann_multi.df['image_id'] = ccagt_ann_multi.generate_ids(ccagt_ann_multi.df['image_name'])
-    ccagt_ann_multi.df['slide_id'] = ccagt_ann_multi.get_slide_id()
-    ccagt_ann_multi.df['area'] = ccagt_ann_multi.geometries_area()
+def test_ccagt_annotations(ccagt_df_multi, categories_infos):
+    df = ccagt_df_multi.copy()
+    df['image_id'] = CCAgT.generate_ids(df['image_name'])
+    df['slide_id'] = CCAgT.slides_ids(df)
+    df['area'] = CCAgT.geometries_area(df)
 
-    out = describe.ccagt_annotations(ccagt_ann_multi, categories_infos)
+    out = describe.ccagt_annotations(df, categories_infos)
 
     assert out['qtd_images'] == 3
     assert out['qtd_slide'] == 2
-    assert out['qtd_annotations'] == ccagt_ann_multi.df.shape[0]
+    assert out['qtd_annotations'] == df.shape[0]
     assert out['qtd_annotations_categorical'] == {
         'Nucleus': 5, 'Cluster': 3, 'Satellite': 3, 'Nucleus_out_of_focus': 0,
         'Overlapped_Nuclei': 0, 'non_viable_nucleus': 0, 'Leukocyte_Nucleus': 0,
@@ -124,12 +131,13 @@ def test_ccagt_annotations(ccagt_ann_multi, categories_infos):
     assert len(out['area_stats']) == 3
 
 
-def test_tvt_annotations_as_df(ccagt_ann_multi, categories_infos):
-    ccagt_ann_multi.df['image_id'] = ccagt_ann_multi.generate_ids(ccagt_ann_multi.df['image_name'])
-    ccagt_ann_multi.df['slide_id'] = ccagt_ann_multi.get_slide_id()
-    ccagt_ann_multi.df['area'] = ccagt_ann_multi.geometries_area()
+def test_tvt_annotations_as_df(ccagt_df_multi, categories_infos):
+    df = ccagt_df_multi.copy()
+    df['image_id'] = CCAgT.generate_ids(df['image_name'])
+    df['slide_id'] = CCAgT.slides_ids(df)
+    df['area'] = CCAgT.geometries_area(df)
 
-    out = describe.ccagt_annotations(ccagt_ann_multi, categories_infos)
+    out = describe.ccagt_annotations(df, categories_infos)
 
     df_qtd, df_dist, df_area = describe.tvt_annotations_as_df(out, out, out)
 
@@ -201,3 +209,17 @@ def test_from_mask_files(shape, tmpdir):
 
     assert out == expected
     assert sum(out.values()) == total * 2
+
+
+def test_describe_dataset(capsys, ccagt_ann_multi_path, categories_infos, tmpdir):
+    assert describe.dataset(ccagt_ann_multi_path, categories_infos, tmpdir) is None
+    msg, _ = capsys.readouterr()
+
+    assert 'Dataset name: `test_describe_dataset0` |' == msg[:40]
+
+    tmpfilename = tmpdir.join('test.parquet.gzip')
+
+    pd.DataFrame().to_parquet(str(tmpfilename))
+    assert describe.dataset(str(tmpfilename), categories_infos, tmpdir) is None
+    msg, _ = capsys.readouterr()
+    assert msg[-28:] == 'Do not have any annotation!\n'

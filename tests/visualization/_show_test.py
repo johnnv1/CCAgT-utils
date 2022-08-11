@@ -9,12 +9,12 @@ from testing import create
 
 
 @pytest.mark.slow
-def test_image_and_mask(remove_plt_show, ccagt_ann_multi, categories_infos, shape):
-    names = ccagt_ann_multi.df['image_name'].unique()
+def test_image_and_mask(remove_plt_show, ccagt_df_multi, categories_infos, shape):
+    names = ccagt_df_multi['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
         _, mask_dir, image_dir = paths
         _params = {
-            'CCAgT_ann': ccagt_ann_multi,
+            'df': ccagt_df_multi,
             'categories_infos': categories_infos,
             'dir_path': image_dir,
             'dir_mask_path': mask_dir,
@@ -31,12 +31,12 @@ def test_image_and_mask(remove_plt_show, ccagt_ann_multi, categories_infos, shap
 
 
 @pytest.mark.slow
-def test_image_and_mask_not_found(capsys, ccagt_ann_multi, categories_infos, shape):
-    names = ccagt_ann_multi.df['image_name'].unique()
+def test_image_and_mask_not_found(capsys, ccagt_df_multi, categories_infos, shape):
+    names = ccagt_df_multi['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
         _, mask_dir, image_dir = paths
         _params = {
-            'CCAgT_ann': ccagt_ann_multi,
+            'df': ccagt_df_multi,
             'categories_infos': categories_infos,
             'dir_path': image_dir,
             'dir_mask_path': mask_dir,
@@ -59,12 +59,12 @@ def test_image_and_mask_not_found(capsys, ccagt_ann_multi, categories_infos, sha
 
 
 @pytest.mark.slow
-def test_image_with_boxes(ccagt_ann_multi, categories_infos, shape, remove_plt_show):
-    names = ccagt_ann_multi.df['image_name'].unique()
+def test_image_with_boxes(ccagt_df_multi, categories_infos, shape, remove_plt_show):
+    names = ccagt_df_multi['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names, create_mask=False) as paths:
         _, _, image_dir = paths
         _params = {
-            'CCAgT_ann': ccagt_ann_multi,
+            'df': ccagt_df_multi,
             'categories_infos': categories_infos,
             'dir_path': image_dir,
             'images_extension': '.jpg',
@@ -81,12 +81,12 @@ def test_image_with_boxes(ccagt_ann_multi, categories_infos, shape, remove_plt_s
 
 
 @pytest.mark.slow
-def test_image_with_boxes_not_found(capsys, ccagt_ann_multi, categories_infos, shape, remove_plt_show):
-    names = ccagt_ann_multi.df['image_name'].unique()
+def test_image_with_boxes_not_found(capsys, ccagt_df_multi, categories_infos, shape, remove_plt_show):
+    names = ccagt_df_multi['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names, create_mask=False) as paths:
         _, _, image_dir = paths
         _params = {
-            'CCAgT_ann': ccagt_ann_multi,
+            'df': ccagt_df_multi,
             'categories_infos': categories_infos,
             'dir_path': image_dir,
             'images_extension': '.jpg',
@@ -101,12 +101,12 @@ def test_image_with_boxes_not_found(capsys, ccagt_ann_multi, categories_infos, s
 
 
 @pytest.mark.slow
-def test_image_with_boxes_and_mask(remove_plt_show, ccagt_ann_multi, categories_infos, shape):
-    names = ccagt_ann_multi.df['image_name'].unique()
+def test_image_with_boxes_and_mask(remove_plt_show, ccagt_df_multi, categories_infos, shape):
+    names = ccagt_df_multi['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
         _, mask_dir, image_dir = paths
         _params = {
-            'CCAgT_ann': ccagt_ann_multi,
+            'df': ccagt_df_multi,
             'categories_infos': categories_infos,
             'dir_path': image_dir,
             'dir_mask_path': mask_dir,
@@ -122,12 +122,12 @@ def test_image_with_boxes_and_mask(remove_plt_show, ccagt_ann_multi, categories_
     assert out2 == 0
 
 
-def test_image_with_boxes_and_mask_not_found(capsys, ccagt_ann_multi, categories_infos, shape):
-    names = ccagt_ann_multi.df['image_name'].unique()
+def test_image_with_boxes_and_mask_not_found(capsys, ccagt_df_multi, categories_infos, shape):
+    names = ccagt_df_multi['image_name'].unique()
     with create.ImageMaskFiles(shape[0], shape[1], names) as paths:
         _, mask_dir, image_dir = paths
         _params = {
-            'CCAgT_ann': ccagt_ann_multi,
+            'df': ccagt_df_multi,
             'categories_infos': categories_infos,
             'dir_path': image_dir,
             'dir_mask_path': mask_dir,

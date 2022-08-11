@@ -203,7 +203,7 @@ def test_verify_if_intersects(ccagt_df_multi):
 
 #     assert filename.check()
 
-#     ccagt_ann = CCAgT.read_parquet(str(filename))
+#     ccagt_ann = CCAgT.CCAgT.load(str(filename))
 #     assert ccagt_ann.df.equals(ccagt_ann_single_nucleus.df)
 
 
@@ -319,4 +319,4 @@ def test_verify_if_intersects(ccagt_df_multi):
 
 # def test_read_parquet_wrong_type():
 #     with pytest.raises(FileTypeError):
-#         CCAgT.read_parquet('wrong file.and.type')
+#         CCAgT.CCAgT.load('wrong file.and.type')

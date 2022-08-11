@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 import os
 import tempfile
 from typing import Any
@@ -38,32 +37,6 @@ def mask_colorized(shape: tuple[int, int]) -> np.ndarray:
     out[h // 2:, :w // 2] = [255, 166, 0]
     out[h // 2:, w // 2:] = [26, 167, 238]
     return np.array(out, dtype=np.uint8)
-
-
-class RawAuxFiles():
-    def __init__(
-            self,
-            raw_data: list[dict[str, Any]],
-            aux_data: list[dict[str, Any]],
-            tmpdir: str,
-    ) -> None:
-        self.raw_data = raw_data
-        self.aux_data = aux_data
-        self.tmp_dir = tmpdir
-        self.raw_path = os.path.join(self.tmp_dir.name, 'raw_file.json')
-        self.aux_path = os.path.join(self.tmp_dir.name, 'aux_file.json')
-
-    def __enter__(self) -> tuple[str, str, str]:
-        with open(self.raw_path, 'w') as f:
-            json.dump(self.raw_data, f)
-
-        with open(self.aux_path, 'w') as f:
-            json.dump(self.aux_data, f)
-
-        return (self.tmp_dir.name, self.raw_path, self.aux_path)
-
-    def __exit__(self, *args: Any) -> None:
-        self.tmp_dir.cleanup()
 
 
 class ImageMaskFiles():
