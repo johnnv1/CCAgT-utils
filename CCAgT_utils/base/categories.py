@@ -1,9 +1,9 @@
 from __future__ import annotations
-from typing import NamedTuple
 
 import json
 from enum import Enum
 from typing import Any
+from typing import NamedTuple
 
 from CCAgT_utils.base.colors import Color
 from CCAgT_utils.base.colors import random_color_from_base
