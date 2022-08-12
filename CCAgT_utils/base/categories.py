@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
 from enum import Enum
 from typing import Any
+from typing import NamedTuple
 
 from CCAgT_utils.base.colors import Color
 from CCAgT_utils.base.colors import random_color_from_base
@@ -44,8 +44,7 @@ CATS_MIN_AREA = {
 }
 
 
-@dataclass
-class CategoryInfo:
+class CategoryInfo(NamedTuple):
     """
     id: unique id for each category
     name: name of the category

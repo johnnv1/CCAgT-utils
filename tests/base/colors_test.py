@@ -8,13 +8,13 @@ from CCAgT_utils.base import colors
 
 def test_Color_with_wrong_values():
     with pytest.raises(ValueError):
-        colors.Color(300, 0, 0, size=8)
+        colors.Color(300, 0, 0, size=8).rgb_normalized
     with pytest.raises(ValueError):
-        colors.Color(0, 300, 0, size=8)
+        colors.Color(0, 300, 0, size=8).rgb_normalized
     with pytest.raises(ValueError):
-        colors.Color(0, 0, 300, size=8)
+        colors.Color(0, 0, 300, size=8).rgb_normalized
     with pytest.raises(ValueError):
-        colors.Color(0, 0, 0, 300, size=8)
+        colors.Color(0, 0, 0, 300, size=8).rgb_normalized
 
 
 def test_Color_rgb():

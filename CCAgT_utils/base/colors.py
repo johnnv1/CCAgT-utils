@@ -1,30 +1,30 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from typing import NamedTuple
 
 import numpy as np
 
 
-@dataclass
-class Color:
+class Color(NamedTuple):
     Red: int
     Green: int
     Blue: int
     Alpha: int = 255
     size: int = 8
 
-    def __post_init__(self) -> None:
-        self._max_value = 2 ** self.size - 1
-
-        _error_suf = f'value exceeds the max value for the color size! (bits size={self.size} -> max_value={self._max_value})'
-        if self.Red > self._max_value:
+    @property
+    def _max_value(self) -> int:
+        max_value = 2 ** self.size - 1
+        _error_suf = f'value exceeds the max value for the color size! (bits size={self.size} -> max_value={max_value})'
+        if self.Red > max_value:
             raise ValueError(f'The Red {_error_suf}')
-        if self.Green > self._max_value:
+        if self.Green > max_value:
             raise ValueError(f'The Green {_error_suf}')
-        if self.Blue > self._max_value:
+        if self.Blue > max_value:
             raise ValueError(f'The Blue {_error_suf}')
-        if self.Alpha > self._max_value:
+        if self.Alpha > max_value:
             raise ValueError(f'The Alpha {_error_suf}')
+        return max_value
 
     @property
     def rgb(self) -> tuple[int, int, int]:
