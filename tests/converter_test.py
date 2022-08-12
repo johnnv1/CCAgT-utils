@@ -166,7 +166,7 @@ def test_single_core_to_PS_COCO(ccagt_df_single_nucleus, tmpdir):
     ccagt_df_single_nucleus['area'] = CCAgT.geometries_area(ccagt_df_single_nucleus)
     ccagt_df_single_nucleus['image_id'] = CCAgT.generate_ids(ccagt_df_single_nucleus['image_name'])
     ccagt_df_single_nucleus['iscrowd'] = 0
-    ccagt_df_single_nucleus['color'] = Color(21, 62, 125)
+    ccagt_df_single_nucleus['color'] = [Color(21, 62, 125)] * len(ccagt_df_single_nucleus)
 
     out = single_core_to_PS_COCO(ccagt_df_single_nucleus, str(tmpdir), False)
 
@@ -187,8 +187,7 @@ def test_single_core_to_PS_COCO_multisizes(ccagt_df_multi, tmpdir):
     ccagt_df_multi['area'] = CCAgT.geometries_area(ccagt_df_multi)
     ccagt_df_multi['image_id'] = CCAgT.generate_ids(ccagt_df_multi['image_name'])
     ccagt_df_multi['iscrowd'] = 0
-    ccagt_df_multi['color'] = Color(21, 62, 125)
-
+    ccagt_df_multi['color'] = [Color(21, 62, 125)] * len(ccagt_df_multi)
     ccagt_df_multi['image_width'] = 1000
     ccagt_df_multi['image_height'] = 1000
 

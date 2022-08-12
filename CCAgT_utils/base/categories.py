@@ -1,7 +1,7 @@
 from __future__ import annotations
+from typing import NamedTuple
 
 import json
-from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
@@ -44,8 +44,7 @@ CATS_MIN_AREA = {
 }
 
 
-@dataclass
-class CategoryInfo:
+class CategoryInfo(NamedTuple):
     """
     id: unique id for each category
     name: name of the category
