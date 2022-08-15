@@ -11,8 +11,8 @@ from CCAgT_utils.formats.annotation import Annotation
 from testing import create
 
 
-def test_slice_image(shape):
-    with create.ImageMaskFiles(shape[0], shape[1], ['example'], create_image=False) as paths:
+def test_slice_image(shape, tmpdir):
+    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ['example'], create_image=False) as paths:
         tmp_dir, masks_dir, _ = paths
         mask_path = os.path.join(masks_dir, 'example.png')
         sliced_quantity = slice.image(mask_path, tmp_dir, 2, 1)
@@ -23,8 +23,8 @@ def test_slice_image(shape):
 
 
 @pytest.mark.slow
-def test_image_with_annotation(shape, annotations_ex, cluster_ex):
-    with create.ImageMaskFiles(shape[0], shape[1], ['A_example']) as paths:
+def test_image_with_annotation(shape, annotations_ex, cluster_ex, tmpdir):
+    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ['A_example']) as paths:
         tmp_dir, _, images_dir = paths
         img_path = os.path.join(images_dir, 'A_example.jpg')
 
@@ -50,9 +50,9 @@ def test_image_with_annotation(shape, annotations_ex, cluster_ex):
 
 
 @pytest.mark.slow
-def test_single_core_image_and_annotations(shape, ccagt_df_single_nucleus, cluster_ex):
+def test_single_core_image_and_annotations(shape, ccagt_df_single_nucleus, tmpdir):
     ccagt_df_single_nucleus['image_name'] = 'A_example'
-    with create.ImageMaskFiles(shape[0], shape[1], ['A_example']) as paths:
+    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ['A_example']) as paths:
         tmp_dir, _, images_dir = paths
 
         imgs = {'A_example': os.path.join(images_dir, 'A_example.jpg')}
@@ -73,8 +73,8 @@ def test_single_core_image_and_annotations(shape, ccagt_df_single_nucleus, clust
 
 
 @pytest.mark.slow
-def test_slice_images_and_annotations(shape, ccagt_multi_image_names, ccagt_ann_multi_path):
-    with create.ImageMaskFiles(shape[0], shape[1], ccagt_multi_image_names) as paths:
+def test_slice_images_and_annotations(shape, ccagt_multi_image_names, ccagt_ann_multi_path, tmpdir):
+    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ccagt_multi_image_names) as paths:
         tmp_dir, _, images_dir = paths
         out_label = os.path.join(tmp_dir, 'CCAgT.parquet.gzip')
         slice.images_and_annotations(

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import os
-import tempfile
 from typing import Any
 
 import numpy as np
@@ -42,16 +41,16 @@ def mask_colorized(shape: tuple[int, int]) -> np.ndarray:
 class ImageMaskFiles():
     def __init__(
         self,
+        tmpdir: str,
         height: int = 1000,
         width: int = 1000,
         names: list[str] = ['example'],
         create_image: bool = True,
         create_mask: bool = True,
     ) -> None:
-        self.tmp_dir = tempfile.TemporaryDirectory('_ImageMaskFiles', 'CCAgTutils_')
-
-        self.image_dir = os.path.join(self.tmp_dir.name, 'images/')
-        self.mask_dir = os.path.join(self.tmp_dir.name, 'masks/')
+        self.tmpdir = tmpdir
+        self.image_dir = os.path.join(tmpdir, 'images/')
+        self.mask_dir = os.path.join(tmpdir, 'masks/')
 
         if create_mask:
             os.makedirs(self.mask_dir, exist_ok=True)
@@ -74,7 +73,7 @@ class ImageMaskFiles():
 
     def __enter__(self) -> tuple[str, str, str]:
 
-        return (self.tmp_dir.name, self.mask_dir, self.image_dir)
+        return (self.tmpdir, self.mask_dir, self.image_dir)
 
     def __exit__(self, *args: Any) -> None:
-        self.tmp_dir.cleanup()
+        pass
