@@ -7,8 +7,8 @@ from CCAgT_utils.base.categories import Categories
 from testing import create
 
 
-def test_clean_images_and_masks(shape):
-    with create.ImageMaskFiles(shape[0], shape[1], ['A_example']) as paths:
+def test_clean_images_and_masks(shape, tmpdir):
+    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ['A_example']) as paths:
         tmp_dir, masks_dir, images_dir = paths
         prepare.clean_images_and_masks(images_dir, masks_dir, {0})
 
@@ -18,8 +18,8 @@ def test_clean_images_and_masks(shape):
         assert os.path.isfile(os.path.join(images_dir, 'A', 'A_example_2.jpg')) is False
 
 
-def test_extract_category(shape, annotations_ex):
-    with create.ImageMaskFiles(shape[0], shape[1], ['A_example'], create_image=False) as paths:
+def test_extract_category(shape, annotations_ex, tmpdir):
+    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ['A_example'], create_image=False) as paths:
         tmp_dir, masks_dir, _ = paths
         msk_path = os.path.join(masks_dir, 'A_example.png')
 
@@ -43,10 +43,10 @@ def test_extract_category(shape, annotations_ex):
         assert os.path.isfile(os.path.join(tmp_dir, 'A_example_1_1.png'))
 
 
-def test_single_core_extract_image_and_annotations(shape, ccagt_df_multi, ccagt_multi_image_names):
+def test_single_core_extract_image_and_annotations(shape, ccagt_df_multi, ccagt_multi_image_names, tmpdir):
     df = ccagt_df_multi.copy()
     slides = {img_name.split('_')[0] for img_name in ccagt_multi_image_names}
-    with create.ImageMaskFiles(shape[0], shape[1], ccagt_multi_image_names) as paths:
+    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ccagt_multi_image_names) as paths:
         tmp_dir, _, images_dir = paths
 
         imgs = {img_name: os.path.join(images_dir, f'{img_name}.jpg') for img_name in ccagt_multi_image_names}
@@ -93,9 +93,10 @@ def test_extract_image_and_mask_by_category(
     ccagt_ann_multi_path,
     ccagt_multi_image_names,
     ccagt_df_multi,
+    tmpdir,
 ):
     df_filtered = ccagt_df_multi[ccagt_df_multi['category_id'] == 1]
-    with create.ImageMaskFiles(shape[0], shape[1], ccagt_multi_image_names) as paths:
+    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ccagt_multi_image_names) as paths:
         tmp_dir, _, images_dir = paths
 
         prepare.extract_image_and_annotations_by_category(images_dir, tmp_dir, {1}, ccagt_ann_multi_path, 0)
