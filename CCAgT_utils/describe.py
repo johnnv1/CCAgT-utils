@@ -16,7 +16,7 @@ from CCAgT_utils.base.categories import Categories
 from CCAgT_utils.base.categories import CategoriesInfos
 from CCAgT_utils.base.utils import find_files
 from CCAgT_utils.base.utils import get_traceback
-from CCAgT_utils.constants import STRUCTURE
+from CCAgT_utils.base.utils import STRUCTURE
 from CCAgT_utils.formats import CCAgT
 
 R = Union[float, Tuple[float, float, float]]

@@ -9,10 +9,10 @@ from typing import Any
 from typing import Callable
 from typing import TypeVar
 
-from CCAgT_utils.constants import FILENAME_SEP
-from CCAgT_utils.constants import STRUCTURE
-
 R = TypeVar('R')
+
+FILENAME_SEP = '_'
+STRUCTURE = {'i': 'images/', 'm': 'masks/', 'l': 'CCAgT.parquet.gzip'}
 
 
 def basename(filename: str, with_extension: bool = False) -> str:
