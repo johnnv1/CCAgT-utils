@@ -4,3 +4,4 @@ distlib
 pre-commit
 pytest
 pytest-env
+typing-extensions
