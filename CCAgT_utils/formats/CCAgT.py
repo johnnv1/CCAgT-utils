@@ -9,6 +9,7 @@ import shapely.wkt
 from shapely.geometry import box
 from shapely.geometry import Polygon
 from shapely.ops import unary_union
+from typing_extensions import Literal
 
 from CCAgT_utils.base.categories import CategoriesInfos
 from CCAgT_utils.base.errors import FileTypeError
@@ -18,10 +19,18 @@ from CCAgT_utils.base.utils import slide_from_filename
 from CCAgT_utils.formats.annotation import bounds_to_BBox
 
 
+class CCAgT(pd.DataFrame):
+    _metadata = ['geometry']
+
+    @property
+    def _constructor(self) -> type[CCAgT]:
+        return CCAgT
+
+
 def load(
     filename: str,
     **kwargs: Any
-) -> pd.DataFrame:
+) -> CCAgT:
     if not filename.endswith(('.parquet.gzip', '.parquet')):
         raise FileTypeError('The labels file is not a parquet file.')
 
@@ -35,12 +44,12 @@ def load(
 
 
 def save(
-        df: pd.DataFrame,
+        ccagt_df: CCAgT,
         filename: str,
-        compression: str = 'gzip',
+        compression: Literal['snappy', 'gzip', 'brotli'] | None = 'gzip',
         **kwargs: Any
 ) -> None:
-    df_out = df.copy()
+    df_out = ccagt_df.copy()
     df_out['geometry'] = df_out['geometry'].apply(lambda x: x.wkt)
     df_out.to_parquet(filename, compression=compression, **kwargs)
 
@@ -49,25 +58,25 @@ def save(
 # Functions to generate or update a column (return a Serie)
 
 def slides_ids(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT,
 ) -> pd.Series:
-    return df['image_name'].apply(lambda x: slide_from_filename(x))
+    return pd.Series(ccagt_df['image_name'].apply(lambda x: slide_from_filename(x)))
 
 
 def geometries_type(
-        df: pd.DataFrame,
+        ccagt_df: CCAgT,
 ) -> pd.Series:
-    return df['geometry'].apply(lambda x: x.geom_type)
+    return pd.Series(ccagt_df['geometry'].apply(lambda x: x.geom_type))
 
 
 def geometries_area(
-        df: pd.DataFrame,
+        ccagt_df: CCAgT,
 ) -> pd.Series:
-    return df['geometry'].apply(lambda x: x.area)
+    return pd.Series(ccagt_df['geometry'].apply(lambda x: x.area))
 
 
 def fit_geometries_to_boundary(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT,
     width: int,
     height: int,
 ) -> pd.Series:
@@ -95,7 +104,7 @@ def fit_geometries_to_boundary(
     """
 
     boundary_box = box(0, 0, width, height)
-    return df['geometry'].apply(lambda x: clip_to_extent(x, boundary_box))
+    return pd.Series(ccagt_df['geometry'].apply(lambda x: clip_to_extent(x, boundary_box)))
 
 
 def generate_ids(
@@ -109,20 +118,20 @@ def generate_ids(
 # Functions to modify the dataframe
 
 def delete_by_area(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT,
     categories_infos: CategoriesInfos,
     categories_to_ignore: set[int] = set({}),
-) -> pd.DataFrame:
-    if 'area' not in df.columns:
-        df['area'] = geometries_area(df)
+) -> CCAgT:
+    if 'area' not in ccagt_df.columns:
+        ccagt_df['area'] = geometries_area(ccagt_df)
 
-    categories_at_df = df['category_id'].unique()
+    categories_at_df = ccagt_df['category_id'].unique()
 
     for cat_info in categories_infos:
         if cat_info.id in categories_to_ignore or cat_info.id not in categories_at_df:
             continue
 
-        df_filtered = df[df['category_id'] == cat_info.id]
+        df_filtered = ccagt_df[ccagt_df['category_id'] == cat_info.id]
         length_before = df_filtered.shape[0]
 
         cleaned_by_area = df_filtered[df_filtered['area'] >= cat_info.minimal_area]
@@ -131,25 +140,26 @@ def delete_by_area(
         dif = length_before - length_after
 
         if dif > 0:
-            df = pd.concat([df[df['category_id'] != cat_info.id], cleaned_by_area])
+            _df = ccagt_df[ccagt_df['category_id'] != cat_info.id]
+            ccagt_df = CCAgT(pd.concat([_df, cleaned_by_area]))
 
             print(f'ATTENTION | {dif} items has been removed from category with id {cat_info.id}')
 
-    return df
+    return ccagt_df
 
 
 def filter_by_categories(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT,
     categories_id: set[int],
-) -> pd.DataFrame:
-    return df[df['category_id'].isin(categories_id)]
+) -> CCAgT:
+    return CCAgT(ccagt_df[ccagt_df['category_id'].isin(categories_id)])
 
 
 def union_geometries(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT,
     groups_by_image: dict[str, list[set[int]]],
     out_category_id: int | None = None,
-) -> pd.DataFrame:
+) -> CCAgT:
     """Based on a dict for each image, it will join the geometries, so
     that each image can have a list of geometries groups. Each geometries
     group will be merged to a single geometry.
@@ -197,7 +207,7 @@ def union_geometries(
     cat_id = out_category_id
     out = pd.DataFrame()
     for img_name, groups in groups_by_image.items():
-        df_filtered = df[df['image_name'] == img_name]
+        df_filtered = ccagt_df[ccagt_df['image_name'] == img_name]
 
         for group in groups:
             df_filtered_by_group = df_filtered[df_filtered.index.isin(group)]
@@ -228,19 +238,19 @@ def union_geometries(
 
     # Drop the annotation of all images that stay at the parameter
     image_names_to_drop = list(groups_by_image.keys())
-    df_without_news = df[~df['image_name'].isin(image_names_to_drop)]
+    df_without_news = ccagt_df[~ccagt_df['image_name'].isin(image_names_to_drop)]
 
     # Add the annotations that have been updates!
-    df = pd.concat([df_without_news, out], ignore_index=True)
+    ccagt_df = CCAgT(pd.concat([df_without_news, out], ignore_index=True))
 
-    return df
+    return ccagt_df
 
 
 # -----------------------------------------------------------------------
 # Utils functions
 
 def find_intersecting_geometries(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT,
     geometry: Polygon,
     geo_idx: int,
 ) -> list[int] | np.nan:
@@ -264,7 +274,7 @@ def find_intersecting_geometries(
         A list with the indexes of each geometry that intersects with the
         geometry passed as parameter
     """
-    o = df.apply(
+    o = ccagt_df.apply(
         lambda row:
         np.nan if not row['geometry'].is_valid else
         np.nan if not geometry.intersects(row['geometry']) or row.name == geo_idx
@@ -289,11 +299,11 @@ def has_intersecting_geometries(
 
 
 def find_overlapping_annotations(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT,
     categories_id: set[int],
     by_bbox: bool = False,
 ) -> dict[str, list[set[int]]]:
-    df_out = filter_by_categories(df, categories_id).copy()
+    df_out = filter_by_categories(ccagt_df, categories_id).copy()
 
     df_groupped = df_out.groupby('image_name')
 
@@ -332,10 +342,10 @@ def find_overlapping_annotations(
 
 
 def image_id_by_name(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT,
     image_name: str,
 ) -> int:
-    v = df.loc[df['image_name'] == image_name, 'image_id'].unique()
+    v = ccagt_df.loc[ccagt_df['image_name'] == image_name, 'image_id'].unique()
     if len(v) > 1:
         raise MoreThanOneIDbyItemError(f'The image: {image_name} have {len(v)} IDs')
     else:
@@ -346,16 +356,16 @@ def image_id_by_name(
 # Functions which generate a new/copy of the dataframe
 
 def verify_if_intersects(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT,
     base_categories_id: set[int],
     target_categories_id: set[int] | None,
 ) -> pd.DataFrame:
-    df_base = filter_by_categories(df, base_categories_id)
+    df_base = filter_by_categories(ccagt_df, base_categories_id)
 
     if target_categories_id is None:
         df_target = df_base.copy()
     else:
-        df_target = filter_by_categories(df, target_categories_id)
+        df_target = filter_by_categories(ccagt_df, target_categories_id)
 
     df_base_groupped_by_image = df_base.groupby('image_name')
     out = pd.DataFrame()

@@ -169,25 +169,25 @@ def annotations_per_image(
 
 
 def ccagt_annotations(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT.CCAgT,
     categories_infos: CategoriesInfos,
 ) -> dict[str, Any]:
-    if 'area' not in df.columns:
-        df['area'] = CCAgT.geometries_area(df)
+    if 'area' not in ccagt_df.columns:
+        ccagt_df['area'] = CCAgT.geometries_area(ccagt_df)
 
-    if 'slide_id' not in df.columns:
-        df['slide_id'] = CCAgT.slides_ids(df)
+    if 'slide_id' not in ccagt_df.columns:
+        ccagt_df['slide_id'] = CCAgT.slides_ids(ccagt_df)
 
-    ann_count = {cat.name: df.loc[df['category_id'] == cat.id, 'area'].shape[0] for cat in categories_infos}
-    qtd_ann = df.shape[0]
+    ann_count = {cat.name: ccagt_df.loc[ccagt_df['category_id'] == cat.id, 'area'].shape[0] for cat in categories_infos}
+    qtd_ann = ccagt_df.shape[0]
     ann_dist = {cat_name: qtd_cat / qtd_ann for cat_name, qtd_cat in ann_count.items()}
     area_stats = {
-        cat.name: from_list(df.loc[df['category_id'] == cat.id, 'area'].tolist())
+        cat.name: from_list(ccagt_df.loc[ccagt_df['category_id'] == cat.id, 'area'].tolist())
         for cat in categories_infos if ann_count[cat.name] > 0
     }
 
-    qtd_images = df['image_id'].nunique()
-    qtd_slides = df['slide_id'].nunique()
+    qtd_images = ccagt_df['image_id'].nunique()
+    qtd_slides = ccagt_df['slide_id'].nunique()
     return {
         'qtd_images': qtd_images,
         'qtd_slide': qtd_slides,
@@ -265,7 +265,7 @@ def dataset(
     dataset_dir: str,
     extensions: tuple[str, ...] = ('.jpg', '.png'),
 ) -> None:
-    df = CCAgT.load(ccagt_path)
+    ccagt_df = CCAgT.load(ccagt_path)
 
     name = os.path.basename(os.path.normpath(dataset_dir))
     images_dir = os.path.join(dataset_dir, STRUCTURE['i'])
@@ -273,10 +273,10 @@ def dataset(
 
     print(f'Dataset name: `{name}` | Location: `{dataset_dir}`')
     print(f'From the annotations file ({ccagt_path}) -')
-    if df.shape[0] == 0:
+    if ccagt_df.shape[0] == 0:
         print('Do not have any annotation!')
     else:
-        desc = ccagt_annotations(df, categories_infos)
+        desc = ccagt_annotations(ccagt_df, categories_infos)
         print(f'Quantity of images: {desc["qtd_images"]}')
         print(f'Quantity of slides: {desc["qtd_slide"]}')
         print(f'Quantity of annotations: {desc["qtd_annotations"]}')

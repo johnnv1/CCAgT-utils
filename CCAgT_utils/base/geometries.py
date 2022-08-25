@@ -13,7 +13,16 @@ def point_to_polygon(
     tolerance: float = 0.3,
 ) -> pd.Series:
     diameter = np.sqrt(area_size / np.pi)
-    return points_geometries.apply(lambda x: x.buffer(distance=diameter, resolution=resolution).simplify(tolerance=tolerance))
+    return pd.Series(
+        points_geometries.apply(
+            lambda x: x.buffer(
+                distance=diameter,
+                resolution=resolution,
+            ).simplify(
+                tolerance=tolerance,
+            ),
+        ),
+    )
 
 
 def clip_to_extent(geometry: Polygon, boundary: box) -> Polygon | np.nan:
