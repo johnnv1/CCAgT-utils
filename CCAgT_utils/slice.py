@@ -6,7 +6,6 @@ from typing import Any
 from typing import Iterator
 
 import numpy as np
-import pandas as pd
 from PIL import Image
 from shapely import affinity
 
@@ -120,14 +119,14 @@ def image_with_annotation(
 @get_traceback
 def single_core_image_and_annotations(
     image_filenames: dict[str, str],
-    df_ccagt: pd.DataFrame,
+    ccagt_df: CCAgT.CCAgT,
     base_dir_output: str,
     h_quantity: int = 4,
     v_quantity: int = 4,
 ) -> tuple[int, list[dict[str, Any]]]:
     image_counter = 0
     annotations_out = []
-    for bn, df in df_ccagt.groupby('image_name'):
+    for bn, df in ccagt_df.groupby('image_name'):
         ann_items = [Annotation(r['geometry'], r['category_id']) for _, r in df.iterrows()]
 
         img_counter, ann_out = image_with_annotation(
@@ -154,8 +153,8 @@ def images_and_annotations(
 
     image_filenames = {basename(k): v for k, v in find_files(dir_images, **kwargs).items()}
 
-    df = CCAgT.load(annotations_path)
-    ann_qtd = df.shape[0]
+    ccagt_df = CCAgT.load(annotations_path)
+    ann_qtd = ccagt_df.shape[0]
     slides = {slide_from_filename(i) for i in image_filenames}
     create_structure(dir_output, slides)
 
@@ -172,7 +171,7 @@ def images_and_annotations(
         if len(filenames) == 0:
             continue  # pragma: no cover
 
-        _ccagt = df[df['image_name'].isin(filenames)]
+        _ccagt = ccagt_df[ccagt_df['image_name'].isin(filenames)]
         img_filenames = {k: image_filenames[k] for k in filenames}
         p = workers.apply_async(
             single_core_image_and_annotations, (
@@ -193,7 +192,7 @@ def images_and_annotations(
         ann_out.extend(_ann_out)
 
     print('Creating the annotation file...')
-    CCAgT.save(pd.DataFrame(ann_out), output_annotations_path)
+    CCAgT.save(CCAgT.CCAgT(ann_out), output_annotations_path)
 
     print(
         f'Successful splitted {len(image_filenames)}/{ann_qtd} images/annotations into {image_counter}/{len(ann_out)}'

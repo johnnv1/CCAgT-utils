@@ -226,23 +226,23 @@ def single_core_to_mask(
 
 
 def to_mask(
-    df: pd.DataFrame,
+    ccagt_df: CCAgT.CCAgT,
     out_dir: str,
     split_by_slide: bool = True,
 ) -> None:
 
     if split_by_slide:
-        if 'slide_id' not in df.columns:
-            df['slide_id'] = CCAgT.slides_ids(df)
+        if 'slide_id' not in ccagt_df.columns:
+            ccagt_df['slide_id'] = CCAgT.slides_ids(ccagt_df)
 
-        slide_ids = df['slide_id'].unique()
+        slide_ids = ccagt_df['slide_id'].unique()
 
         for slide_id in slide_ids:
             os.makedirs(os.path.join(out_dir, slide_id), exist_ok=True)
 
     cpu_num = multiprocessing.cpu_count()
 
-    img_ids = df['image_id'].unique()
+    img_ids = ccagt_df['image_id'].unique()
     if len(img_ids) == 0:
         print('Do not have annotations to generate the masks!', file=sys.stderr)
         return
@@ -257,17 +257,16 @@ def to_mask(
     workers = multiprocessing.Pool(processes=cpu_num)
     processes = []
     for images_ids in images_ids_splitted:
-        df_to_process = df.loc[df['image_id'].isin(images_ids), :]
+        df_to_process = ccagt_df.loc[ccagt_df['image_id'].isin(images_ids), :]
         p = workers.apply_async(single_core_to_mask, (df_to_process, out_dir, split_by_slide))
         processes.append(p)
 
     workers.close()
     workers.join()
 
+
 # -----------------------------------------------------------------------
 # Functions work with data to COCO
-
-
 def bounds_to_coco_bb(
     bounds: tuple[float],
     decimals: int = 2,
@@ -330,8 +329,8 @@ def single_core_to_PS_COCO(
     _out_dir = out_dir
 
     if df['image_width'].nunique() == df['image_height'].nunique() == 1:
-        w = int(df['image_width'].unique()[0])
-        h = int(df['image_height'].unique()[0])
+        w = np.integer(df['image_width'].unique()[0])
+        h = np.integer(df['image_height'].unique()[0])
         output_template = Image.fromarray(np.zeros((h, w, 3), dtype=np.uint8))
     else:
         output_template = None
@@ -417,28 +416,28 @@ def to_OD_COCO(
 
 
 def to_PS_COCO(
-        df: pd.DataFrame,
+        ccagt_df: CCAgT.CCAgT,
         categories_infos: CategoriesInfos,
         out_dir: str,
         split_by_slide: bool = True,
 ) -> list[Any]:
-    cols = df.columns
+    cols = ccagt_df.columns
     if not all(c in cols for c in ['image_id', 'iscrowd']):
         raise KeyError('The dataframe need to have the columns `image_id`, `iscrowd`!')
 
-    df['color'] = df['category_id'].apply(lambda cat_id: categories_infos.generate_random_color(cat_id))
+    ccagt_df['color'] = ccagt_df['category_id'].apply(lambda cat_id: categories_infos.generate_random_color(cat_id))
 
     if split_by_slide:
-        if 'slide_id' not in df.columns:
-            df['slide_id'] = CCAgT.slides_ids(df)
+        if 'slide_id' not in ccagt_df.columns:
+            ccagt_df['slide_id'] = CCAgT.slides_ids(ccagt_df)
 
-        slide_ids = df['slide_id'].unique()
+        slide_ids = ccagt_df['slide_id'].unique()
 
         for slide_id in slide_ids:
             os.makedirs(os.path.join(out_dir, slide_id), exist_ok=True)
 
     cpu_num = multiprocessing.cpu_count()
-    images_ids = df['image_id'].unique()
+    images_ids = ccagt_df['image_id'].unique()
     images_ids_splitted = np.array_split(images_ids, cpu_num)
 
     print(
@@ -451,7 +450,7 @@ def to_PS_COCO(
     for images_ids in images_ids_splitted:
         if len(images_ids) == 0:
             continue
-        df_to_process = df.loc[df['image_id'].isin(images_ids), :]
+        df_to_process = ccagt_df.loc[ccagt_df['image_id'].isin(images_ids), :]
         p = workers.apply_async(single_core_to_PS_COCO, (df_to_process, out_dir, split_by_slide))
         processes.append(p)
 

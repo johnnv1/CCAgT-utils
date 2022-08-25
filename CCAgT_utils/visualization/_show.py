@@ -32,7 +32,7 @@ def image_with_boxes(
     look_recursive: bool = True,
 ) -> int:
 
-    images_to_plot = df['image_name'].unique()
+    images_to_plot = list(df['image_name'].unique())
     if len(images_names) > 0:
         images_to_plot = [i for i in images_to_plot if i in images_names]
 
@@ -100,7 +100,7 @@ def image_and_mask(
     look_recursive: bool = True,
 ) -> int:
 
-    images_to_plot = df['image_name'].unique()
+    images_to_plot = list(df['image_name'].unique())
     if len(images_names) > 0:
         images_to_plot = [i for i in images_to_plot if i in images_names]
 
@@ -169,7 +169,7 @@ def image_with_boxes_and_mask(
     look_recursive: bool = True,
 ) -> int:
 
-    images_to_plot = df['image_name'].unique()
+    images_to_plot = list(df['image_name'].unique())
     if len(images_names) > 0:
         images_to_plot = [i for i in images_to_plot if i in images_names]
 
