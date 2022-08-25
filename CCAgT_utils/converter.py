@@ -329,8 +329,8 @@ def single_core_to_PS_COCO(
     _out_dir = out_dir
 
     if df['image_width'].nunique() == df['image_height'].nunique() == 1:
-        w = np.integer(df['image_width'].unique()[0])
-        h = np.integer(df['image_height'].unique()[0])
+        w = np.intc(df['image_width'].unique()[0])
+        h = np.intc(df['image_height'].unique()[0])
         output_template = Image.fromarray(np.zeros((h, w, 3), dtype=np.uint8))
     else:
         output_template = None
