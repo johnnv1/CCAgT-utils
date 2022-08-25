@@ -48,5 +48,5 @@ repos:
     rev: v0.961
     hooks:
     -   id: mypy
-        additional_dependencies: [types-all]
+        additional_dependencies: [types-all, pandas-stubs]
         exclude:  ^tests/
