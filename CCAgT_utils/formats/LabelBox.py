@@ -7,14 +7,20 @@ import pandas as pd
 from CCAgT_utils.base.utils import open_and_read_json
 
 
+class LabelBox(pd.DataFrame):
+    @property
+    def _constructor(self) -> type[LabelBox]:
+        return LabelBox
+
+
 def load(
     filename: str,
-) -> pd.DataFrame:
+) -> LabelBox:
     raw = open_and_read_json(filename)
 
     validate(raw)
 
-    return pd.DataFrame(raw)
+    return LabelBox(raw)
 
 
 def validate(raw: list[dict[str, Any]]) -> bool:
