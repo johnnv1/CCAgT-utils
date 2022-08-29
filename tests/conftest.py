@@ -11,7 +11,7 @@ from shapely.geometry import Point
 from shapely.geometry import Polygon
 
 from CCAgT_utils.base.categories import CategoriesInfos
-from CCAgT_utils.formats import CCAgT
+from CCAgT_utils.formats import ccagt
 from CCAgT_utils.formats.annotation import Annotation
 from CCAgT_utils.formats.mask import Mask
 from testing import create
@@ -293,7 +293,7 @@ def ccagt_multi_image_names(ccagt_df_multi):
 @pytest.fixture
 def ccagt_ann_multi_path(ccagt_df_multi, tmpdir):
     path = os.path.join(tmpdir, 'CCAgT.parquet.gzip')
-    CCAgT.save(ccagt_df_multi, path)
+    ccagt.save(ccagt_df_multi, path)
     return path
 
 

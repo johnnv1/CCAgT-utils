@@ -19,8 +19,8 @@ from CCAgT_utils.base.categories import Categories
 from CCAgT_utils.base.categories import CategoriesInfos
 from CCAgT_utils.base.utils import basename
 from CCAgT_utils.base.utils import get_traceback
-from CCAgT_utils.formats import CCAgT
-from CCAgT_utils.formats import COCO
+from CCAgT_utils.formats import ccagt
+from CCAgT_utils.formats import coco
 from CCAgT_utils.formats.annotation import Annotation
 from CCAgT_utils.formats.mask import Mask
 
@@ -226,14 +226,14 @@ def single_core_to_mask(
 
 
 def to_mask(
-    ccagt_df: CCAgT.CCAgT,
+    ccagt_df: ccagt.CCAgT,
     out_dir: str,
     split_by_slide: bool = True,
 ) -> None:
 
     if split_by_slide:
         if 'slide_id' not in ccagt_df.columns:
-            ccagt_df['slide_id'] = CCAgT.slides_ids(ccagt_df)
+            ccagt_df['slide_id'] = ccagt.slides_ids(ccagt_df)
 
         slide_ids = ccagt_df['slide_id'].unique()
 
@@ -364,7 +364,7 @@ def single_core_to_PS_COCO(
         for ann in annotations_sorted:
             out = draw_annotation(out, ann, ann.color.rgb)
             segments_info.append({
-                'id': COCO.color_to_id(ann.color),
+                'id': coco.color_to_id(ann.color),
                 'category_id': ann.category_id,
                 'area': int(ann.geometry.area),
                 'bbox': ann.coco_bbox,
@@ -416,7 +416,7 @@ def to_OD_COCO(
 
 
 def to_PS_COCO(
-        ccagt_df: CCAgT.CCAgT,
+        ccagt_df: ccagt.CCAgT,
         categories_infos: CategoriesInfos,
         out_dir: str,
         split_by_slide: bool = True,
@@ -429,7 +429,7 @@ def to_PS_COCO(
 
     if split_by_slide:
         if 'slide_id' not in ccagt_df.columns:
-            ccagt_df['slide_id'] = CCAgT.slides_ids(ccagt_df)
+            ccagt_df['slide_id'] = ccagt.slides_ids(ccagt_df)
 
         slide_ids = ccagt_df['slide_id'].unique()
 

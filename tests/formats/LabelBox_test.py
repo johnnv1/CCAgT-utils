@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from CCAgT_utils.formats.LabelBox import LabelBox
-from CCAgT_utils.formats.LabelBox import load
-from CCAgT_utils.formats.LabelBox import validate
+from CCAgT_utils.formats.labelbox import LabelBox
+from CCAgT_utils.formats.labelbox import load
+from CCAgT_utils.formats.labelbox import validate
 
 
 def test_load(lbox_sample_complete, lbox_raw_sample_complete):

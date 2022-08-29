@@ -9,7 +9,7 @@ from PIL import Image
 
 from CCAgT_utils import describe
 from CCAgT_utils.base.categories import Categories
-from CCAgT_utils.formats import CCAgT
+from CCAgT_utils.formats import ccagt
 from testing import create
 
 
@@ -98,7 +98,7 @@ def test_from_image_files_empty(tmpdir):
 
 def test_annotations_per_image(ccagt_df_multi, categories_infos):
     df = ccagt_df_multi.copy()
-    df['image_id'] = CCAgT.generate_ids(df['image_name'])
+    df['image_id'] = ccagt.generate_ids(df['image_name'])
 
     df = describe.annotations_per_image(df, categories_infos)
 
@@ -108,9 +108,9 @@ def test_annotations_per_image(ccagt_df_multi, categories_infos):
 
 def test_ccagt_annotations(ccagt_df_multi, categories_infos):
     df = ccagt_df_multi.copy()
-    df['image_id'] = CCAgT.generate_ids(df['image_name'])
-    df['slide_id'] = CCAgT.slides_ids(df)
-    df['area'] = CCAgT.geometries_area(df)
+    df['image_id'] = ccagt.generate_ids(df['image_name'])
+    df['slide_id'] = ccagt.slides_ids(df)
+    df['area'] = ccagt.geometries_area(df)
 
     out = describe.ccagt_annotations(df, categories_infos)
 
@@ -133,9 +133,9 @@ def test_ccagt_annotations(ccagt_df_multi, categories_infos):
 
 def test_tvt_annotations_as_df(ccagt_df_multi, categories_infos):
     df = ccagt_df_multi.copy()
-    df['image_id'] = CCAgT.generate_ids(df['image_name'])
-    df['slide_id'] = CCAgT.slides_ids(df)
-    df['area'] = CCAgT.geometries_area(df)
+    df['image_id'] = ccagt.generate_ids(df['image_name'])
+    df['slide_id'] = ccagt.slides_ids(df)
+    df['area'] = ccagt.geometries_area(df)
 
     out = describe.ccagt_annotations(df, categories_infos)
 
