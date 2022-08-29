@@ -20,7 +20,7 @@ from CCAgT_utils.converter import single_core_to_PS_COCO
 from CCAgT_utils.converter import to_mask
 from CCAgT_utils.converter import to_OD_COCO
 from CCAgT_utils.converter import to_PS_COCO
-from CCAgT_utils.formats import CCAgT
+from CCAgT_utils.formats import ccagt
 from CCAgT_utils.formats.annotation import Annotation
 from testing import create
 
@@ -130,14 +130,14 @@ def test_to_mask(ccagt_df_single_nucleus, tmpdir):
     ccagt_df_single_nucleus['image_name'] = 'C_xx1'
     ccagt_df_single_nucleus['image_width'] = 1600
     ccagt_df_single_nucleus['image_height'] = 1200
-    ccagt_df_single_nucleus['image_id'] = CCAgT.generate_ids(ccagt_df_single_nucleus['image_name'])
+    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(ccagt_df_single_nucleus['image_name'])
     to_mask(ccagt_df_single_nucleus, str(tmpdir), split_by_slide=True)
     assert tmpdir.join('C/C_xx1.png').check()
 
     to_mask(ccagt_df_single_nucleus, str(tmpdir), split_by_slide=False)
     assert tmpdir.join('C_xx1.png').check()
 
-    ccagt_df_single_nucleus['slide_id'] = CCAgT.slides_ids(ccagt_df_single_nucleus)
+    ccagt_df_single_nucleus['slide_id'] = ccagt.slides_ids(ccagt_df_single_nucleus)
     to_mask(ccagt_df_single_nucleus, str(tmpdir), split_by_slide=True)
     assert tmpdir.join('C/C_xx1.png').check()
 
@@ -149,8 +149,8 @@ def test_to_mask_without_data(capsys):
 
 
 def test_single_core_to_OD_COCO(ccagt_df_single_nucleus, coco_OD_ann_single_nucleus):
-    ccagt_df_single_nucleus['area'] = CCAgT.geometries_area(ccagt_df_single_nucleus)
-    ccagt_df_single_nucleus['image_id'] = CCAgT.generate_ids(ccagt_df_single_nucleus['image_name'])
+    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(ccagt_df_single_nucleus)
+    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(ccagt_df_single_nucleus['image_name'])
     ccagt_df_single_nucleus['iscrowd'] = 0
     ccagt_df_single_nucleus.index = ccagt_df_single_nucleus.index + 1
 
@@ -163,8 +163,8 @@ def test_single_core_to_PS_COCO(ccagt_df_single_nucleus, tmpdir):
     ccagt_df_single_nucleus['image_name'] = 'C_xx1'
     ccagt_df_single_nucleus['image_width'] = 1600
     ccagt_df_single_nucleus['image_height'] = 1200
-    ccagt_df_single_nucleus['area'] = CCAgT.geometries_area(ccagt_df_single_nucleus)
-    ccagt_df_single_nucleus['image_id'] = CCAgT.generate_ids(ccagt_df_single_nucleus['image_name'])
+    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(ccagt_df_single_nucleus)
+    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(ccagt_df_single_nucleus['image_name'])
     ccagt_df_single_nucleus['iscrowd'] = 0
     ccagt_df_single_nucleus['color'] = [Color(21, 62, 125)] * len(ccagt_df_single_nucleus)
 
@@ -177,15 +177,15 @@ def test_single_core_to_PS_COCO(ccagt_df_single_nucleus, tmpdir):
 
     assert len(tmpdir.listdir()) > 0
 
-    ccagt_df_single_nucleus['slide_id'] = CCAgT.slides_ids(ccagt_df_single_nucleus)
+    ccagt_df_single_nucleus['slide_id'] = ccagt.slides_ids(ccagt_df_single_nucleus)
     subdir = tmpdir.mkdir('C')
     single_core_to_PS_COCO(ccagt_df_single_nucleus, str(tmpdir), True)
     assert len(subdir.listdir()) > 0
 
 
 def test_single_core_to_PS_COCO_multisizes(ccagt_df_multi, tmpdir):
-    ccagt_df_multi['area'] = CCAgT.geometries_area(ccagt_df_multi)
-    ccagt_df_multi['image_id'] = CCAgT.generate_ids(ccagt_df_multi['image_name'])
+    ccagt_df_multi['area'] = ccagt.geometries_area(ccagt_df_multi)
+    ccagt_df_multi['image_id'] = ccagt.generate_ids(ccagt_df_multi['image_name'])
     ccagt_df_multi['iscrowd'] = 0
     ccagt_df_multi['color'] = [Color(21, 62, 125)] * len(ccagt_df_multi)
     ccagt_df_multi['image_width'] = 1000
@@ -204,8 +204,8 @@ def test_to_OD_COCO(ccagt_df_single_nucleus, coco_OD_ann_single_nucleus):
     with pytest.raises(KeyError):
         to_OD_COCO(ccagt_df_single_nucleus)
 
-    ccagt_df_single_nucleus['area'] = CCAgT.geometries_area(ccagt_df_single_nucleus)
-    ccagt_df_single_nucleus['image_id'] = CCAgT.generate_ids(ccagt_df_single_nucleus['image_name'])
+    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(ccagt_df_single_nucleus)
+    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(ccagt_df_single_nucleus['image_name'])
     ccagt_df_single_nucleus['iscrowd'] = 0
 
     coco_OD_ann = to_OD_COCO(ccagt_df_single_nucleus)
@@ -222,8 +222,8 @@ def test_to_PS_COCO(ccagt_df_single_nucleus, categories_infos, tmpdir):
     ccagt_df_single_nucleus['image_name'] = 'C_xx1'
     ccagt_df_single_nucleus['image_width'] = 1600
     ccagt_df_single_nucleus['image_height'] = 1200
-    ccagt_df_single_nucleus['area'] = CCAgT.geometries_area(ccagt_df_single_nucleus)
-    ccagt_df_single_nucleus['image_id'] = CCAgT.generate_ids(ccagt_df_single_nucleus['image_name'])
+    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(ccagt_df_single_nucleus)
+    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(ccagt_df_single_nucleus['image_name'])
     ccagt_df_single_nucleus['iscrowd'] = 0
 
     out = to_PS_COCO(ccagt_df_single_nucleus, categories_infos, tmpdir, False)
@@ -240,6 +240,6 @@ def test_to_PS_COCO(ccagt_df_single_nucleus, categories_infos, tmpdir):
 
     # With slide id
     df = ccagt_df_single_nucleus.copy()
-    df['slide_id'] = CCAgT.slides_ids(df)
+    df['slide_id'] = ccagt.slides_ids(df)
     to_PS_COCO(df, categories_infos, tmpdir, True)
     assert len(tmpdir.join('C/').listdir()) > 0

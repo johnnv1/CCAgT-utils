@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from CCAgT_utils.base.colors import Color
-from CCAgT_utils.formats.COCO import color_to_id
+from CCAgT_utils.formats.coco import color_to_id
 
 
 def test_color_to_id():

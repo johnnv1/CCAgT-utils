@@ -17,7 +17,7 @@ from CCAgT_utils.base.categories import CategoriesInfos
 from CCAgT_utils.base.utils import find_files
 from CCAgT_utils.base.utils import get_traceback
 from CCAgT_utils.base.utils import STRUCTURE
-from CCAgT_utils.formats import CCAgT
+from CCAgT_utils.formats import ccagt
 
 R = Union[float, Tuple[float, float, float]]
 
@@ -169,14 +169,14 @@ def annotations_per_image(
 
 
 def ccagt_annotations(
-    ccagt_df: CCAgT.CCAgT,
+    ccagt_df: ccagt.CCAgT,
     categories_infos: CategoriesInfos,
 ) -> dict[str, Any]:
     if 'area' not in ccagt_df.columns:
-        ccagt_df['area'] = CCAgT.geometries_area(ccagt_df)
+        ccagt_df['area'] = ccagt.geometries_area(ccagt_df)
 
     if 'slide_id' not in ccagt_df.columns:
-        ccagt_df['slide_id'] = CCAgT.slides_ids(ccagt_df)
+        ccagt_df['slide_id'] = ccagt.slides_ids(ccagt_df)
 
     ann_count = {cat.name: ccagt_df.loc[ccagt_df['category_id'] == cat.id, 'area'].shape[0] for cat in categories_infos}
     qtd_ann = ccagt_df.shape[0]
@@ -265,7 +265,7 @@ def dataset(
     dataset_dir: str,
     extensions: tuple[str, ...] = ('.jpg', '.png'),
 ) -> None:
-    ccagt_df = CCAgT.load(ccagt_path)
+    ccagt_df = ccagt.load(ccagt_path)
 
     name = os.path.basename(os.path.normpath(dataset_dir))
     images_dir = os.path.join(dataset_dir, STRUCTURE['i'])

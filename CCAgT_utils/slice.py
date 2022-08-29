@@ -14,7 +14,7 @@ from CCAgT_utils.base.utils import create_structure
 from CCAgT_utils.base.utils import find_files
 from CCAgT_utils.base.utils import get_traceback
 from CCAgT_utils.base.utils import slide_from_filename
-from CCAgT_utils.formats import CCAgT
+from CCAgT_utils.formats import ccagt
 from CCAgT_utils.formats.annotation import Annotation
 from CCAgT_utils.formats.annotation import BBox
 
@@ -119,7 +119,7 @@ def image_with_annotation(
 @get_traceback
 def single_core_image_and_annotations(
     image_filenames: dict[str, str],
-    ccagt_df: CCAgT.CCAgT,
+    ccagt_df: ccagt.CCAgT,
     base_dir_output: str,
     h_quantity: int = 4,
     v_quantity: int = 4,
@@ -153,7 +153,7 @@ def images_and_annotations(
 
     image_filenames = {basename(k): v for k, v in find_files(dir_images, **kwargs).items()}
 
-    ccagt_df = CCAgT.load(annotations_path)
+    ccagt_df = ccagt.load(annotations_path)
     ann_qtd = ccagt_df.shape[0]
     slides = {slide_from_filename(i) for i in image_filenames}
     create_structure(dir_output, slides)
@@ -192,7 +192,7 @@ def images_and_annotations(
         ann_out.extend(_ann_out)
 
     print('Creating the annotation file...')
-    CCAgT.save(CCAgT.CCAgT(ann_out), output_annotations_path)
+    ccagt.save(ccagt.CCAgT(ann_out), output_annotations_path)
 
     print(
         f'Successful splitted {len(image_filenames)}/{ann_qtd} images/annotations into {image_counter}/{len(ann_out)}'

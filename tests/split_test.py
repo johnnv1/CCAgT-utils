@@ -4,7 +4,7 @@ import pandas as pd
 import pytest
 
 from CCAgT_utils import split
-from CCAgT_utils.formats import CCAgT
+from CCAgT_utils.formats import ccagt
 
 
 def test_tvt():
@@ -25,8 +25,8 @@ def test_tvt_by_nors(ccagt_df_multi, categories_infos):
         df_dummy['image_name'] = f'C_xxx{n}'
         df = pd.concat([df, df_dummy])
 
-    df['image_id'] = CCAgT.generate_ids(df['image_name'])
-    df['slide_id'] = CCAgT.slides_ids(df)
+    df['image_id'] = ccagt.generate_ids(df['image_name'])
+    df['slide_id'] = ccagt.slides_ids(df)
     out = split.tvt_by_nors(df, categories_infos, (0.7, 0.15, 0.15), seed=6547)
 
     assert out[0] == {1, 2, 4, 7, 9, 11}
