@@ -39,3 +39,14 @@ def test_masks_that_has(shape, tmpdir):
         o = checkers.masks_that_has(mask_dir, {0, 1})
         assert len(o) == 1
         assert o == {'test'}
+
+
+def test_is_2d():
+    assert checkers.is_2d((100, 200))
+    assert not checkers.is_2d((100, 200, 300))
+
+
+def test_is_rgb_shape():
+    assert checkers.is_rgb_shape((100, 200, 3))
+    assert not checkers.is_rgb_shape((100, 200, 300))
+    assert not checkers.is_rgb_shape((100, 200))
