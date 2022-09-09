@@ -8,7 +8,6 @@ import numpy as np
 from PIL import Image
 
 from CCAgT_utils.base.categories import CategoriesInfos
-from CCAgT_utils.base.errors import ShapeError
 from CCAgT_utils.checkers import is_2d
 
 
@@ -21,7 +20,7 @@ class Mask:
         self.categorical: np.ndarray = np.array(self.categorical, dtype=np.uint8)
 
         if not is_2d(self.categorical.shape):
-            raise ShapeError('Unexpected shape, categorical mask need to be a matrix (2D array)!')
+            raise ValueError('Unexpected shape, categorical mask need to be a matrix (2D array)!')
 
     @property
     def height(self) -> int:

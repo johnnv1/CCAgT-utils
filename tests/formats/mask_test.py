@@ -6,12 +6,11 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from CCAgT_utils.base.errors import ShapeError
 from CCAgT_utils.formats.mask import Mask
 
 
 def test_wrong_init():
-    with pytest.raises(ShapeError):
+    with pytest.raises(ValueError):
         Mask([1, 1])
 
 
