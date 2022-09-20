@@ -292,7 +292,7 @@ def has_intersecting_geometries(
     geo: Polygon,
     geometries: pd.Series,
 ) -> bool:
-    for _, g in geometries.iteritems():
+    for _, g in geometries.items():
         if geo.intersects(g):
             return True
     return False
