@@ -9,7 +9,9 @@ from CCAgT_utils.base.colors import Color
 
 # def validate():
 # TODO:
-# Based on https://github.com/cocodataset/panopticapi/blob/master/converters/detection2panoptic_coco_format.py
+
+
+# noqa: E501 - Based on https://github.com/cocodataset/panopticapi/blob/master/converters/detection2panoptic_coco_format.py
 """
     COCO_OD
         annotation{
@@ -37,7 +39,7 @@ from CCAgT_utils.base.colors import Color
     """
 
 
-# Copied from github.com/cocodataset/panopticapi/blob/7bb4655548f98f3fedc07bf37e9040a992b054b0/panopticapi/utils.py#L73
+# noqa: E501 - Copied from github.com/cocodataset/panopticapi/blob/7bb4655548f98f3fedc07bf37e9040a992b054b0/panopticapi/utils.py#L73
 def color_to_id(color: Color) -> int:
     """Encode the color into a ID using:
     ID = R * 256 * G + 256 * 256 + B.

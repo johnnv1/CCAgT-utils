@@ -19,7 +19,12 @@ from CCAgT_utils.formats.annotation import Annotation
 from CCAgT_utils.formats.annotation import BBox
 
 
-def __create_xy_slice(height: int, width: int, tile_h: int, tile_w: int) -> Iterator[BBox]:
+def __create_xy_slice(
+    height: int,
+    width: int,
+    tile_h: int,
+    tile_w: int,
+) -> Iterator[BBox]:
     for y in range(0, height, tile_h):
         for x in range(0, width, tile_w):
             yield BBox(x, y, tile_w, tile_h, -1)
@@ -91,7 +96,9 @@ def image_with_annotation(
                 _test = True
 
             if _test:
-                ann_to_use.geometry = affinity.translate(ann_to_use.geometry, x_off, y_off)
+                ann_to_use.geometry = affinity.translate(
+                    ann_to_use.geometry, x_off, y_off,
+                )
                 img_annotations.append({
                     'image_name': basename_img,
                     'geometry': ann_to_use.geometry,
@@ -127,7 +134,10 @@ def single_core_image_and_annotations(
     image_counter = 0
     annotations_out = []
     for bn, df in ccagt_df.groupby('image_name'):
-        ann_items = [Annotation(r['geometry'], r['category_id']) for _, r in df.iterrows()]
+        ann_items = [
+            Annotation(r['geometry'], r['category_id'])
+            for _, r in df.iterrows()
+        ]
 
         img_counter, ann_out = image_with_annotation(
             image_filenames[bn],
@@ -151,7 +161,11 @@ def images_and_annotations(
     **kwargs: Any
 ) -> None:
 
-    image_filenames = {basename(k): v for k, v in find_files(dir_images, **kwargs).items()}
+    image_filenames = {
+        basename(k): v for k, v in find_files(
+            dir_images, **kwargs
+        ).items()
+    }
 
     ccagt_df = ccagt.load(annotations_path)
     ann_qtd = ccagt_df.shape[0]
@@ -162,7 +176,8 @@ def images_and_annotations(
     workers = multiprocessing.Pool(processes=cpu_num)
     filenames_splitted = np.array_split(list(image_filenames), cpu_num)
     print(
-        f'Start the split of images and annotations into {h_quantity}x{v_quantity} parts using {cpu_num} cores with '
+        f'Start the split of images and annotations into {h_quantity}x'
+        f'{v_quantity} parts using {cpu_num} cores with '
         f'{len(filenames_splitted[0])} images and masks per core...',
     )
 
@@ -195,6 +210,7 @@ def images_and_annotations(
     ccagt.save(ccagt.CCAgT(ann_out), output_annotations_path)
 
     print(
-        f'Successful splitted {len(image_filenames)}/{ann_qtd} images/annotations into {image_counter}/{len(ann_out)}'
+        f'Successful splitted {len(image_filenames)}/{ann_qtd} '
+        f'images/annotations into {image_counter}/{len(ann_out)}'
         ' images/annotations',
     )

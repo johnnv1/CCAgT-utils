@@ -23,10 +23,14 @@ def test_CategoriesInfos_init_without_data():
 def test_CategoriesInfos_init_with_data(categories_aux_data):
     id_with_labelbox_schemaId = categories_aux_data[0]['id']
     categories_infos = CategoriesInfos(categories_aux_data)
-    assert categories_infos[id_with_labelbox_schemaId].labelbox_schemaId is not None
+    assert categories_infos[
+        id_with_labelbox_schemaId
+    ].labelbox_schemaId is not None
 
 
-def test_CategoriesInfos_init_with_data_with_background(categories_aux_data):
+def test_CategoriesInfos_init_with_data_with_background(
+    categories_aux_data,
+):
     id_with_labelbox_schemaId = categories_aux_data[0]['id']
     data = categories_aux_data[:]
     data.append({
@@ -36,10 +40,14 @@ def test_CategoriesInfos_init_with_data_with_background(categories_aux_data):
         'minimal_area': 0,
     })
     categories_infos = CategoriesInfos(data)
-    assert categories_infos[id_with_labelbox_schemaId].labelbox_schemaId is not None
+    assert categories_infos[
+        id_with_labelbox_schemaId
+    ].labelbox_schemaId is not None
 
 
-def test_CategoriesInfos_init_with_data_without_color(categories_aux_data):
+def test_CategoriesInfos_init_with_data_without_color(
+    categories_aux_data,
+):
     del categories_aux_data[0]['color']
     with pytest.raises(KeyError):
         CategoriesInfos(categories_aux_data)
@@ -74,7 +82,10 @@ def test_CategoriesInfos_get_min_area(categories_aux_data):
         categories_infos.get_min_area(1),
         categories_infos.get_min_area(2),
     ]
-    expected = [i['minimal_area'] for i in categories_aux_data if i['id'] in {1, 2}]
+    expected = [
+        i['minimal_area']
+        for i in categories_aux_data if i['id'] in {1, 2}
+    ]
 
     assert minimal_area == expected
 
@@ -85,7 +96,11 @@ def test_CategoriesInfos_get_name(categories_aux_data):
         categories_infos.get_name(1),
         categories_infos.get_name(2),
     ]
-    expected = [i['name'] for i in categories_aux_data if i['id'] in {1, 2}]
+    expected = [
+        i['name']
+        for i in categories_aux_data
+        if i['id'] in {1, 2}
+    ]
 
     assert names == expected
 
@@ -96,12 +111,19 @@ def test_CategoriesInfos_get_color(categories_aux_data):
         categories_infos.get_color(1),
         categories_infos.get_color(2),
     ]
-    expected = [i['color'] for i in categories_aux_data if i['id'] in {1, 2}]
+    expected = [
+        i['color']
+        for i in categories_aux_data
+        if i['id'] in {1, 2}
+    ]
 
     assert colors == expected
 
 
-def test_CategoriesInfos_generate_random_color(categories_aux_data, monkeypatch):
+def test_CategoriesInfos_generate_random_color(
+    categories_aux_data,
+    monkeypatch,
+):
     c = (127, 127, 127)
     c_color = Color(c[0], c[1], c[2])
 
@@ -127,9 +149,15 @@ def test_CategoriesInfos_generate_random_color(categories_aux_data, monkeypatch)
     out_r, out_g, out_b = color.rgb
     assert color != nucleus_color
 
-    assert np.minimum(0, expected_r - 30) <= out_r <= np.minimum(color._max_value, expected_r + 30)
-    assert np.minimum(0, expected_g - 30) <= out_g <= np.minimum(color._max_value, expected_g + 30)
-    assert np.minimum(0, expected_b - 30) <= out_b <= np.minimum(color._max_value, expected_b + 30)
+    assert np.minimum(
+        0, expected_r - 30,
+    ) <= out_r <= np.minimum(color._max_value, expected_r + 30)
+    assert np.minimum(
+        0, expected_g - 30,
+    ) <= out_g <= np.minimum(color._max_value, expected_g + 30)
+    assert np.minimum(
+        0, expected_b - 30,
+    ) <= out_b <= np.minimum(color._max_value, expected_b + 30)
 
 
 def test_read_json(tmpdir):

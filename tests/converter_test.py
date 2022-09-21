@@ -26,11 +26,17 @@ from testing import create
 
 
 def test_lbox_geo_to_shapely(lbox_raw_single_satellite, satellite_ex):
-    geometry = lbox_geo_to_shapely(lbox_raw_single_satellite['Label']['objects'][0])
+    geometry = lbox_geo_to_shapely(
+        lbox_raw_single_satellite['Label']['objects'][0],
+    )
     assert satellite_ex.equals(geometry)
 
 
-def test_from_labelbox(lbox_raw_sample_complete, categories_infos, lbox_raw_expected_ccagt_df):
+def test_from_labelbox(
+    lbox_raw_sample_complete,
+    categories_infos,
+    lbox_raw_expected_ccagt_df,
+):
     lbox_df_raw = pd.DataFrame(lbox_raw_sample_complete)
     df = from_labelbox(lbox_df_raw, categories_infos)
     assert df.equals(lbox_raw_expected_ccagt_df)
@@ -51,7 +57,10 @@ def test_from_labelbox_with_duplicated_image(
     assert df.equals(lbox_raw_expected_ccagt_df)
 
     sample = lbox_raw_single_satellite.copy()
-    sample.update(ID='otherID-99x', Reviews=[{'score': 0, 'labelId': 'otherID-99x'}])
+    sample.update(
+        ID='otherID-99x',
+        Reviews=[{'score': 0, 'labelId': 'otherID-99x'}],
+    )
     lbox_raw_sample_complete.append(sample)
     lbox_df_raw = pd.DataFrame(lbox_raw_sample_complete)
     df = from_labelbox(lbox_df_raw, categories_infos)
@@ -66,7 +75,11 @@ def test_from_labelbox_with_duplicated_image(
 
 
 def test_order_annotations_to_draw(cluster_ex, satellite_ex, nucleus_ex):
-    anns = [Annotation(cluster_ex, 2), Annotation(satellite_ex, 3), Annotation(nucleus_ex, 1)]
+    anns = [
+        Annotation(cluster_ex, 2),
+        Annotation(satellite_ex, 3),
+        Annotation(nucleus_ex, 1),
+    ]
     anns = order_annotations_to_draw(anns)
 
     categories_ids = [ann.category_id for ann in anns]
@@ -130,14 +143,18 @@ def test_to_mask(ccagt_df_single_nucleus, tmpdir):
     ccagt_df_single_nucleus['image_name'] = 'C_xx1'
     ccagt_df_single_nucleus['image_width'] = 1600
     ccagt_df_single_nucleus['image_height'] = 1200
-    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(ccagt_df_single_nucleus['image_name'])
+    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(
+        ccagt_df_single_nucleus['image_name'],
+    )
     to_mask(ccagt_df_single_nucleus, str(tmpdir), split_by_slide=True)
     assert tmpdir.join('C/C_xx1.png').check()
 
     to_mask(ccagt_df_single_nucleus, str(tmpdir), split_by_slide=False)
     assert tmpdir.join('C_xx1.png').check()
 
-    ccagt_df_single_nucleus['slide_id'] = ccagt.slides_ids(ccagt_df_single_nucleus)
+    ccagt_df_single_nucleus['slide_id'] = ccagt.slides_ids(
+        ccagt_df_single_nucleus,
+    )
     to_mask(ccagt_df_single_nucleus, str(tmpdir), split_by_slide=True)
     assert tmpdir.join('C/C_xx1.png').check()
 
@@ -148,9 +165,16 @@ def test_to_mask_without_data(capsys):
     assert 'Do not have annotations to generate the masks!\n' == err
 
 
-def test_single_core_to_OD_COCO(ccagt_df_single_nucleus, coco_OD_ann_single_nucleus):
-    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(ccagt_df_single_nucleus)
-    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(ccagt_df_single_nucleus['image_name'])
+def test_single_core_to_OD_COCO(
+    ccagt_df_single_nucleus,
+    coco_OD_ann_single_nucleus,
+):
+    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(
+        ccagt_df_single_nucleus,
+    )
+    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(
+        ccagt_df_single_nucleus['image_name'],
+    )
     ccagt_df_single_nucleus['iscrowd'] = 0
     ccagt_df_single_nucleus.index = ccagt_df_single_nucleus.index + 1
 
@@ -163,21 +187,35 @@ def test_single_core_to_PS_COCO(ccagt_df_single_nucleus, tmpdir):
     ccagt_df_single_nucleus['image_name'] = 'C_xx1'
     ccagt_df_single_nucleus['image_width'] = 1600
     ccagt_df_single_nucleus['image_height'] = 1200
-    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(ccagt_df_single_nucleus)
-    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(ccagt_df_single_nucleus['image_name'])
+    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(
+        ccagt_df_single_nucleus,
+    )
+    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(
+        ccagt_df_single_nucleus['image_name'],
+    )
     ccagt_df_single_nucleus['iscrowd'] = 0
-    ccagt_df_single_nucleus['color'] = [Color(21, 62, 125)] * len(ccagt_df_single_nucleus)
+    ccagt_df_single_nucleus['color'] = [
+        Color(21, 62, 125),
+    ] * len(ccagt_df_single_nucleus)
 
     out = single_core_to_PS_COCO(ccagt_df_single_nucleus, str(tmpdir), False)
 
-    check1 = all(y in out[0] for y in {'image_id', 'file_name', 'segments_info'})
+    check1 = all(
+        y in out[0]
+        for y in {'image_id', 'file_name', 'segments_info'}
+    )
     assert check1
-    check2 = all(y in x for x in out[0]['segments_info'] for y in {'id', 'category_id', 'bbox', 'iscrowd'})
+    check2 = all(
+        y in x for x in out[0]['segments_info']
+        for y in {'id', 'category_id', 'bbox', 'iscrowd'}
+    )
     assert check2
 
     assert len(tmpdir.listdir()) > 0
 
-    ccagt_df_single_nucleus['slide_id'] = ccagt.slides_ids(ccagt_df_single_nucleus)
+    ccagt_df_single_nucleus['slide_id'] = ccagt.slides_ids(
+        ccagt_df_single_nucleus,
+    )
     subdir = tmpdir.mkdir('C')
     single_core_to_PS_COCO(ccagt_df_single_nucleus, str(tmpdir), True)
     assert len(subdir.listdir()) > 0
@@ -185,7 +223,9 @@ def test_single_core_to_PS_COCO(ccagt_df_single_nucleus, tmpdir):
 
 def test_single_core_to_PS_COCO_multisizes(ccagt_df_multi, tmpdir):
     ccagt_df_multi['area'] = ccagt.geometries_area(ccagt_df_multi)
-    ccagt_df_multi['image_id'] = ccagt.generate_ids(ccagt_df_multi['image_name'])
+    ccagt_df_multi['image_id'] = ccagt.generate_ids(
+        ccagt_df_multi['image_name'],
+    )
     ccagt_df_multi['iscrowd'] = 0
     ccagt_df_multi['color'] = [Color(21, 62, 125)] * len(ccagt_df_multi)
     ccagt_df_multi['image_width'] = 1000
@@ -193,7 +233,9 @@ def test_single_core_to_PS_COCO_multisizes(ccagt_df_multi, tmpdir):
 
     ccagt_df_multi.loc[ccagt_df_multi['image_id'] == 1, 'image_height'] = 2000
 
-    ccagt_df_multi['geo_type'] = ccagt_df_multi['geometry'].apply(lambda g: g.geom_type).tolist()
+    ccagt_df_multi['geo_type'] = ccagt_df_multi['geometry'].apply(
+        lambda g: g.geom_type,
+    ).tolist()
     ccagt_df_multi = ccagt_df_multi[ccagt_df_multi['geo_type'] != 'Point']
     single_core_to_PS_COCO(ccagt_df_multi, tmpdir, False)
 
@@ -204,8 +246,12 @@ def test_to_OD_COCO(ccagt_df_single_nucleus, coco_OD_ann_single_nucleus):
     with pytest.raises(KeyError):
         to_OD_COCO(ccagt_df_single_nucleus)
 
-    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(ccagt_df_single_nucleus)
-    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(ccagt_df_single_nucleus['image_name'])
+    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(
+        ccagt_df_single_nucleus,
+    )
+    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(
+        ccagt_df_single_nucleus['image_name'],
+    )
     ccagt_df_single_nucleus['iscrowd'] = 0
 
     coco_OD_ann = to_OD_COCO(ccagt_df_single_nucleus)
@@ -213,7 +259,11 @@ def test_to_OD_COCO(ccagt_df_single_nucleus, coco_OD_ann_single_nucleus):
     assert coco_OD_ann == coco_OD_ann_single_nucleus
 
 
-def test_to_PS_COCO_without_cols(ccagt_df_single_nucleus, categories_infos, tmpdir):
+def test_to_PS_COCO_without_cols(
+    ccagt_df_single_nucleus,
+    categories_infos,
+    tmpdir,
+):
     with pytest.raises(KeyError):
         to_PS_COCO(ccagt_df_single_nucleus, categories_infos, tmpdir)
 
@@ -222,15 +272,25 @@ def test_to_PS_COCO(ccagt_df_single_nucleus, categories_infos, tmpdir):
     ccagt_df_single_nucleus['image_name'] = 'C_xx1'
     ccagt_df_single_nucleus['image_width'] = 1600
     ccagt_df_single_nucleus['image_height'] = 1200
-    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(ccagt_df_single_nucleus)
-    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(ccagt_df_single_nucleus['image_name'])
+    ccagt_df_single_nucleus['area'] = ccagt.geometries_area(
+        ccagt_df_single_nucleus,
+    )
+    ccagt_df_single_nucleus['image_id'] = ccagt.generate_ids(
+        ccagt_df_single_nucleus['image_name'],
+    )
     ccagt_df_single_nucleus['iscrowd'] = 0
 
     out = to_PS_COCO(ccagt_df_single_nucleus, categories_infos, tmpdir, False)
 
-    check1 = all(y in out[0] for y in {'image_id', 'file_name', 'segments_info'})
+    check1 = all(
+        y in out[0]
+        for y in {'image_id', 'file_name', 'segments_info'}
+    )
     assert check1
-    check2 = all(y in x for x in out[0]['segments_info'] for y in {'id', 'category_id', 'bbox', 'iscrowd'})
+    check2 = all(
+        y in x for x in out[0]['segments_info']
+        for y in {'id', 'category_id', 'bbox', 'iscrowd'}
+    )
     assert check2
 
     assert len(tmpdir.listdir()) > 0

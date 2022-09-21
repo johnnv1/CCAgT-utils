@@ -29,7 +29,9 @@ def bbox(
                 bb.width,
                 bb.height,
                 fill=False,
-                edgecolor=categories_infos[bb.category_id].color.rgba_normalized,
+                edgecolor=categories_infos[
+                    bb.category_id
+                ].color.rgba_normalized,
                 lw=1,
             ),
         )

@@ -17,10 +17,15 @@ class Mask:
     categorical: np.ndarray
 
     def __post_init__(self) -> None:
-        self.categorical: np.ndarray = np.array(self.categorical, dtype=np.uint8)
+        self.categorical: np.ndarray = np.array(
+            self.categorical, dtype=np.uint8,
+        )
 
         if not is_2d(self.categorical.shape):
-            raise ValueError('Unexpected shape, categorical mask need to be a matrix (2D array)!')
+            raise ValueError(
+                'Unexpected shape, categorical mask need to be a matrix '
+                '(2D array)!',
+            )
 
     @property
     def height(self) -> int:
@@ -49,7 +54,10 @@ class Mask:
         self,
         categories_infos: CategoriesInfos,
     ) -> mlp_colors.ListedColormap:
-        o = [categories_infos[id].color.rgba_normalized for id in self.unique_ids]
+        o = [
+            categories_infos[id].color.rgba_normalized
+            for id in self.unique_ids
+        ]
         return mlp_colors.ListedColormap(o)
 
     def save(

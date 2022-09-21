@@ -25,12 +25,17 @@ def load(
 
 def validate(raw: list[dict[str, Any]]) -> bool:
     if not isinstance(raw, list):
-        raise ValueError('Expected a list of dictionary that represents raw LabelBox data!')
+        raise ValueError(
+            'Expected a list of dictionary that represents raw LabelBox data!',
+        )
 
     expected_data = set({'ID', 'External ID', 'Reviews', 'Label'})
     for it in raw:
         if not all(i in it for i in expected_data):
             if 'Skipped' not in it:
-                raise KeyError(f'Not found expected values need to have `Skipped` or {expected_data}')
+                raise KeyError(
+                    'Not found expected values need to have `Skipped` or '
+                    f'{expected_data}',
+                )
 
     return True

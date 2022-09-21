@@ -59,20 +59,32 @@ def __lbox_drop_duplicate_labels(
         return df
 
     # Check the labels that has review
-    df_duplicated['have_review'] = df_duplicated.apply(lambda row: __lbox_has_review(row['Reviews']), axis=1)
+    df_duplicated['have_review'] = df_duplicated.apply(
+        lambda row: __lbox_has_review(row['Reviews']), axis=1,
+    )
 
     # Count the quantity of labels for each row
-    df_duplicated['len'] = df_duplicated.apply(lambda row: len(row['Label']['objects']), axis=1)
+    df_duplicated['len'] = df_duplicated.apply(
+        lambda row: len(row['Label']['objects']), axis=1,
+    )
 
     # Sort the DF by the quantity of labels
-    df_duplicated = df_duplicated.sort_values(['image_name', 'len'], ascending=False)
+    df_duplicated = df_duplicated.sort_values(
+        ['image_name', 'len'], ascending=False,
+    )
 
-    # Drop the duplicates labels and keep the first label will be that have more labels
+    # Drop duplicated labels keeping the first label which have more labels
     df_to_keep = df_duplicated.drop_duplicates(['image_name'], keep='first')
 
-    id_to_remove = df_duplicated.loc[~df_duplicated['ID'].isin(df_to_keep['ID'].to_numpy()), 'ID']
+    id_to_remove = df_duplicated.loc[
+        ~df_duplicated['ID'].isin(
+            df_to_keep['ID'].to_numpy(),
+        ), 'ID',
+    ]
     # the rows without review
-    id_to_remove = pd.concat([id_to_remove, df_duplicated.loc[~df_duplicated['have_review'], 'ID']])
+    id_to_remove = pd.concat(
+        [id_to_remove, df_duplicated.loc[~df_duplicated['have_review'], 'ID']],
+    )
 
     df_without_duplicated = df[~df['ID'].isin(id_to_remove)].copy()
 
@@ -98,10 +110,16 @@ def __lbox_cast_geometries(
     df_out = df.dropna(axis=0, subset=['geometry'])
 
     if df.shape != df_out.shape:
-        print(f'Some NaN geometries have been deleted! Original shape = {df.shape} | out shape = {df_out.shape}')
+        print(
+            'Some NaN geometries have been deleted! Original shape = '
+            f'{df.shape} | out shape = {df_out.shape}',
+        )
 
     if df_out.empty:
-        raise ValueError('Data without valid geometries! After transform the geometries the dataframe stay empty.')
+        raise ValueError(
+            'Data without valid geometries! After transform the geometries the'
+            ' dataframe stay empty.',
+        )
 
     return df_out
 
@@ -120,14 +138,17 @@ def from_labelbox(
     # Drop irrelevant columns
     df_out = df_out.drop(
         [
-            'DataRow ID', 'Labeled Data', 'Created By', 'Project Name', 'Dataset Name', 'Created At', 'Updated At',
-            'Seconds to Label', 'Agreement', 'Benchmark Agreement', 'Benchmark ID', 'View Label',
+            'DataRow ID', 'Labeled Data', 'Created By', 'Project Name',
+            'Dataset Name', 'Created At', 'Updated At', 'Seconds to Label',
+            'Agreement', 'Benchmark Agreement', 'Benchmark ID', 'View Label',
             'Has Open Issues', 'Skipped',
         ], axis=1, errors='ignore',
     )
 
     # Get image names
-    df_out['image_name'] = df_out.apply(lambda row: basename(row['External ID']), axis=1)
+    df_out['image_name'] = df_out.apply(
+        lambda row: basename(row['External ID']), axis=1,
+    )
     df_out = df_out.drop(['External ID'], axis=1)
 
     # Remove duplicated labels
@@ -140,8 +161,12 @@ def from_labelbox(
     df_out = __lbox_cast_geometries(df_out)
 
     # Map category IDs
-    schematic_to_id = {cat.labelbox_schemaId: cat.id for cat in categories_info}
-    df_out['category_id'] = df_out.apply(lambda row: schematic_to_id[row['objects']['schemaId']], axis=1)
+    schematic_to_id = {
+        cat.labelbox_schemaId: cat.id for cat in categories_info
+    }
+    df_out['category_id'] = df_out.apply(
+        lambda row: schematic_to_id[row['objects']['schemaId']], axis=1,
+    )
 
     df_out = df_out.drop(['ID', 'objects', 'Reviews'], axis=1)
 
@@ -162,7 +187,9 @@ DRAW_ORDER = (
 )
 
 
-def order_annotations_to_draw(annotations: list[Annotation]) -> list[Annotation]:
+def order_annotations_to_draw(
+    annotations: list[Annotation],
+) -> list[Annotation]:
     items = collections.defaultdict(list)
     for ann in annotations:
         items[ann.category_id].append(ann)
@@ -216,7 +243,10 @@ def single_core_to_mask(
         img_name = basename(df_by_img.iloc[0]['image_name']) + extension
         out_path = os.path.join(_out_dir, img_name)
 
-        annotations = [Annotation(row['geometry'], row['category_id']) for _, row in df_by_img.iterrows()]
+        annotations = [
+            Annotation(row['geometry'], row['category_id'])
+            for _, row in df_by_img.iterrows()
+        ]
         w = df_by_img['image_width'].unique()[0]
         h = df_by_img['image_height'].unique()[0]
 
@@ -244,21 +274,28 @@ def to_mask(
 
     img_ids = ccagt_df['image_id'].unique()
     if len(img_ids) == 0:
-        print('Do not have annotations to generate the masks!', file=sys.stderr)
+        print(
+            'Do not have annotations to generate the masks!',
+            file=sys.stderr,
+        )
         return
 
     # Split equals the annotations for the cpu quantity
     images_ids_splitted = np.array_split(img_ids, cpu_num)
     print(
-        f'Start to generate a total of {len(img_ids)} semantic segmentation masks based on the annotations using '
-        f'{cpu_num} cores with {len(images_ids_splitted[0])} masks with annotations per core...',
+        f'Start to generate a total of {len(img_ids)} semantic segmentation '
+        f'masks based on the annotations using {cpu_num} cores with '
+        f'{len(images_ids_splitted[0])} masks with annotations per core...',
     )
 
     workers = multiprocessing.Pool(processes=cpu_num)
     processes = []
     for images_ids in images_ids_splitted:
         df_to_process = ccagt_df.loc[ccagt_df['image_id'].isin(images_ids), :]
-        p = workers.apply_async(single_core_to_mask, (df_to_process, out_dir, split_by_slide))
+        p = workers.apply_async(
+            single_core_to_mask,
+            (df_to_process, out_dir, split_by_slide),
+        )
         processes.append(p)
 
     workers.close()
@@ -296,7 +333,10 @@ def pol_to_coco_segment(
     elif geo.geom_type == 'MultiPolygon':
         return [coco_pol(g) for g in geo.geoms]
     else:
-        raise TypeError(f'Geometry shape is not a polygon or MultiPolygon. This is a {geo.geom_type}.')
+        raise TypeError(
+            'Geometry shape is not a polygon or MultiPolygon. '
+            f'This is a {geo.geom_type}.',
+        )
 
 
 @get_traceback
@@ -389,7 +429,10 @@ def to_OD_COCO(
 
     cols = df.columns
     if not all(c in cols for c in ['area', 'image_id', 'iscrowd']):
-        raise KeyError('The dataframe need to have the columns `area`, `image_id`, `iscrowd`!')
+        raise KeyError(
+            'The dataframe need to have the columns `area`, `image_id`, '
+            '`iscrowd`!',
+        )
 
     cpu_num = multiprocessing.cpu_count()
 
@@ -399,13 +442,19 @@ def to_OD_COCO(
 
     # Split equals the annotations for the cpu quantity
     ann_ids_splitted = np.array_split(df.index.tolist(), cpu_num)
-    print(f'Number of cores: {cpu_num}, annotations per core: {len(ann_ids_splitted[0])}')
+    print(
+        f'Number of cores: {cpu_num}, '
+        f'annotations per core: {len(ann_ids_splitted[0])}',
+    )
 
     workers = multiprocessing.Pool(processes=cpu_num)
     processes = []
     for ann_ids in ann_ids_splitted:
         df_to_process = df.loc[df.index.isin(ann_ids), :]
-        p = workers.apply_async(single_core_to_OD_COCO, (df_to_process, decimals))
+        p = workers.apply_async(
+            single_core_to_OD_COCO,
+            (df_to_process, decimals),
+        )
         processes.append(p)
 
     annotations_coco = []
@@ -423,9 +472,13 @@ def to_PS_COCO(
 ) -> list[Any]:
     cols = ccagt_df.columns
     if not all(c in cols for c in ['image_id', 'iscrowd']):
-        raise KeyError('The dataframe need to have the columns `image_id`, `iscrowd`!')
+        raise KeyError(
+            'The dataframe need to have the columns `image_id`, `iscrowd`!',
+        )
 
-    ccagt_df['color'] = ccagt_df['category_id'].apply(lambda cat_id: categories_infos.generate_random_color(cat_id))
+    ccagt_df['color'] = ccagt_df['category_id'].apply(
+        lambda cat_id: categories_infos.generate_random_color(cat_id),
+    )
 
     if split_by_slide:
         if 'slide_id' not in ccagt_df.columns:
@@ -441,7 +494,8 @@ def to_PS_COCO(
     images_ids_splitted = np.array_split(images_ids, cpu_num)
 
     print(
-        f'Start compute generate panoptic annotations and masks for {len(images_ids)} files using {cpu_num} cores with '
+        'Start compute generate panoptic annotations and masks for '
+        f'{len(images_ids)} files using {cpu_num} cores with '
         f'{len(images_ids_splitted[0])} files per core...',
     )
 
@@ -451,7 +505,10 @@ def to_PS_COCO(
         if len(images_ids) == 0:
             continue
         df_to_process = ccagt_df.loc[ccagt_df['image_id'].isin(images_ids), :]
-        p = workers.apply_async(single_core_to_PS_COCO, (df_to_process, out_dir, split_by_slide))
+        p = workers.apply_async(
+            single_core_to_PS_COCO,
+            (df_to_process, out_dir, split_by_slide),
+        )
         processes.append(p)
 
     annotations_panoptic = []

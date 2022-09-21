@@ -17,7 +17,11 @@ from CCAgT_utils.visualization import plot
 
 def __search_all_files(dir_path: str) -> dict[str, str]:
     print(f'Finding all files into the directory {dir_path}...')
-    all_files = {file: os.path.join(path, file) for path, _, files in os.walk(dir_path) for file in files}
+    all_files = {
+        file: os.path.join(
+            path, file,
+        ) for path, _, files in os.walk(dir_path) for file in files
+    }
     print(f'Find a total of {len(all_files)} files.')
     return all_files
 
@@ -63,13 +67,17 @@ def image_with_boxes(
         ).to_numpy().tolist()
 
         counter = count_BBox_categories(image_boxes, categories_infos)
-        text_counter = ' | '.join([f'{key}:: {value}' for key, value in counter.items()])
+        text_counter = ' | '.join(
+            [f'{key}:: {value}' for key, value in counter.items()],
+        )
         selected_categories = {get_id[cat_name] for cat_name in counter}
         handles = plot.create_handles(categories_infos, selected_categories)
 
         fig, ax = plt.subplots(1, 1, figsize=(16, 9))
         img = Image.open(img_path)
-        plot.image_with_boxes(img, image_boxes, ax, categories_infos, write_names=True)
+        plot.image_with_boxes(
+            img, image_boxes, ax, categories_infos, write_names=True,
+        )
         ax.legend(handles=handles)
         ax.set_title(img_name)
         plt.figtext(
@@ -147,7 +155,9 @@ def image_and_mask(
 
         ax3 = fig.add_subplot(2, 2, 4, sharex=ax1, sharey=ax1)
         ax3.imshow(img)
-        plot.mask_with_color(msk, ax3, categories_infos, colorized=True, alpha=0.4)
+        plot.mask_with_color(
+            msk, ax3, categories_infos, colorized=True, alpha=0.4,
+        )
         ax3.set_title('Image with mask')
 
         fig.suptitle(img_name)
@@ -211,7 +221,9 @@ def image_with_boxes_and_mask(
         ).to_numpy().tolist()
 
         counter = count_BBox_categories(image_boxes, categories_infos)
-        text_counter = ' | '.join([f'{key}:: {value}' for key, value in counter.items()])
+        text_counter = ' | '.join(
+            [f'{key}:: {value}' for key, value in counter.items()],
+        )
         handles = plot.create_handles(categories_infos, msk.unique_ids)
 
         fig = plt.figure(figsize=(32, 18))
@@ -221,8 +233,12 @@ def image_with_boxes_and_mask(
         ax1.set_axis_off()
 
         ax2 = fig.add_subplot(1, 2, 2, sharex=ax1, sharey=ax1)
-        plot.image_with_boxes(img, image_boxes, ax2, categories_infos, write_names=True)
-        plot.mask_with_color(msk, ax2, categories_infos, colorized=True, alpha=0.4, vmin=1)
+        plot.image_with_boxes(
+            img, image_boxes, ax2, categories_infos, write_names=True,
+        )
+        plot.mask_with_color(
+            msk, ax2, categories_infos, colorized=True, alpha=0.4, vmin=1,
+        )
 
         ax2.legend(handles=handles)
 

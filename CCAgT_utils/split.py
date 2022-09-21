@@ -100,9 +100,15 @@ def tvt_by_nors(
     df_describe_imgs = annotations_per_image(df, categories_infos)
 
     img_ids = {}
-    img_ids['low_nors'] = df_describe_imgs.loc[(df_describe_imgs['NORs'] < 2)].index
-    img_ids['medium_nors'] = df_describe_imgs[(df_describe_imgs['NORs'] >= 2) * (df_describe_imgs['NORs'] <= 7)].index
-    img_ids['high_nors'] = df_describe_imgs[(df_describe_imgs['NORs'] > 7)].index
+    img_ids['low_nors'] = df_describe_imgs.loc[
+        df_describe_imgs['NORs'] < 2
+    ].index
+    img_ids['medium_nors'] = df_describe_imgs[
+        (df_describe_imgs['NORs'] >= 2) * (df_describe_imgs['NORs'] <= 7)
+    ].index
+    img_ids['high_nors'] = df_describe_imgs[
+        df_describe_imgs['NORs'] > 7
+    ].index
 
     train_ids: set[int] = set({})
     valid_ids: set[int] = set({})
