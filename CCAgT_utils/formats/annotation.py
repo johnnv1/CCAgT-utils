@@ -40,7 +40,10 @@ class Annotation:
         elif self._geo_type == 'Polygon':
             self._geometries = [self.geometry]
         else:
-            raise TypeError(f'Unexpected geometry type (`{self._geo_type}`) - expected `MultiPolygon` or `Polygon`')
+            raise TypeError(
+                f'Unexpected geometry type (`{self._geo_type}`) - expected '
+                '`MultiPolygon` or `Polygon`',
+            )
 
         return self
 
@@ -126,10 +129,16 @@ class BBox:
         min_x, min_y, max_x, max_y = bounds
         self.x_init = min_x if self.x_init < min_x else self.x_init
         self.y_init = min_y if self.y_init < min_y else self.y_init
-        self.width = max_x - self.x_init if self.x_end > max_x else self.width
-        self.height = max_y - self.y_init if self.y_end > max_y else self.height
+        w = max_x - self.x_init if self.x_end > max_x else self.width
+        h = max_y - self.y_init if self.y_end > max_y else self.height
+        self.width = w
+        self.height = h
 
-    def add_padding(self, padding: int | float = 0, bounds: tuple[int, int, int, int] = (0, 0, 0, 0)) -> None:
+    def add_padding(
+        self,
+        padding: int | float = 0,
+        bounds: tuple[int, int, int, int] = (0, 0, 0, 0),
+    ) -> None:
 
         if padding != 0:
             if isinstance(padding, int):
@@ -143,7 +152,9 @@ class BBox:
                 self.width = int(self.width * (1 + padding * 2))
                 self.height = int(self.height * (1 + padding * 2))
             else:
-                raise TypeError('Unexpected value for the padding! Use int or float values')
+                raise TypeError(
+                    'Unexpected value for the padding! Use int/float values',
+                )
 
             self.fit_inside(bounds)
 

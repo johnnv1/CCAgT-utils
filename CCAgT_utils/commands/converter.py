@@ -3,9 +3,13 @@ from __future__ import annotations
 import argparse
 from typing import Sequence
 
+from typing_extensions import TypeAlias
+
+SUBPARSER_T: TypeAlias = 'argparse._SubParsersAction[argparse.ArgumentParser]'
+
 
 def converter_command_parser(
-        subparsers: argparse._SubParsersAction[argparse.ArgumentParser] | None = None,
+        subparsers: SUBPARSER_T | None = None,
 ) -> argparse.ArgumentParser:
 
     if subparsers is not None:

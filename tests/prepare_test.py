@@ -8,18 +8,38 @@ from testing import create
 
 
 def test_clean_images_and_masks(shape, tmpdir):
-    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ['A_example']) as paths:
+    with create.ImageMaskFiles(
+        str(tmpdir), shape[0], shape[1], ['A_example'],
+    ) as paths:
         tmp_dir, masks_dir, images_dir = paths
         prepare.clean_images_and_masks(images_dir, masks_dir, {0})
 
-        assert os.path.isfile(os.path.join(masks_dir, 'A', 'A_example_1.png')) is False
-        assert os.path.isfile(os.path.join(masks_dir, 'A', 'A_example_2.png')) is False
-        assert os.path.isfile(os.path.join(images_dir, 'A', 'A_example_1.jpg')) is False
-        assert os.path.isfile(os.path.join(images_dir, 'A', 'A_example_2.jpg')) is False
+        assert os.path.isfile(
+            os.path.join(
+                masks_dir, 'A', 'A_example_1.png',
+            ),
+        ) is False
+        assert os.path.isfile(
+            os.path.join(
+                masks_dir, 'A', 'A_example_2.png',
+            ),
+        ) is False
+        assert os.path.isfile(
+            os.path.join(
+                images_dir, 'A', 'A_example_1.jpg',
+            ),
+        ) is False
+        assert os.path.isfile(
+            os.path.join(
+                images_dir, 'A', 'A_example_2.jpg',
+            ),
+        ) is False
 
 
 def test_extract_category(shape, annotations_ex, tmpdir):
-    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ['A_example'], create_image=False) as paths:
+    with create.ImageMaskFiles(
+        str(tmpdir), shape[0], shape[1], ['A_example'], create_image=False,
+    ) as paths:
         tmp_dir, masks_dir, _ = paths
         msk_path = os.path.join(masks_dir, 'A_example.png')
 
@@ -38,52 +58,71 @@ def test_extract_category(shape, annotations_ex, tmpdir):
         image_name_out = [x['image_name'] for x in annotations_items]
         assert all('A_example_1_1' == x for x in image_name_out)
         assert [x['category_id'] for x in annotations_items] == [1, 2]
-        assert annotations_items[0]['geometry'].equals(annotations_ex[0].geometry)
-        assert annotations_items[1]['geometry'].equals(annotations_ex[1].geometry)
+        assert annotations_items[0]['geometry'].equals(
+            annotations_ex[0].geometry,
+        )
+        assert annotations_items[1]['geometry'].equals(
+            annotations_ex[1].geometry,
+        )
         assert os.path.isfile(os.path.join(tmp_dir, 'A_example_1_1.png'))
 
 
-def test_single_core_extract_image_and_annotations(shape, ccagt_df_multi, ccagt_multi_image_names, tmpdir):
+def test_single_core_extract_image_and_annotations(
+    shape, ccagt_df_multi, ccagt_multi_image_names, tmpdir,
+):
     df = ccagt_df_multi.copy()
     slides = {img_name.split('_')[0] for img_name in ccagt_multi_image_names}
-    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ccagt_multi_image_names) as paths:
+    with create.ImageMaskFiles(
+        str(tmpdir), shape[0], shape[1], ccagt_multi_image_names,
+    ) as paths:
         tmp_dir, _, images_dir = paths
 
-        imgs = {img_name: os.path.join(images_dir, f'{img_name}.jpg') for img_name in ccagt_multi_image_names}
+        imgs = {
+            img_name: os.path.join(
+                images_dir, f'{img_name}.jpg',
+            ) for img_name in ccagt_multi_image_names
+        }
 
         for slide in slides:
             images_dir_out = os.path.join(images_dir, f'{slide}')
             os.makedirs(images_dir_out, exist_ok=True)
 
-        extracted_qtd, ann_items = prepare.single_core_extract_image_and_annotations(
+        output = prepare.single_core_extract_image_and_annotations(
             imgs,
             df,
             {Categories.NUCLEUS.value},
             tmp_dir,
             0,
         )
+        extracted_qtd, ann_items = output
+
         assert extracted_qtd == 5
         assert len(ann_items) == 14
 
-        extracted_qtd, ann_items = prepare.single_core_extract_image_and_annotations(
+        output = prepare.single_core_extract_image_and_annotations(
             imgs,
             df,
             {Categories.BACKGROUND.value},
             tmp_dir,
             0,
         )
+        extracted_qtd, ann_items = output
         assert extracted_qtd == 0
         assert len(ann_items) == 0
 
-        df.loc[df['category_id'] == Categories.NUCLEUS.value, 'category_id'] = Categories.OVERLAPPED_NUCLEI.value
+        df.loc[
+            df['category_id'] == Categories.NUCLEUS.value,
+            'category_id',
+        ] = Categories.OVERLAPPED_NUCLEI.value
 
-        extracted_qtd, ann_items = prepare.single_core_extract_image_and_annotations(
+        output = prepare.single_core_extract_image_and_annotations(
             imgs,
             df,
             {Categories.OVERLAPPED_NUCLEI.value},
             tmp_dir,
             0,
         )
+        extracted_qtd, ann_items = output
         assert extracted_qtd == 5
         assert len(ann_items) == 14
 
@@ -96,10 +135,14 @@ def test_extract_image_and_mask_by_category(
     tmpdir,
 ):
     df_filtered = ccagt_df_multi[ccagt_df_multi['category_id'] == 1]
-    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], ccagt_multi_image_names) as paths:
+    with create.ImageMaskFiles(
+        str(tmpdir), shape[0], shape[1], ccagt_multi_image_names,
+    ) as paths:
         tmp_dir, _, images_dir = paths
 
-        prepare.extract_image_and_annotations_by_category(images_dir, tmp_dir, {1}, ccagt_ann_multi_path, 0)
+        prepare.extract_image_and_annotations_by_category(
+            images_dir, tmp_dir, {1}, ccagt_ann_multi_path, 0,
+        )
 
         assert all(
             os.path.isfile(

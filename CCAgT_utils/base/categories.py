@@ -88,7 +88,10 @@ class CategoriesInfos():
 
             categories_info = _categories_info[:]
 
-            if all((x['id'] != 0 and x['name'].lower() != 'background') for x in categories_info):
+            if all(
+                (x['id'] != 0 and x['name'].lower() != 'background')
+                for x in categories_info
+            ):
                 categories_info.append({
                     'id': 0,
                     'color': Color(0, 0, 0),
@@ -111,14 +114,26 @@ class CategoriesInfos():
                     'isthing': isthing,
                 })
         else:
-            raise ValueError('Wrong type of categories info! Was expected a list of dicts!')
+            raise ValueError(
+                'Wrong type of categories info! Was expected a list of dicts!',
+            )
 
-        self._infos = {int(itens['id']): CategoryInfo(**itens) for itens in categories_info}
+        self._infos = {
+            int(itens['id']): CategoryInfo(**itens)
+            for itens in categories_info
+        }
 
-        self.taken_colors = {cat_info.color.rgb for cat_info in self._infos.values() if cat_info.isthing == 0}
+        self.taken_colors = {
+            cat_info.color.rgb
+            for cat_info in self._infos.values()
+            if cat_info.isthing == 0
+        }
         self.taken_colors.add((0, 0, 0))
 
-    def __check_categories_info(self, categories_info: list[dict[str, Any]]) -> None:
+    def __check_categories_info(
+        self,
+        categories_info: list[dict[str, Any]],
+    ) -> None:
         expected_keys = ['id', 'name', 'color']
         for cat_info in categories_info:
             if not all(k in cat_info for k in expected_keys):
@@ -128,7 +143,8 @@ class CategoriesInfos():
             cat_id = cat_info['id']
             if Categories(cat_id).name != cat_name:
                 raise ValueError(
-                    f'The category name to id does not match with the expected! For id {id} it was expected '
+                    f'The category name to id does not match with the '
+                    f'expected! For id {id} it was expected '
                     f'{Categories(cat_id).name} and receive {cat_name}',
                 )
 
@@ -163,8 +179,10 @@ class CategoriesInfos():
     def get_color(self, category_id: int) -> Color:
         return self[category_id].color
 
-    # Based on https://github.com/cocodataset/panopticapi/blob/7bb4655548f98f3fedc07bf37e9040a992b054b0/panopticapi/utils.py#L42
-    def generate_random_color(self, category_id: int, max_dist: int = 30) -> Color:
+    # noqa: E501 - Based on https://github.com/cocodataset/panopticapi/blob/7bb4655548f98f3fedc07bf37e9040a992b054b0/panopticapi/utils.py#L42
+    def generate_random_color(
+        self, category_id: int, max_dist: int = 30,
+    ) -> Color:
         cat_info = self[category_id]
         base_color = cat_info.color
 

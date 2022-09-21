@@ -38,7 +38,9 @@ def load(
 
     if 'geometry' in df.columns:
         # buffer(0) applied to fix invalid geomtries. From shapely issue #278
-        df['geometry'] = df['geometry'].apply(lambda x: shapely.wkt.loads(x).buffer(0))
+        df['geometry'] = df['geometry'].apply(
+            lambda x: shapely.wkt.loads(x).buffer(0),
+        )
 
     return df
 
@@ -60,7 +62,9 @@ def save(
 def slides_ids(
     ccagt_df: CCAgT,
 ) -> pd.Series:
-    return pd.Series(ccagt_df['image_name'].apply(lambda x: slide_from_filename(x)))
+    return pd.Series(
+        ccagt_df['image_name'].apply(lambda x: slide_from_filename(x)),
+    )
 
 
 def geometries_type(
@@ -104,7 +108,9 @@ def fit_geometries_to_boundary(
     """
 
     boundary_box = box(0, 0, width, height)
-    return pd.Series(ccagt_df['geometry'].apply(lambda x: clip_to_extent(x, boundary_box)))
+    return pd.Series(
+        ccagt_df['geometry'].apply(lambda x: clip_to_extent(x, boundary_box)),
+    )
 
 
 def generate_ids(
@@ -128,13 +134,18 @@ def delete_by_area(
     categories_at_df = ccagt_df['category_id'].unique()
 
     for cat_info in categories_infos:
-        if cat_info.id in categories_to_ignore or cat_info.id not in categories_at_df:
+        if (
+            (cat_info.id in categories_to_ignore) or
+                (cat_info.id not in categories_at_df)
+        ):
             continue
 
         df_filtered = ccagt_df[ccagt_df['category_id'] == cat_info.id]
         length_before = df_filtered.shape[0]
 
-        cleaned_by_area = df_filtered[df_filtered['area'] >= cat_info.minimal_area]
+        cleaned_by_area = df_filtered[
+            df_filtered['area'] >= cat_info.minimal_area
+        ]
 
         length_after = cleaned_by_area.shape[0]
         dif = length_before - length_after
@@ -143,7 +154,10 @@ def delete_by_area(
             _df = ccagt_df[ccagt_df['category_id'] != cat_info.id]
             ccagt_df = CCAgT(pd.concat([_df, cleaned_by_area]))
 
-            print(f'ATTENTION | {dif} items has been removed from category with id {cat_info.id}')
+            print(
+                f'ATTENTION | {dif} items has been removed from category with '
+                f'id {cat_info.id}',
+            )
 
     return ccagt_df
 
@@ -199,8 +213,10 @@ def union_geometries(
 
     def __check_category_id(categories_ids: list[int]) -> int:
         if len(categories_ids) > 1:
-            raise ValueError(f'The group of annotations <{group}> from {img_name} have more than one category\
-                        need to set the out_category_id parameter!')
+            raise ValueError(
+                f'The group of annotations <{group}> from {img_name} have more'
+                ' than one category need to set the out_category_id param!',
+            )
         else:
             return categories_ids[0]
 
@@ -216,7 +232,9 @@ def union_geometries(
                 continue
 
             if out_category_id is None:
-                cat_id = __check_category_id(df_filtered_by_group['category_id'].unique().tolist())
+                cat_id = __check_category_id(
+                    df_filtered_by_group['category_id'].unique().tolist(),
+                )
 
             geometries_to_join = df_filtered_by_group['geometry'].to_numpy()
 
@@ -225,7 +243,9 @@ def union_geometries(
 
             geo = unary_union(geometries_to_join).simplify(tolerance=0.3)
 
-            df_filtered = df_filtered.drop(index=group, axis=0, errors='ignore')
+            df_filtered = df_filtered.drop(
+                index=group, axis=0, errors='ignore',
+            )
             df_filtered = pd.concat([
                 df_filtered, pd.DataFrame([{
                     'image_name': img_name,
@@ -238,7 +258,9 @@ def union_geometries(
 
     # Drop the annotation of all images that stay at the parameter
     image_names_to_drop = list(groups_by_image.keys())
-    df_without_news = ccagt_df[~ccagt_df['image_name'].isin(image_names_to_drop)]
+    df_without_news = ccagt_df[
+        ~ccagt_df['image_name'].isin(image_names_to_drop)
+    ]
 
     # Add the annotations that have been updates!
     ccagt_df = CCAgT(pd.concat([df_without_news, out], ignore_index=True))
@@ -277,7 +299,10 @@ def find_intersecting_geometries(
     o = ccagt_df.apply(
         lambda row:
         np.nan if not row['geometry'].is_valid else
-        np.nan if not geometry.intersects(row['geometry']) or row.name == geo_idx
+        np.nan if (
+            not geometry.intersects(row['geometry']) or
+            row.name == geo_idx
+        )
         else row.name,
         axis=1,
     ).dropna()
@@ -327,10 +352,14 @@ def find_overlapping_annotations(
 
         df_gp['intersected_by'] = intersected_by
         if len(intersected_by) > 0:
-            df_gp_exploded = df_gp['intersected_by'].reset_index().explode('intersected_by')
+            df_gp_exploded = df_gp['intersected_by'].reset_index().explode(
+                'intersected_by',
+            )
             df_gp_exploded = df_gp_exploded.dropna()
 
-            graph_connections = df_gp_exploded[['index', 'intersected_by']].to_numpy().tolist()
+            graph_connections = df_gp_exploded[[
+                'index', 'intersected_by',
+            ]].to_numpy().tolist()
 
             # Compute the geometries groups
             G = nx.Graph()
@@ -347,7 +376,9 @@ def image_id_by_name(
 ) -> int:
     v = ccagt_df.loc[ccagt_df['image_name'] == image_name, 'image_id'].unique()
     if len(v) > 1:
-        raise MoreThanOneIDbyItemError(f'The image: {image_name} have {len(v)} IDs')
+        raise MoreThanOneIDbyItemError(
+            f'The image: {image_name} have {len(v)} IDs',
+        )
     else:
         return int(v[0])
 
@@ -370,10 +401,14 @@ def verify_if_intersects(
     df_base_groupped_by_image = df_base.groupby('image_name')
     out = pd.DataFrame()
     for img_name, df_base_by_image in df_base_groupped_by_image:
-        df_target_geos = df_target.loc[df_target['image_name'] == img_name, 'geometry']
+        df_target_geos = df_target.loc[
+            df_target['image_name'] == img_name, 'geometry',
+        ]
 
         df_base_by_image['has_intersecting'] = df_base_by_image.apply(
-            lambda row: has_intersecting_geometries(row['geometry'], df_target_geos),
+            lambda row: has_intersecting_geometries(
+                row['geometry'], df_target_geos,
+            ),
             axis=1,
         )
 

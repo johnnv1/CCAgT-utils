@@ -77,7 +77,9 @@ def from_array(array: np.ndarray) -> Statistics:
 @get_traceback
 def single_core_from_image_files(filenames: list[str]) -> Statistics:
     if len(filenames) == 0:
-        raise ValueError('It was expected a list of filenames with at least one value.')
+        raise ValueError(
+            'It was expected a list of filenames with at least one value.',
+        )
 
     out_stats = Statistics()
     for filename in filenames:
@@ -128,8 +130,9 @@ def from_image_files(
 
     filenames_splitted = np.array_split(all_filenames, cpu_num)
     print(
-        f'Start compute Statistics for {len(all_filenames)} ({extensions}) files using {cpu_num} cores with '
-        f'{len(filenames_splitted[0])} files per core...',
+        f'Start compute Statistics for {len(all_filenames)} ({extensions}) '
+        f'files using {cpu_num} cores with  {len(filenames_splitted[0])} '
+        'files per core...',
     )
 
     processes = []
@@ -137,14 +140,19 @@ def from_image_files(
         if len(filenames) == 0:
             continue  # pragma: no cover
 
-        p = workers.apply_async(single_core_from_image_files, (filenames.tolist(),))
+        p = workers.apply_async(
+            single_core_from_image_files, (filenames.tolist(),),
+        )
         processes.append(p)
 
     out_stats = Statistics()
     for p in processes:
         out_stats.join_stats(p.get())
 
-    print(f'Successfully computed the statstics of {out_stats.count} files with {len(processes)} processes!')
+    print(
+        f'Successfully computed the statstics of {out_stats.count} files with '
+        '{len(processes)} processes!',
+    )
     return out_stats
 
 
@@ -152,9 +160,17 @@ def annotations_per_image(
     df: pd.DataFrame,
     categories_infos: CategoriesInfos,
 ) -> pd.DataFrame:
-    df_describe_images = df.groupby(['image_id', 'category_id']).size().reset_index().rename(columns={0: 'count'})
-    df_describe_images = df_describe_images.pivot(columns=['category_id'], index='image_id')
-    df_describe_images = df_describe_images.rename({c.id: c.name.upper() for c in categories_infos}, axis=1)
+    df_describe_images = df.groupby(
+        ['image_id', 'category_id'],
+    ).size().reset_index().rename(columns={0: 'count'})
+
+    df_describe_images = df_describe_images.pivot(
+        columns=['category_id'],
+        index='image_id',
+    )
+    df_describe_images = df_describe_images.rename(
+        {c.id: c.name.upper() for c in categories_infos}, axis=1,
+    )
     df_describe_images['qtd_annotations'] = df_describe_images.sum(axis=1)
     df_describe_images = df_describe_images.fillna(0)
     df_describe_images['NORs'] = df_describe_images[
@@ -178,11 +194,20 @@ def ccagt_annotations(
     if 'slide_id' not in ccagt_df.columns:
         ccagt_df['slide_id'] = ccagt.slides_ids(ccagt_df)
 
-    ann_count = {cat.name: ccagt_df.loc[ccagt_df['category_id'] == cat.id, 'area'].shape[0] for cat in categories_infos}
+    ann_count = {
+        cat.name: ccagt_df.loc[
+            ccagt_df['category_id'] == cat.id, 'area',
+        ].shape[0] for cat in categories_infos
+    }
     qtd_ann = ccagt_df.shape[0]
-    ann_dist = {cat_name: qtd_cat / qtd_ann for cat_name, qtd_cat in ann_count.items()}
+    ann_dist = {
+        cat_name: qtd_cat / qtd_ann for cat_name,
+        qtd_cat in ann_count.items()
+    }
     area_stats = {
-        cat.name: from_list(ccagt_df.loc[ccagt_df['category_id'] == cat.id, 'area'].tolist())
+        cat.name: from_list(
+            ccagt_df.loc[ccagt_df['category_id'] == cat.id, 'area'].tolist(),
+        )
         for cat in categories_infos if ann_count[cat.name] > 0
     }
 
@@ -230,11 +255,20 @@ def tvt_annotations_as_df(
     df_qtd.loc[df_qtd.index == 'total', 'fold'] = 'total'
 
     total_images = df_qtd.loc[df_qtd['fold'] == 'total', 'images'].tolist()[0]
-    total_ann = df_qtd.loc[df_qtd['fold'] == 'total', 'annotations'].tolist()[0]
+    total_ann = df_qtd.loc[
+        df_qtd['fold'] == 'total', 'annotations',
+    ].tolist()[0]
+
     df_dist = pd.DataFrame({
         'fold': folds,
-        '% images': [out[f]['qtd_images'] / total_images for f in folds],
-        '% annotations': [out[f]['qtd_annotations'] / total_ann for f in folds],
+        '% images': [
+            out[f]['qtd_images'] / total_images
+            for f in folds
+        ],
+        '% annotations': [
+            out[f]['qtd_annotations'] / total_ann
+            for f in folds
+        ],
     })
     df_dist_categorical = pd.DataFrame([
         {
@@ -251,7 +285,10 @@ def tvt_annotations_as_df(
 
     df_area = pd.DataFrame()
     for f in folds:
-        _df = pd.DataFrame([{'category': k, **v.to_dict()} for k, v in out[f]['area_stats'].items()])
+        _df = pd.DataFrame([
+            {'category': k, **v.to_dict()}
+            for k, v in out[f]['area_stats'].items()
+        ])
         _df = _df.set_index('category').transpose()
         _df['fold'] = f
         df_area = pd.concat([df_area, _df])
@@ -282,7 +319,10 @@ def dataset(
         print(f'Quantity of annotations: {desc["qtd_annotations"]}')
         for cat_name, qtd in desc['qtd_annotations_categorical'].items():
             dist = desc['dist_annotations'][cat_name]
-            print(f' > Quantity of annotations for {cat_name}: {qtd} - {dist*100:.2f}%')
+            print(
+                f' > Quantity of annotations for {cat_name}: {qtd} - '
+                f'{dist*100:.2f}%',
+            )
         print('Statistics of the area of each category...')
         for cat_name, area_stats in desc['area_stats'].items():
             print(f' > Statistics of area for {cat_name}: {area_stats}')
@@ -304,7 +344,9 @@ def single_core_from_mask_files(
     filenames: list[str],
 ) -> dict[int, int]:
     if len(filenames) == 0:
-        raise ValueError('It was expected a list of filenames with at least one value.')
+        raise ValueError(
+            'It was expected a list of filenames with at least one value.',
+        )
 
     out = {cat.value: 0 for cat in Categories}
     for filename in filenames:
@@ -332,8 +374,9 @@ def from_mask_files(
 
     filenames_splitted = np.array_split(all_filenames, cpu_num)
     print(
-        f'Start count pixels quantity for {len(all_filenames)} ({extensions}) files using {cpu_num} cores with '
-        f'{len(filenames_splitted[0])} files per core...',
+        f'Start count pixels quantity for {len(all_filenames)} ({extensions}) '
+        f'files using {cpu_num} cores with {len(filenames_splitted[0])} '
+        'files per core...',
     )
 
     processes = []
@@ -341,7 +384,9 @@ def from_mask_files(
         if len(filenames) == 0:
             continue  # pragma: no cover
 
-        p = workers.apply_async(single_core_from_mask_files, (filenames.tolist(),))
+        p = workers.apply_async(
+            single_core_from_mask_files, (filenames.tolist(),),
+        )
         processes.append(p)
 
     out = {cat.value: 0 for cat in Categories}
@@ -350,7 +395,10 @@ def from_mask_files(
         out = {k: v + counts[k] if k in counts else v for k, v in out.items()}
 
     n_files = len(all_masks)
-    print(f'Successfully computed pixels quantity of each category from {n_files} files with {len(processes)} processes!')
+    print(
+        f'Successfully computed pixels quantity of each category from '
+        f'{n_files} files with {len(processes)} processes!',
+    )
 
     out_by_names = {str(Categories(k).name): int(v) for k, v in out.items()}
     return out_by_names

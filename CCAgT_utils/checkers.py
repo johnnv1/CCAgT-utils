@@ -11,7 +11,11 @@ from CCAgT_utils.base.utils import find_files
 from CCAgT_utils.base.utils import get_traceback
 
 
-def has_all_into_dir(dir_images: str, filenames: list[str], **kwargs: Any) -> bool:
+def has_all_into_dir(
+    dir_images: str,
+    filenames: list[str],
+    **kwargs: Any
+) -> bool:
     files = find_files(dir_images, **kwargs)
 
     return all(filename in files for filename in filenames)
@@ -24,7 +28,10 @@ def single_core_mask_has(
 ) -> set[str]:
     return {
         basename(filename) for filename in filenames
-        if any(v in categories for v in np.unique(Image.open(filename).convert('L')))
+        if any(
+            v in categories
+            for v in np.unique(Image.open(filename).convert('L'))
+        )
     }
 
 
@@ -41,7 +48,8 @@ def masks_that_has(
 
     filenames_splitted = np.array_split(list(files), cpu_num)
     print(
-        f'Start the checker if the masks have at least one of the categories ({categories}) using {cpu_num} cores with '
+        f'Start the checker if the masks have at least one of the categories '
+        f'({categories}) using {cpu_num} cores with '
         f'{len(filenames_splitted[0])} masks per core...',
     )
     processes = []

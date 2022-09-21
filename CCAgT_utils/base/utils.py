@@ -136,13 +136,28 @@ def find_files(
     """
     if look_recursive:
         files = {
-            file: os.path.join(path, file) for path, _, files in os.walk(dir_path) for file in files
-            if file.endswith(extension) and (len(selection) == 0 or file in selection)
+            file: os.path.join(path, file)
+            for path, _, files in os.walk(dir_path)
+            for file in files
+            if (
+                file.endswith(extension) and
+                (
+                    len(selection) == 0 or
+                    file in selection
+                )
+            )
         }
     else:
         files = {
-            file: os.path.join(dir_path, file) for file in os.listdir(dir_path)
-            if file.endswith(extension) and (len(selection) == 0 or file in selection)
+            file: os.path.join(dir_path, file)
+            for file in os.listdir(dir_path)
+            if (
+                file.endswith(extension) and
+                (
+                    len(selection) == 0 or
+                    file in selection
+                )
+            )
         }
 
     return files

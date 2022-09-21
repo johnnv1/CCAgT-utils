@@ -9,9 +9,13 @@ from testing import create
 
 
 @pytest.mark.slow
-def test_image_and_mask(remove_plt_show, ccagt_df_multi, categories_infos, shape, tmpdir):
+def test_image_and_mask(
+    remove_plt_show, ccagt_df_multi, categories_infos, shape, tmpdir,
+):
     names = ccagt_df_multi['image_name'].unique()
-    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], names) as paths:
+    with create.ImageMaskFiles(
+        str(tmpdir), shape[0], shape[1], names,
+    ) as paths:
         _, mask_dir, image_dir = paths
         _params = {
             'df': ccagt_df_multi,
@@ -23,7 +27,9 @@ def test_image_and_mask(remove_plt_show, ccagt_df_multi, categories_infos, shape
         }
         out = _show.image_and_mask(**_params, images_names=['example'])
         out1 = _show.image_and_mask(**_params)
-        out2 = _show.image_and_mask(**_params, look_recursive=False, shuffle_images=False)
+        out2 = _show.image_and_mask(
+            **_params, look_recursive=False, shuffle_images=False
+        )
 
     assert out == 0
     assert out1 == 0
@@ -31,9 +37,13 @@ def test_image_and_mask(remove_plt_show, ccagt_df_multi, categories_infos, shape
 
 
 @pytest.mark.slow
-def test_image_and_mask_not_found(capsys, ccagt_df_multi, categories_infos, shape, tmpdir):
+def test_image_and_mask_not_found(
+    capsys, ccagt_df_multi, categories_infos, shape, tmpdir,
+):
     names = ccagt_df_multi['image_name'].unique()
-    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], names) as paths:
+    with create.ImageMaskFiles(
+        str(tmpdir), shape[0], shape[1], names,
+    ) as paths:
         _, mask_dir, image_dir = paths
         _params = {
             'df': ccagt_df_multi,
@@ -45,11 +55,15 @@ def test_image_and_mask_not_found(capsys, ccagt_df_multi, categories_infos, shap
         }
 
         shutil.rmtree(mask_dir)
-        out1 = _show.image_and_mask(**_params, look_recursive=False, shuffle_images=False)
+        out1 = _show.image_and_mask(
+            **_params, look_recursive=False, shuffle_images=False
+        )
         _, err1 = capsys.readouterr()
 
         shutil.rmtree(image_dir)
-        out2 = _show.image_and_mask(**_params, look_recursive=False, shuffle_images=False)
+        out2 = _show.image_and_mask(
+            **_params, look_recursive=False, shuffle_images=False
+        )
         _, err2 = capsys.readouterr()
 
     assert out1 == 0
@@ -59,9 +73,13 @@ def test_image_and_mask_not_found(capsys, ccagt_df_multi, categories_infos, shap
 
 
 @pytest.mark.slow
-def test_image_with_boxes(ccagt_df_multi, categories_infos, shape, remove_plt_show, tmpdir):
+def test_image_with_boxes(
+    ccagt_df_multi, categories_infos, shape, remove_plt_show, tmpdir,
+):
     names = ccagt_df_multi['image_name'].unique()
-    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], names, create_mask=False) as paths:
+    with create.ImageMaskFiles(
+        str(tmpdir), shape[0], shape[1], names, create_mask=False,
+    ) as paths:
         _, _, image_dir = paths
         _params = {
             'df': ccagt_df_multi,
@@ -72,7 +90,9 @@ def test_image_with_boxes(ccagt_df_multi, categories_infos, shape, remove_plt_sh
 
         out = _show.image_with_boxes(**_params)
         out1 = _show.image_with_boxes(**_params, images_names=['example'])
-        out2 = _show.image_with_boxes(**_params, look_recursive=False, shuffle_images=False)
+        out2 = _show.image_with_boxes(
+            **_params, look_recursive=False, shuffle_images=False
+        )
 
         shutil.rmtree(image_dir)
     assert out == 0
@@ -81,9 +101,13 @@ def test_image_with_boxes(ccagt_df_multi, categories_infos, shape, remove_plt_sh
 
 
 @pytest.mark.slow
-def test_image_with_boxes_not_found(capsys, ccagt_df_multi, categories_infos, shape, remove_plt_show, tmpdir):
+def test_image_with_boxes_not_found(
+    capsys, ccagt_df_multi, categories_infos, shape, remove_plt_show, tmpdir,
+):
     names = ccagt_df_multi['image_name'].unique()
-    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], names, create_mask=False) as paths:
+    with create.ImageMaskFiles(
+        str(tmpdir), shape[0], shape[1], names, create_mask=False,
+    ) as paths:
         _, _, image_dir = paths
         _params = {
             'df': ccagt_df_multi,
@@ -93,7 +117,9 @@ def test_image_with_boxes_not_found(capsys, ccagt_df_multi, categories_infos, sh
         }
 
         shutil.rmtree(image_dir)
-        out = _show.image_with_boxes(**_params, look_recursive=False, shuffle_images=False)
+        out = _show.image_with_boxes(
+            **_params, look_recursive=False, shuffle_images=False
+        )
         _, err = capsys.readouterr()
 
     assert out == 0
@@ -101,9 +127,13 @@ def test_image_with_boxes_not_found(capsys, ccagt_df_multi, categories_infos, sh
 
 
 @pytest.mark.slow
-def test_image_with_boxes_and_mask(remove_plt_show, ccagt_df_multi, categories_infos, shape, tmpdir):
+def test_image_with_boxes_and_mask(
+    remove_plt_show, ccagt_df_multi, categories_infos, shape, tmpdir,
+):
     names = ccagt_df_multi['image_name'].unique()
-    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], names) as paths:
+    with create.ImageMaskFiles(
+        str(tmpdir), shape[0], shape[1], names,
+    ) as paths:
         _, mask_dir, image_dir = paths
         _params = {
             'df': ccagt_df_multi,
@@ -113,18 +143,26 @@ def test_image_with_boxes_and_mask(remove_plt_show, ccagt_df_multi, categories_i
             'images_extension': '.jpg',
             'masks_extension': '.png',
         }
-        out = _show.image_with_boxes_and_mask(**_params, images_names=['example'])
+        out = _show.image_with_boxes_and_mask(
+            **_params, images_names=['example']
+        )
         out1 = _show.image_with_boxes_and_mask(**_params)
-        out2 = _show.image_with_boxes_and_mask(**_params, look_recursive=False, shuffle_images=False)
+        out2 = _show.image_with_boxes_and_mask(
+            **_params, look_recursive=False, shuffle_images=False
+        )
 
     assert out == 0
     assert out1 == 0
     assert out2 == 0
 
 
-def test_image_with_boxes_and_mask_not_found(capsys, ccagt_df_multi, categories_infos, shape, tmpdir):
+def test_image_with_boxes_and_mask_not_found(
+    capsys, ccagt_df_multi, categories_infos, shape, tmpdir,
+):
     names = ccagt_df_multi['image_name'].unique()
-    with create.ImageMaskFiles(str(tmpdir), shape[0], shape[1], names) as paths:
+    with create.ImageMaskFiles(
+        str(tmpdir), shape[0], shape[1], names,
+    ) as paths:
         _, mask_dir, image_dir = paths
         _params = {
             'df': ccagt_df_multi,
@@ -136,11 +174,15 @@ def test_image_with_boxes_and_mask_not_found(capsys, ccagt_df_multi, categories_
         }
 
         shutil.rmtree(mask_dir)
-        out1 = _show.image_with_boxes_and_mask(**_params, look_recursive=False, shuffle_images=False)
+        out1 = _show.image_with_boxes_and_mask(
+            **_params, look_recursive=False, shuffle_images=False
+        )
         _, err1 = capsys.readouterr()
 
         shutil.rmtree(image_dir)
-        out2 = _show.image_with_boxes_and_mask(**_params, look_recursive=False, shuffle_images=False)
+        out2 = _show.image_with_boxes_and_mask(
+            **_params, look_recursive=False, shuffle_images=False
+        )
         _, err2 = capsys.readouterr()
 
     assert out1 == 0
