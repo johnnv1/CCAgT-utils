@@ -48,10 +48,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         parser.parse_args(['--help'])
 
     # Run
-    if hasattr(args, 'checker'):
+    if hasattr(args, 'checker'):  # pragma: no cover
         args.checker(parser, args)
 
-    if not hasattr(args, 'func'):
+    if not hasattr(args, 'func'):  # pragma: no cover
         parser.print_help()
         return 1
 

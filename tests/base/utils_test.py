@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pytest
 
+from CCAgT_utils.base.errors import FileTypeError
 from CCAgT_utils.base.utils import basename
 from CCAgT_utils.base.utils import create_structure
 from CCAgT_utils.base.utils import find_files
@@ -71,3 +72,8 @@ def test_create_structure(tmpdir):
 def test_open_and_read_json(lbox_raw_sample_complete, lbox_sample_complete):
     out = open_and_read_json(lbox_sample_complete)
     assert out == lbox_raw_sample_complete
+
+
+def test_open_and_read_json_wrong_type():
+    with pytest.raises(FileTypeError):
+        open_and_read_json('filename')
