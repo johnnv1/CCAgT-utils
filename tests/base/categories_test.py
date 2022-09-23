@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import json
-import os
-
 import numpy as np
 import pytest
 
@@ -10,9 +7,7 @@ from CCAgT_utils.base.categories import Categories
 from CCAgT_utils.base.categories import CategoriesInfos
 from CCAgT_utils.base.categories import CategoryInfo
 from CCAgT_utils.base.categories import CATS_COLORS
-from CCAgT_utils.base.categories import read_json
 from CCAgT_utils.base.colors import Color
-from CCAgT_utils.base.errors import FileTypeError
 
 
 def test_CategoriesInfos_init_without_data():
@@ -158,27 +153,6 @@ def test_CategoriesInfos_generate_random_color(
     assert np.minimum(
         0, expected_b - 30,
     ) <= out_b <= np.minimum(color._max_value, expected_b + 30)
-
-
-def test_read_json(tmpdir):
-    d = {'categories': [{'id': 0, 'color': (0, 255, 0), 'name': 'background'}]}
-
-    filename = os.path.join(tmpdir, 'helper_file.json')
-    with open(filename, 'w') as f:
-        json.dump(d, f)
-
-    ccagt_helper = read_json(filename)
-
-    assert ccagt_helper._infos[0].id == d['categories'][0]['id']
-    assert ccagt_helper._infos[0].name == d['categories'][0]['name']
-
-
-def test_wrong_read_json():
-
-    filename = 'helper_file'
-
-    with pytest.raises(FileTypeError):
-        read_json(filename)
 
 
 def test_getCategory_from_categoryInfo():

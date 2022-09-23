@@ -22,6 +22,7 @@ from CCAgT_utils.base.utils import get_traceback
 from CCAgT_utils.formats import ccagt
 from CCAgT_utils.formats import coco
 from CCAgT_utils.formats.annotation import Annotation
+from CCAgT_utils.formats.labelbox import LabelBox
 from CCAgT_utils.formats.mask import Mask
 
 
@@ -86,7 +87,7 @@ def __lbox_drop_duplicate_labels(
         [id_to_remove, df_duplicated.loc[~df_duplicated['have_review'], 'ID']],
     )
 
-    df_without_duplicated = df[~df['ID'].isin(id_to_remove)].copy()
+    df_without_duplicated = LabelBox(df[~df['ID'].isin(id_to_remove)])
 
     return df_without_duplicated
 
@@ -125,15 +126,13 @@ def __lbox_cast_geometries(
 
 
 def from_labelbox(
-    df: pd.DataFrame,
+    labelbox_df: LabelBox,
     categories_info: CategoriesInfos,
-) -> pd.DataFrame:
+) -> ccagt.CCAgT:
     '''Transform the raw dataframe from LabelBox data to CCAgT'''
 
-    df_out = df.copy()
-
     # Drop ignored images at labelling process
-    df_out = df.drop(df[df['Skipped']].index)
+    df_out = labelbox_df.drop(labelbox_df[labelbox_df['Skipped']].index)
 
     # Drop irrelevant columns
     df_out = df_out.drop(
@@ -170,7 +169,7 @@ def from_labelbox(
 
     df_out = df_out.drop(['ID', 'objects', 'Reviews'], axis=1)
 
-    return df_out
+    return ccagt.CCAgT(df_out)
 
 
 # -----------------------------------------------------------------------

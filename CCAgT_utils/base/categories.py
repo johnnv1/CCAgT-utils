@@ -1,13 +1,11 @@
 from __future__ import annotations
 
-import json
 from enum import Enum
 from typing import Any
 from typing import NamedTuple
 
 from CCAgT_utils.base.colors import Color
 from CCAgT_utils.base.colors import random_color_from_base
-from CCAgT_utils.base.errors import FileTypeError
 
 
 class Categories(Enum):
@@ -197,15 +195,3 @@ class CategoriesInfos():
                 if color.rgb not in self.taken_colors:  # pragma: no cover
                     self.taken_colors.add(color.rgb)
                     return color
-
-
-def read_json(filename: str, **kwargs: Any) -> CategoriesInfos:
-    if not filename.endswith('.json'):
-        raise FileTypeError('The auxiliary file is not a JSON file.')
-
-    with open(filename, **kwargs) as f:
-        dataset_helper = json.load(f)
-
-    categories_helpper = dataset_helper['categories']
-
-    return CategoriesInfos(categories_helpper)

@@ -9,6 +9,8 @@ from typing import Any
 from typing import Callable
 from typing import TypeVar
 
+from CCAgT_utils.base.errors import FileTypeError
+
 R = TypeVar('R')
 
 FILENAME_SEP = '_'
@@ -174,5 +176,8 @@ def create_structure(dir_path: str, slides: set[str]) -> None:
 
 
 def open_and_read_json(path: str) -> Any:
+    if not path.endswith('.json'):
+        raise FileTypeError('The file is not a JSON file.')
+
     with open(path) as f:
         return json.load(f)

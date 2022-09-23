@@ -213,6 +213,18 @@ def lbox_sample_complete(tmpdir, lbox_raw_sample_complete):
 
 
 @pytest.fixture
+def lbox_aux_path(tmpdir, categories_aux_data):
+    filename = tmpdir.join('lbox_aux.json')
+    raw_aux = {
+        'categories': categories_aux_data,
+    }
+    with open(str(filename), 'w') as outfile:
+        json.dump(raw_aux, outfile)
+
+    return str(filename)
+
+
+@pytest.fixture
 def lbox_raw_expected_ccagt_df(satellite_ex, nucleus_ex):
     d = [
         create.row_CCAgT(satellite_ex, 3, 'A_xxx'),
