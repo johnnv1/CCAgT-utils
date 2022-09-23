@@ -1,10 +1,14 @@
-from CCAgT_utils.commands.converter import main
-from CCAgT_utils.commands.converter import converter_command
+from __future__ import annotations
+
+import pytest
+
 from CCAgT_utils.base.errors import FileTypeError
+from CCAgT_utils.commands.converter import check_arguments
+from CCAgT_utils.commands.converter import converter_command
+from CCAgT_utils.commands.converter import converter_command_parser
+from CCAgT_utils.commands.converter import main
 from CCAgT_utils.commands.converter import to_ccagt
 from CCAgT_utils.commands.converter import to_coco
-import pytest
-from CCAgT_utils.commands.converter import check_arguments, converter_command_parser
 
 
 def test_converter_command_parser(subparser, converter_required):
@@ -28,12 +32,12 @@ def test_check_arguments(subparser, converter_required):
     with pytest.raises(SystemExit):
         check_arguments(
             parser_converter,
-            parser_converter.parse_args(converter_required)
+            parser_converter.parse_args(converter_required),
         )
 
     out = check_arguments(
         parser_converter,
-        parser_converter.parse_args(converter_required + ['-a', ''])
+        parser_converter.parse_args(converter_required + ['-a', '']),
     )
 
     assert out is None
@@ -51,7 +55,7 @@ def test_to_ccagt(lbox_sample_complete, lbox_aux_path, tmpdir):
         lbox_sample_complete,
         str(filename),
         lbox_aux_path,
-        True
+        True,
     )
 
     assert out == 0
@@ -63,7 +67,7 @@ def test_to_ccagt(lbox_sample_complete, lbox_aux_path, tmpdir):
         lbox_sample_complete,
         str(filename),
         lbox_aux_path,
-        False
+        False,
     )
 
     assert out == 0
@@ -84,15 +88,17 @@ def test_converter_command(
     subparser,
     lbox_sample_complete,
     lbox_aux_path,
-    tmpdir
+    tmpdir,
 ):
     assert converter_command(None) == 1
 
     parser = converter_command_parser(subparser)
     filename = 'CCAgT_out.parquet.gzip'
     out_path = tmpdir.join(filename)
-    args = parser.parse_args(['--to-ccagt', '-i', lbox_sample_complete, '-a',
-                              lbox_aux_path, '-o', str(tmpdir), '-f', filename])
+    args = parser.parse_args([
+        '--to-ccagt', '-i', lbox_sample_complete, '-a',
+        lbox_aux_path, '-o', str(tmpdir), '-f', filename,
+    ])
     out = converter_command(args)
     assert out == 0
     assert out_path.isfile()
@@ -104,10 +110,12 @@ def test_converter_command(
 def test_main(
     lbox_sample_complete,
     lbox_aux_path,
-    tmpdir
+    tmpdir,
 ):
 
     filename = 'CCAgT_out.parquet.gzip'
-    out = main(['--to-ccagt', '-i', lbox_sample_complete, '-a', lbox_aux_path,
-                '-o', str(tmpdir), '-f', filename])
+    out = main([
+        '--to-ccagt', '-i', lbox_sample_complete, '-a', lbox_aux_path,
+        '-o', str(tmpdir), '-f', filename,
+    ])
     assert out == 0
