@@ -10,6 +10,7 @@ from CCAgT_utils.base.categories import CategoriesInfos
 from CCAgT_utils.base.errors import FileTypeError
 from CCAgT_utils.base.utils import open_and_read_json
 from CCAgT_utils.converter import from_labelbox
+from CCAgT_utils.converter import to_mask
 from CCAgT_utils.formats import ccagt
 from CCAgT_utils.formats.labelbox import LabelBox
 from CCAgT_utils.prepare import ccagt_dataset
@@ -47,6 +48,15 @@ def converter_command_parser(
         action='store_true',
         help=(
             'Convert the input data into the COCO dataset format. This '
+            'conversion is allowed from CCAgT format.'
+        ),
+    )
+
+    mexg_output.add_argument(
+        '--to-masks',
+        action='store_true',
+        help=(
+            'Convert the input data into semantic segmentation masks. This '
             'conversion is allowed from CCAgT format.'
         ),
     )
@@ -115,6 +125,16 @@ def converter_command_parser(
         required=False,
     )
 
+    masks_group = parser.add_argument_group(
+        'Parameters for the masks',
+    )
+
+    masks_group.add_argument(
+        '--split-by-slide',
+        help='To save the masks into subdirectories for each slide',
+        action='store_true',
+    )
+
     if subparsers is not None:
         parser.set_defaults(func=converter_command)
         parser.set_defaults(checker=check_arguments)
@@ -171,6 +191,21 @@ def to_coco() -> int:
     # return 0
 
 
+def to_masks(
+    in_path: str,
+    out_path: str,
+    split_by_slide: bool,
+) -> int:
+
+    print(f'Loading CCAgT annotations from {in_path}')
+    ccagt_df = ccagt.load(in_path)
+
+    print('Generating the masks...')
+    to_mask(ccagt_df, out_path, split_by_slide)
+
+    return 0
+
+
 def converter_command(
     args: argparse.Namespace | None = None,
 ) -> int:
@@ -187,6 +222,12 @@ def converter_command(
             out_path=os.path.abspath(out_path),
             aux_path=os.path.abspath(args.aux_path),
             preprocess=args.preprocess,
+        )
+    elif args.to_masks:
+        return to_masks(
+            in_path=os.path.abspath(args.in_path),
+            out_path=os.path.abspath(args.out_path),
+            split_by_slide=args.split_by_slide,
         )
 
     return to_coco()
