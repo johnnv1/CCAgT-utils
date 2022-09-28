@@ -9,6 +9,7 @@ from CCAgT_utils.commands.converter import converter_command_parser
 from CCAgT_utils.commands.converter import main
 from CCAgT_utils.commands.converter import to_ccagt
 from CCAgT_utils.commands.converter import to_coco
+from CCAgT_utils.commands.converter import to_masks
 
 
 def test_converter_command_parser(subparser, converter_required):
@@ -84,10 +85,25 @@ def test_to_coco():
         to_coco()
 
 
+def test_to_masks(ccagt_df_single_nucleus_complete_path, tmpdir):
+
+    outdir = tmpdir.mkdir('output_A/')
+    to_masks(ccagt_df_single_nucleus_complete_path, str(outdir), False)
+
+    assert len(outdir.listdir()) == 1
+
+    outdir = tmpdir.mkdir('output_B/')
+    to_masks(ccagt_df_single_nucleus_complete_path, str(outdir), True)
+
+    assert outdir.listdir()[0].isdir()
+    assert len(outdir.listdir()[0].listdir()) == 1
+
+
 def test_converter_command(
     subparser,
     lbox_sample_complete,
     lbox_aux_path,
+    ccagt_df_single_nucleus_complete_path,
     tmpdir,
 ):
     assert converter_command(None) == 1
@@ -105,6 +121,15 @@ def test_converter_command(
 
     with pytest.raises(NotImplementedError):
         converter_command(parser.parse_args(['--to-coco', '-i', '', '-o', '']))
+
+    outdir = tmpdir.mkdir('output_A/')
+    args = parser.parse_args([
+        '--to-masks', '-i', ccagt_df_single_nucleus_complete_path, '-o',
+        str(outdir),
+    ])
+    out = converter_command(args)
+    assert out == 0
+    assert len(outdir.listdir()) == 1
 
 
 def test_main(

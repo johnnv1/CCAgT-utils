@@ -287,6 +287,26 @@ def ccagt_df_single_nucleus(nucleus_ex):
 
 
 @pytest.fixture
+def ccagt_df_single_nucleus_complete(nucleus_ex):
+    return pd.DataFrame([
+        create.row_CCAgT(
+            nucleus_ex, 1, 'C_xx1', image_id=1, image_width=1600,
+            image_height=1200,
+        ),
+    ])
+
+
+@pytest.fixture
+def ccagt_df_single_nucleus_complete_path(
+    ccagt_df_single_nucleus_complete,
+    tmpdir,
+):
+    path = os.path.join(tmpdir, 'CCAgT_single.parquet.gzip')
+    ccagt.save(ccagt_df_single_nucleus_complete, path)
+    return path
+
+
+@pytest.fixture
 def ccagt_multi_image_names(ccagt_df_multi):
     return ccagt_df_multi['image_name'].unique().tolist()
 
