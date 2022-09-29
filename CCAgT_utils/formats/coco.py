@@ -1,14 +1,41 @@
 from __future__ import annotations
 
-from CCAgT_utils.base.colors import Color
+import json
+from typing import Any
 
+from CCAgT_utils.base.colors import Color
+from CCAgT_utils.formats.ccagt import CCAgT
 
 # def load():
 # TODO:
 
 
+def save(
+        coco: dict[str, Any],
+        filename: str,
+) -> None:
+    # TODO: validate(coco)
+    with open(filename, 'w') as outfile:
+        json.dump(coco, outfile)
+
+
 # def validate():
 # TODO:
+
+
+def build_description(template: str, ccagt_df: CCAgT) -> str:
+    img_quantity = len(ccagt_df['image_id'].unique())
+    slide_quantity = len(ccagt_df['slide_id'].unique())
+    annotations_quantity = ccagt_df.shape[0]
+
+    output = template.replace('{number_of_images}', str(img_quantity))
+    output = output.replace('{number_of_slides}', str(slide_quantity))
+    output = output.replace(
+        '{number_of_annotations}',
+        str(annotations_quantity),
+    )
+
+    return output
 
 
 # noqa: E501 - Based on https://github.com/cocodataset/panopticapi/blob/master/converters/detection2panoptic_coco_format.py

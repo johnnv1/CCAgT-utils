@@ -2,16 +2,21 @@ from __future__ import annotations
 
 import argparse
 import os
+from datetime import datetime
+from typing import Any
 from typing import Sequence
 
 from typing_extensions import TypeAlias
 
+from CCAgT_utils.base.categories import Categories
 from CCAgT_utils.base.categories import CategoriesInfos
 from CCAgT_utils.base.errors import FileTypeError
 from CCAgT_utils.base.utils import open_and_read_json
 from CCAgT_utils.converter import from_labelbox
 from CCAgT_utils.converter import to_mask
+from CCAgT_utils.converter import to_OD_COCO
 from CCAgT_utils.formats import ccagt
+from CCAgT_utils.formats import coco
 from CCAgT_utils.formats.labelbox import LabelBox
 from CCAgT_utils.prepare import ccagt_dataset
 
@@ -125,6 +130,13 @@ def converter_command_parser(
         required=False,
     )
 
+    coco_group.add_argument(
+        '--precision',
+        default=2,
+        help='Define the quantity of decimals to be saved at coco file.',
+        required=False,
+    )
+
     masks_group = parser.add_argument_group(
         'Parameters for the masks',
     )
@@ -186,9 +198,126 @@ def to_ccagt(
     return 0
 
 
-def to_coco() -> int:
-    raise NotImplementedError
-    # return 0
+def to_coco_od(
+    ccagt_df: ccagt.CCAgT,
+    categories_info: CategoriesInfos,
+    out_path: str,
+    info_coco: dict[str, Any],
+    precision: int,
+) -> int:
+    print(
+        '>Setting all overlapped nuclei as iscrowd (1), and others as 0'
+        '(false for the iscrowd)',
+    )
+    ccagt_df['iscrowd'] = 0
+
+    ccagt_df.loc[
+        ccagt_df['category_id'] == Categories.OVERLAPPED_NUCLEI.value,
+        'iscrowd',
+    ] = 1
+
+    print('>Generating annotations from CCAgT to COCO Object Detection...')
+    detection_records = to_OD_COCO(ccagt_df, precision)
+
+    print('>Building COCO `categories`!')
+    categories_coco = [
+        {
+            'supercategory': it.supercategory,
+            'name': it.name,
+            'id': it.id,
+        } for it in categories_info
+    ]
+
+    print('>Building COCO `images`!')
+    images_coco = [
+        {
+            'file_name': str(df['image_name'].unique()[0]),
+            'height': int(df['image_height'].unique()[0]),
+            'width': int(df['image_width'].unique()[0]),
+            'id': int(img_id),
+        } for img_id, df in ccagt_df.groupby('image_id')
+    ]
+
+    print('>Building COCO Object Detection file!')
+    CCAgT_coco = {
+        'info': info_coco,
+        'categories': categories_coco,
+        'images': images_coco,
+        'annotations': detection_records,
+    }
+
+    coco.save(CCAgT_coco, out_path)
+
+    return 0
+
+
+def to_coco(
+    target: str,
+    in_path: str,
+    out_path: str,
+    aux_path: str | None,
+    split_by_slide: bool = False,
+    precision: int = 2,
+) -> int:
+
+    ni_target = {'INSTANCE-SEGMENTATION', 'IS', 'PANOPTIC-SEGMENTATION', 'PS'}
+    if target in ni_target:
+        raise NotImplementedError
+
+    print('Starting the conversion from labelbox to CCAgT...')
+
+    if os.path.isdir(out_path):
+        out_filename = os.path.join(out_path, f'CCAgT_COCO_{target}.json')
+        out_dir = out_path
+    else:
+        out_filename = out_path
+        out_dir = os.path.dirname(out_path)
+
+    print(f'Input path = {in_path}')
+    print(
+        f'Auxiliary path = {aux_path} (If None, the default CategoriesInfo'
+        'will be used!)',
+    )
+    print(f'Output file = {out_filename}')
+    print(f'Output directory = {out_dir}')
+
+    print(f'Loading CCAgT annotations from {in_path}')
+    ccagt_df = ccagt.load(in_path)
+
+    print('Computing the annotations area and the images IDs...')
+    ccagt_df['area'] = ccagt.geometries_area(ccagt_df)
+    ccagt_df['image_id'] = ccagt.generate_ids(ccagt_df['image_name'])
+    ccagt_df['slide_id'] = ccagt.slides_ids(ccagt_df)
+
+    info_coco = {
+        'year': datetime.now().strftime('%Y'),
+        'date_created': datetime.now().strftime('%Y-%m-%d'),
+    }
+
+    if aux_path is None:
+        categories_infos = CategoriesInfos()
+
+    else:
+        print('\tLoading auxiliary data...')
+        dataset_helper = open_and_read_json(aux_path)
+        categories_infos = CategoriesInfos(dataset_helper['categories'])
+
+        desc = coco.build_description(
+            dataset_helper['metadata']['description_template'],
+            ccagt_df,
+        )
+        info_coco['version'] = dataset_helper['metadata']['version']
+        info_coco['description'] = desc
+        info_coco['contributor'] = dataset_helper['metadata']['contributors']
+        info_coco['url'] = dataset_helper['metadata']['url']
+
+    return to_coco_od(
+        ccagt_df,
+        categories_infos,
+        out_filename,
+        info_coco,
+        precision,
+    )
 
 
 def to_masks(
@@ -212,11 +341,10 @@ def converter_command(
     if args is None:
         return 1
 
+    _fn = args.out_filename
     if args.to_ccagt:
-        _fn = args.out_filename
         filename = 'CCAgT.parquet.gzip' if _fn is None else _fn
         out_path = os.path.join(args.out_path, filename)
-
         return to_ccagt(
             in_path=os.path.abspath(args.in_path),
             out_path=os.path.abspath(out_path),
@@ -230,7 +358,19 @@ def converter_command(
             split_by_slide=args.split_by_slide,
         )
 
-    return to_coco()
+    _ap = args.aux_path
+    aux_path = os.path.abspath(_ap) if isinstance(_ap, str) else None
+    _op = args.out_path
+    out_path = os.path.join(_op, _fn) if isinstance(_fn, str) else _op
+
+    return to_coco(
+        target=args.target.upper(),
+        in_path=os.path.abspath(args.in_path),
+        out_path=os.path.abspath(out_path),
+        aux_path=aux_path,
+        split_by_slide=args.split_by_slide,
+        precision=int(args.precision),
+    )
 
 
 def main(argv: Sequence[str] | None = None) -> int:

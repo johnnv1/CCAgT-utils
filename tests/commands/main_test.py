@@ -7,14 +7,14 @@ from CCAgT_utils.commands.main import main
 
 def test_main(
     lbox_sample_complete,
-    lbox_aux_path,
+    aux_path,
     tmpdir,
 ):
 
     filename = 'CCAgT_out.parquet.gzip'
     out = main([
         'convert', '--to-ccagt', '-i', lbox_sample_complete, '-a',
-        lbox_aux_path, '-o', str(tmpdir), '-f', filename,
+        aux_path, '-o', str(tmpdir), '-f', filename,
     ])
     assert out == 0
 
