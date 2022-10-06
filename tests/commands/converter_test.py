@@ -9,6 +9,7 @@ from CCAgT_utils.commands.converter import converter_command_parser
 from CCAgT_utils.commands.converter import main
 from CCAgT_utils.commands.converter import to_ccagt
 from CCAgT_utils.commands.converter import to_coco
+from CCAgT_utils.commands.converter import to_coco_od
 from CCAgT_utils.commands.converter import to_masks
 
 
@@ -49,13 +50,13 @@ def test_check_arguments(subparser, converter_required):
         check_arguments(parser_converter, args)
 
 
-def test_to_ccagt(lbox_sample_complete, lbox_aux_path, tmpdir):
+def test_to_ccagt(lbox_sample_complete, aux_path, tmpdir):
     filename = tmpdir.join('CCAgT_out.parquet.gzip')
 
     out = to_ccagt(
         lbox_sample_complete,
         str(filename),
-        lbox_aux_path,
+        aux_path,
         True,
     )
 
@@ -67,7 +68,7 @@ def test_to_ccagt(lbox_sample_complete, lbox_aux_path, tmpdir):
     out = to_ccagt(
         lbox_sample_complete,
         str(filename),
-        lbox_aux_path,
+        aux_path,
         False,
     )
 
@@ -75,14 +76,71 @@ def test_to_ccagt(lbox_sample_complete, lbox_aux_path, tmpdir):
     assert filename.isfile()
 
 
+def test_to_coco_od(
+    ccagt_df_single_nucleus_complete,
+    categories_infos,
+    tmpdir,
+):
+    outfilename = tmpdir.join('coco_test.json')
+    df = ccagt_df_single_nucleus_complete
+    df['slide_id'] = 1
+    df['area'] = 100.0
+    df['image_id'] = 1
+    df['iscrowd'] = 0
+
+    out = to_coco_od(
+        ccagt_df=df,
+        categories_info=categories_infos,
+        info_coco={'sample': 'TEST'},
+        out_path=str(outfilename),
+        precision=0,
+    )
+
+    assert out == 0
+
+
 def test_to_ccagt_wrong_outfilename():
     with pytest.raises(FileTypeError):
         to_ccagt('', '', '', False)
 
 
-def test_to_coco():
+def test_to_coco_not_implemented():
     with pytest.raises(NotImplementedError):
-        to_coco()
+        to_coco(
+            target='IS',
+            in_path='',
+            out_path='',
+            aux_path=None,
+            split_by_slide=False,
+            precision=0,
+        )
+
+
+def test_to_coco(ccagt_df_single_nucleus_complete_path, tmpdir, aux_path):
+
+    outfilename = tmpdir.join('coco_test.json')
+
+    out = to_coco(
+        target='OD',
+        in_path=ccagt_df_single_nucleus_complete_path,
+        out_path=str(outfilename),
+        aux_path=None,
+        split_by_slide=False,
+        precision=2,
+    )
+
+    assert out == 0
+
+    out = to_coco(
+        target='OD',
+        in_path=ccagt_df_single_nucleus_complete_path,
+        out_path=str(tmpdir),
+        aux_path=aux_path,
+        split_by_slide=False,
+        precision=2,
+    )
+
+    assert out == 0
 
 
 def test_to_masks(ccagt_df_single_nucleus_complete_path, tmpdir):
@@ -102,7 +160,7 @@ def test_to_masks(ccagt_df_single_nucleus_complete_path, tmpdir):
 def test_converter_command(
     subparser,
     lbox_sample_complete,
-    lbox_aux_path,
+    aux_path,
     ccagt_df_single_nucleus_complete_path,
     tmpdir,
 ):
@@ -113,14 +171,11 @@ def test_converter_command(
     out_path = tmpdir.join(filename)
     args = parser.parse_args([
         '--to-ccagt', '-i', lbox_sample_complete, '-a',
-        lbox_aux_path, '-o', str(tmpdir), '-f', filename,
+        aux_path, '-o', str(tmpdir), '-f', filename,
     ])
     out = converter_command(args)
     assert out == 0
     assert out_path.isfile()
-
-    with pytest.raises(NotImplementedError):
-        converter_command(parser.parse_args(['--to-coco', '-i', '', '-o', '']))
 
     outdir = tmpdir.mkdir('output_A/')
     args = parser.parse_args([
@@ -131,16 +186,23 @@ def test_converter_command(
     assert out == 0
     assert len(outdir.listdir()) == 1
 
+    with pytest.raises(NotImplementedError):
+        converter_command(
+            parser.parse_args(
+                ['--to-coco', '--target', 'IS', '-i', '', '-o', ''],
+            ),
+        )
+
 
 def test_main(
     lbox_sample_complete,
-    lbox_aux_path,
+    aux_path,
     tmpdir,
 ):
 
     filename = 'CCAgT_out.parquet.gzip'
     out = main([
-        '--to-ccagt', '-i', lbox_sample_complete, '-a', lbox_aux_path,
+        '--to-ccagt', '-i', lbox_sample_complete, '-a', aux_path,
         '-o', str(tmpdir), '-f', filename,
     ])
     assert out == 0

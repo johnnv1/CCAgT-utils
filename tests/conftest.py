@@ -78,6 +78,16 @@ def categories_aux_data(
 
 
 @pytest.fixture
+def metadata_aux():
+    return {
+        'description_template': '',
+        'version': 't',
+        'contributors': 'names',
+        'url': 'web-url',
+    }
+
+
+@pytest.fixture
 def categories_infos(categories_aux_data):
     return CategoriesInfos(categories_aux_data)
 
@@ -213,10 +223,11 @@ def lbox_sample_complete(tmpdir, lbox_raw_sample_complete):
 
 
 @pytest.fixture
-def lbox_aux_path(tmpdir, categories_aux_data):
+def aux_path(tmpdir, categories_aux_data, metadata_aux):
     filename = tmpdir.join('lbox_aux.json')
     raw_aux = {
         'categories': categories_aux_data,
+        'metadata': metadata_aux,
     }
     with open(str(filename), 'w') as outfile:
         json.dump(raw_aux, outfile)

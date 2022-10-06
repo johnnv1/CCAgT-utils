@@ -385,7 +385,6 @@ def image_id_by_name(
 
 # -----------------------------------------------------------------------
 # Functions which generate a new/copy of the dataframe
-
 def verify_if_intersects(
     ccagt_df: CCAgT,
     base_categories_id: set[int],

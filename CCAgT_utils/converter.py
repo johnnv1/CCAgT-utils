@@ -304,14 +304,14 @@ def to_mask(
 # -----------------------------------------------------------------------
 # Functions work with data to COCO
 def bounds_to_coco_bb(
-    bounds: tuple[float],
+    bounds: tuple[float, float, float, float],
     decimals: int = 2,
 ) -> list[float]:
     # bounds is in  (minx, miny, maxx, maxy)
     # bb  of coco is in [min(x), min(y), max(x)-min(x), max(y)-min(y)]
-    b = tuple(np.round(x, decimals) for x in bounds)
-    min_x, min_y, max_x, max_y = b
-    return [min_x, min_y, max_x - min_x, max_y - min_y]
+    min_x, min_y, max_x, max_y = bounds
+    bb = [min_x, min_y, max_x - min_x, max_y - min_y]
+    return [np.round(x, decimals) for x in bb]
 
 
 def pol_to_coco_segment(
@@ -422,11 +422,11 @@ def single_core_to_PS_COCO(
 
 
 def to_OD_COCO(
-    df: pd.DataFrame,
+    ccagt_df: ccagt.CCAgT,
     decimals: int = 2,
 ) -> list[dict[str, Any]]:
 
-    cols = df.columns
+    cols = ccagt_df.columns
     if not all(c in cols for c in ['area', 'image_id', 'iscrowd']):
         raise KeyError(
             'The dataframe need to have the columns `area`, `image_id`, '
@@ -436,11 +436,11 @@ def to_OD_COCO(
     cpu_num = multiprocessing.cpu_count()
 
     # To ensure that will have sequential index
-    df.reset_index(drop=True, inplace=True)
-    df.index = df.index + 1
+    ccagt_df.reset_index(drop=True, inplace=True)
+    ccagt_df.index = ccagt_df.index + 1
 
     # Split equals the annotations for the cpu quantity
-    ann_ids_splitted = np.array_split(df.index.tolist(), cpu_num)
+    ann_ids_splitted = np.array_split(ccagt_df.index.tolist(), cpu_num)
     print(
         f'Number of cores: {cpu_num}, '
         f'annotations per core: {len(ann_ids_splitted[0])}',
@@ -449,7 +449,7 @@ def to_OD_COCO(
     workers = multiprocessing.Pool(processes=cpu_num)
     processes = []
     for ann_ids in ann_ids_splitted:
-        df_to_process = df.loc[df.index.isin(ann_ids), :]
+        df_to_process = ccagt_df.loc[ccagt_df.index.isin(ann_ids), :]
         p = workers.apply_async(
             single_core_to_OD_COCO,
             (df_to_process, decimals),
