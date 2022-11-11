@@ -339,7 +339,7 @@ def pol_to_coco_segment(
 
 
 @get_traceback
-def single_core_to_OD_COCO(
+def single_core_to_coco_instances(
     df: pd.DataFrame,
     decimals: int = 2,
 ) -> list[dict[str, Any]]:
@@ -421,7 +421,7 @@ def single_core_to_PS_COCO(
     return annotations_panoptic
 
 
-def to_OD_COCO(
+def to_coco_instances(
     ccagt_df: ccagt.CCAgT,
     decimals: int = 2,
 ) -> list[dict[str, Any]]:
@@ -451,7 +451,7 @@ def to_OD_COCO(
     for ann_ids in ann_ids_splitted:
         df_to_process = ccagt_df.loc[ccagt_df.index.isin(ann_ids), :]
         p = workers.apply_async(
-            single_core_to_OD_COCO,
+            single_core_to_coco_instances,
             (df_to_process, decimals),
         )
         processes.append(p)

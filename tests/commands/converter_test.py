@@ -9,7 +9,7 @@ from CCAgT_utils.commands.converter import converter_command_parser
 from CCAgT_utils.commands.converter import main
 from CCAgT_utils.commands.converter import to_ccagt
 from CCAgT_utils.commands.converter import to_coco
-from CCAgT_utils.commands.converter import to_coco_od
+from CCAgT_utils.commands.converter import to_coco_instances_pipeline
 from CCAgT_utils.commands.converter import to_masks
 
 
@@ -76,7 +76,7 @@ def test_to_ccagt(lbox_sample_complete, aux_path, tmpdir):
     assert filename.isfile()
 
 
-def test_to_coco_od(
+def test_to_coco_instances_pipeline(
     ccagt_df_single_nucleus_complete,
     categories_infos,
     tmpdir,
@@ -88,7 +88,7 @@ def test_to_coco_od(
     df['image_id'] = 1
     df['iscrowd'] = 0
 
-    out = to_coco_od(
+    out = to_coco_instances_pipeline(
         ccagt_df=df,
         categories_info=categories_infos,
         info_coco={'sample': 'TEST'},
@@ -107,7 +107,7 @@ def test_to_ccagt_wrong_outfilename():
 def test_to_coco_not_implemented():
     with pytest.raises(NotImplementedError):
         to_coco(
-            target='IS',
+            target='PS',
             in_path='',
             out_path='',
             aux_path=None,
@@ -189,7 +189,7 @@ def test_converter_command(
     with pytest.raises(NotImplementedError):
         converter_command(
             parser.parse_args(
-                ['--to-coco', '--target', 'IS', '-i', '', '-o', ''],
+                ['--to-coco', '--target', 'PS', '-i', '', '-o', ''],
             ),
         )
 
