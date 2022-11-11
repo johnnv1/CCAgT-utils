@@ -14,11 +14,11 @@ from CCAgT_utils.converter import from_labelbox
 from CCAgT_utils.converter import lbox_geo_to_shapely
 from CCAgT_utils.converter import order_annotations_to_draw
 from CCAgT_utils.converter import pol_to_coco_segment
+from CCAgT_utils.converter import single_core_to_coco_instances
 from CCAgT_utils.converter import single_core_to_mask
-from CCAgT_utils.converter import single_core_to_OD_COCO
 from CCAgT_utils.converter import single_core_to_PS_COCO
+from CCAgT_utils.converter import to_coco_instances
 from CCAgT_utils.converter import to_mask
-from CCAgT_utils.converter import to_OD_COCO
 from CCAgT_utils.converter import to_PS_COCO
 from CCAgT_utils.formats import ccagt
 from CCAgT_utils.formats.annotation import Annotation
@@ -165,7 +165,7 @@ def test_to_mask_without_data(capsys):
     assert 'Do not have annotations to generate the masks!\n' == err
 
 
-def test_single_core_to_OD_COCO(
+def test_single_core_to_coco_instances(
     ccagt_df_single_nucleus,
     coco_OD_ann_single_nucleus,
 ):
@@ -178,7 +178,7 @@ def test_single_core_to_OD_COCO(
     ccagt_df_single_nucleus['iscrowd'] = 0
     ccagt_df_single_nucleus.index = ccagt_df_single_nucleus.index + 1
 
-    coco_OD_ann = single_core_to_OD_COCO(ccagt_df_single_nucleus)
+    coco_OD_ann = single_core_to_coco_instances(ccagt_df_single_nucleus)
 
     assert coco_OD_ann == coco_OD_ann_single_nucleus
 
@@ -242,9 +242,12 @@ def test_single_core_to_PS_COCO_multisizes(ccagt_df_multi, tmpdir):
     assert len(tmpdir.listdir()) > 0
 
 
-def test_to_OD_COCO(ccagt_df_single_nucleus, coco_OD_ann_single_nucleus):
+def test_to_coco_instances(
+    ccagt_df_single_nucleus,
+    coco_OD_ann_single_nucleus,
+):
     with pytest.raises(KeyError):
-        to_OD_COCO(ccagt_df_single_nucleus)
+        to_coco_instances(ccagt_df_single_nucleus)
 
     ccagt_df_single_nucleus['area'] = ccagt.geometries_area(
         ccagt_df_single_nucleus,
@@ -254,7 +257,7 @@ def test_to_OD_COCO(ccagt_df_single_nucleus, coco_OD_ann_single_nucleus):
     )
     ccagt_df_single_nucleus['iscrowd'] = 0
 
-    coco_OD_ann = to_OD_COCO(ccagt_df_single_nucleus)
+    coco_OD_ann = to_coco_instances(ccagt_df_single_nucleus)
 
     assert coco_OD_ann == coco_OD_ann_single_nucleus
 

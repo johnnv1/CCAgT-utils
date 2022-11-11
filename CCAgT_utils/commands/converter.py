@@ -13,8 +13,8 @@ from CCAgT_utils.base.categories import CategoriesInfos
 from CCAgT_utils.base.errors import FileTypeError
 from CCAgT_utils.base.utils import open_and_read_json
 from CCAgT_utils.converter import from_labelbox
+from CCAgT_utils.converter import to_coco_instances
 from CCAgT_utils.converter import to_mask
-from CCAgT_utils.converter import to_OD_COCO
 from CCAgT_utils.formats import ccagt
 from CCAgT_utils.formats import coco
 from CCAgT_utils.formats.labelbox import LabelBox
@@ -198,7 +198,7 @@ def to_ccagt(
     return 0
 
 
-def to_coco_od(
+def to_coco_instances_pipeline(
     ccagt_df: ccagt.CCAgT,
     categories_info: CategoriesInfos,
     out_path: str,
@@ -216,8 +216,11 @@ def to_coco_od(
         'iscrowd',
     ] = 1
 
-    print('>Generating annotations from CCAgT to COCO Object Detection...')
-    detection_records = to_OD_COCO(ccagt_df, precision)
+    print(
+        '>Generating annotations from CCAgT to COCO instance detection/'
+        'segmentation...',
+    )
+    detection_records = to_coco_instances(ccagt_df, precision)
 
     print('>Building COCO `categories`!')
     categories_coco = [
@@ -246,6 +249,7 @@ def to_coco_od(
         'annotations': detection_records,
     }
 
+    coco.validate(CCAgT_coco, 'instance')
     coco.save(CCAgT_coco, out_path)
 
     return 0
@@ -260,7 +264,7 @@ def to_coco(
     precision: int = 2,
 ) -> int:
 
-    ni_target = {'INSTANCE-SEGMENTATION', 'IS', 'PANOPTIC-SEGMENTATION', 'PS'}
+    ni_target = {'PANOPTIC-SEGMENTATION', 'PS'}
     if target in ni_target:
         raise NotImplementedError
 
@@ -311,7 +315,7 @@ def to_coco(
         info_coco['contributor'] = dataset_helper['metadata']['contributors']
         info_coco['url'] = dataset_helper['metadata']['url']
 
-    return to_coco_od(
+    return to_coco_instances_pipeline(
         ccagt_df,
         categories_infos,
         out_filename,
