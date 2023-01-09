@@ -3,6 +3,7 @@ from __future__ import annotations
 import collections
 from copy import copy
 from dataclasses import dataclass
+from dataclasses import field
 
 from shapely.geometry import MultiPolygon
 from shapely.geometry import Polygon
@@ -17,7 +18,7 @@ class Annotation:
     geometry: Polygon | MultiPolygon
     category_id: int
     iscrowd: int = 0
-    color: Color = random_color_from_base(Color(0, 0, 0), 255)
+    color: Color = field(default_factory=lambda: random_color_from_base(Color(0, 0, 0), 255))
 
     @property
     def bbox(self) -> BBox:
