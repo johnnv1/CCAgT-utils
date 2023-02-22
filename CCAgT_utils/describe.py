@@ -68,12 +68,11 @@ def from_list(itens: list[int | float]) -> Statistics:
 
 
 def from_array(array: npt.NDArray[Any]) -> Statistics:
-    # TODO: Fix typing and remove the casting from np float to float
     axis = (0, 1)
-    _mean = float(np.mean(array, axis=axis))
-    _std = float(np.std(array, axis=axis))
-    _max = float(np.max(array, axis=axis))
-    _min = float(np.min(array, axis=axis))
+    _mean = np.mean(array, axis=axis)
+    _std = np.std(array, axis=axis)
+    _max = np.max(array, axis=axis)
+    _min = np.min(array, axis=axis)
 
     return Statistics(_mean, _std, _max, _min, count=1)
 
