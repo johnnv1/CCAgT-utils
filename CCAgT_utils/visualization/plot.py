@@ -4,6 +4,7 @@ from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
+import numpy.typing as npt
 import PIL.Image
 from matplotlib import patches
 from matplotlib import patheffects
@@ -50,7 +51,7 @@ def bbox(
 
 
 def image_with_boxes(
-    image: np.ndarray | PIL.Image.Image,
+    image: npt.NDArray[np.uint] | PIL.Image.Image,
     boxes: list[BBox],
     ax: plt.pyplot.Axes,
     categories_infos: CategoriesInfos,

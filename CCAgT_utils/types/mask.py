@@ -5,6 +5,7 @@ from typing import Any
 
 import matplotlib.colors as mlp_colors
 import numpy as np
+import numpy.typing as npt
 from PIL import Image
 
 from CCAgT_utils.categories import CategoriesInfos
@@ -15,10 +16,10 @@ from CCAgT_utils.types.checkers import is_2d
 @dataclass
 class Mask:
     # FIXME: typing also can be a list[list[int]]
-    categorical: np.ndarray
+    categorical: npt.NDArray[np.uint]
 
     def __post_init__(self) -> None:
-        self.categorical: np.ndarray = np.array(self.categorical, dtype=np.uint8)
+        self.categorical = np.array(self.categorical, dtype=np.uint8)
 
         if not is_2d(self.categorical.shape):
             raise ShapeError('Unexpected shape, categorical mask need to be a matrix (2D array)!')
@@ -38,7 +39,7 @@ class Mask:
     def colorized(
         self,
         categories_infos: CategoriesInfos,
-    ) -> np.ndarray:
+    ) -> npt.NDArray[np.uint]:
         o = np.zeros((self.height, self.width, 3), dtype=np.uint8)
 
         for id in self.unique_ids:

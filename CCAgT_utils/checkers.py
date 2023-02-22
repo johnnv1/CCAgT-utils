@@ -24,7 +24,7 @@ def single_core_mask_has(
 ) -> set[str]:
     return {
         basename(filename) for filename in filenames
-        if any(v in categories for v in np.unique(Image.open(filename).convert('L')))
+        if any(v in categories for v in np.unique(np.asarray(Image.open(filename).convert('L'))))
     }
 
 

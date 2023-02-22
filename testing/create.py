@@ -6,6 +6,7 @@ import tempfile
 from typing import Any
 
 import numpy as np
+import numpy.typing as npt
 from PIL import Image
 
 
@@ -18,7 +19,7 @@ def row_CCAgT(obj: Any, cat: int, name: str, **kwargs: Any) -> dict[str, Any]:
     }
 
 
-def mask_categorical(shape: tuple[int, int]) -> np.ndarray:
+def mask_categorical(shape: tuple[int, int]) -> npt.NDArray[np.uint]:
     h = int(shape[0])
     w = int(shape[1])
     out = np.zeros(shape, dtype=np.uint8)
@@ -29,7 +30,7 @@ def mask_categorical(shape: tuple[int, int]) -> np.ndarray:
     return np.array(out, dtype=np.uint8)
 
 
-def mask_colorized(shape: tuple[int, int]) -> np.ndarray:
+def mask_colorized(shape: tuple[int, int]) -> npt.NDArray[np.uint]:
     h = int(shape[0])
     w = int(shape[1])
     out = np.zeros((h, w, 3), dtype=np.uint8)

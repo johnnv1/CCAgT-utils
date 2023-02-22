@@ -5,6 +5,7 @@ import random
 import sys
 
 import matplotlib.pyplot as plt
+import numpy as np
 from PIL import Image
 
 from CCAgT_utils import categories
@@ -129,7 +130,7 @@ def image_and_mask(
                 continue
 
         img = Image.open(img_path)
-        msk_p = Image.open(msk_path).convert('L')
+        msk_p = np.asarray(Image.open(msk_path).convert('L'))
         msk = Mask(msk_p)
 
         fig = plt.figure(figsize=(32, 18))
@@ -198,7 +199,7 @@ def image_with_boxes_and_mask(
                 continue
 
         img = Image.open(img_path)
-        msk_p = Image.open(msk_path).convert('L')
+        msk_p = np.asarray(Image.open(msk_path).convert('L'))
         msk = Mask(msk_p)
 
         image_boxes = CCAgT_ann.df[CCAgT_ann.df['image_name'] == img_name].apply(
