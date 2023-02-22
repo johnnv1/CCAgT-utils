@@ -105,7 +105,7 @@ class CCAgT():
         h = self.IMAGE_HEIGHT if height is None else height
         image_box = box(0, 0, w, h)
 
-        def clip_to_extent(geometry: Polygon, image_box: box = image_box) -> Polygon | np.nan:
+        def clip_to_extent(geometry: Polygon, image_box: box = image_box) -> Polygon | float:
             """This will clip a geometry (Polygon) to fit inside of the
             image size. If the geometry is out of the image bounds
             will return np.nan.
@@ -169,7 +169,7 @@ class CCAgT():
         geo: Polygon,
         geo_idx: int,
         df: pd.DataFrame,
-    ) -> list[int] | np.nan:
+    ) -> list[int] | float:
         """Based on a geometry, search in the dataframe for others
         geometries that intersect with the geometry passed as parameter.
 

@@ -9,6 +9,7 @@ from typing import Tuple
 from typing import Union
 
 import numpy as np
+import numpy.typing as npt
 import pandas as pd
 from PIL import Image
 
@@ -58,19 +59,21 @@ class Statistics:
 
 
 def from_list(itens: list[int | float]) -> Statistics:
-    _mean = np.mean(itens)
-    _std = np.std(itens)
-    _max = np.max(itens)
-    _min = np.min(itens)
+    # TODO: Fix typing and remove the casting from np float to float
+    _mean = float(np.mean(itens))
+    _std = float(np.std(itens))
+    _max = float(np.max(itens))
+    _min = float(np.min(itens))
     return Statistics(_mean, _std, _max, _min, count=len(itens))
 
 
-def from_array(array: np.ndarray) -> Statistics:
+def from_array(array: npt.NDArray[Any]) -> Statistics:
+    # TODO: Fix typing and remove the casting from np float to float
     axis = (0, 1)
-    _mean = np.mean(array, axis=axis)
-    _std = np.std(array, axis=axis)
-    _max = np.max(array, axis=axis)
-    _min = np.min(array, axis=axis)
+    _mean = float(np.mean(array, axis=axis))
+    _std = float(np.std(array, axis=axis))
+    _max = float(np.max(array, axis=axis))
+    _min = float(np.min(array, axis=axis))
 
     return Statistics(_mean, _std, _max, _min, count=1)
 
@@ -291,7 +294,7 @@ def dataset(
         print(f'Total of masks: {masks_quantity} - at `{masks_dir}`')
 
 
-def categorical_mask(mask: np.ndarray) -> dict[int, int]:
+def categorical_mask(mask: npt.NDArray[np.uint]) -> dict[int, int]:
     unique, counts = np.unique(mask, return_counts=True)
     return dict(zip(unique, counts))
 

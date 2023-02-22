@@ -106,7 +106,7 @@ class LabelBox():
         return df
 
     @staticmethod
-    def labelbox_to_shapely(object: dict[str, Any]) -> Polygon | Point | np.nan:
+    def labelbox_to_shapely(object: dict[str, Any]) -> Polygon | Point | float:
         keys = object.keys()
 
         if 'polygon' in keys:

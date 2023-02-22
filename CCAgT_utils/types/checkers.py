@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 
-def is_2d(shape: tuple[int]) -> bool:
+def is_2d(shape: tuple[int, ...]) -> bool:
     """Verify if the shape is at a 2D shape expected (n X m)
     where n and m can be any integer that represents height (rows) and
     width (columns) size.
@@ -23,7 +23,7 @@ def is_2d(shape: tuple[int]) -> bool:
     return False
 
 
-def is_rgb_shape(shape: tuple[int]) -> bool:
+def is_rgb_shape(shape: tuple[int, ...]) -> bool:
     """Verify if the shape is at a RGB shape expected (n X m x 3)
     where n and m can be any integer that represents height (rows) and
     width (columns) size.
