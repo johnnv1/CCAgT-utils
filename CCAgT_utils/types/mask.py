@@ -58,7 +58,7 @@ class Mask:
         self,
         filename: str,
         categories_infos: CategoriesInfos | None = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
 
         if isinstance(categories_infos, CategoriesInfos):

@@ -150,7 +150,7 @@ def images_and_annotations(
     output_annotations_path: str,
     h_quantity: int = 4,
     v_quantity: int = 4,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> None:
 
     image_filenames = {basename(k): v for k, v in find_files(dir_images, **kwargs).items()}

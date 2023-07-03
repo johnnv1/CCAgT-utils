@@ -65,7 +65,7 @@ def tvt_by_nors(
     ccagt: CCAgT,
     categories_infos: CategoriesInfos,
     tvt_size: tuple[float, float, float] = (.7, .15, .15),
-    **kwargs: Any
+    **kwargs: Any,
 ) -> tuple[set[int], set[int], set[int]]:
     """This will split the CCAgT annotations based on the number of NORs
     into each image. With a silly separation, first will split
