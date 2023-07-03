@@ -55,7 +55,7 @@ def image_with_boxes(
     boxes: list[BBox],
     ax: plt.pyplot.Axes,
     categories_infos: CategoriesInfos,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> plt.pyplot.Axes:
     ax.imshow(image)
     ax = bbox(boxes, ax, categories_infos, **kwargs)
@@ -68,7 +68,7 @@ def mask_with_color(
     ax: plt.pyplot.Axes,
     categories_infos: CategoriesInfos,
     colorized: bool = False,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> plt.pyplot.Axes:
     if colorized:
         msk_rgb = mask.colorized(categories_infos)
@@ -81,7 +81,7 @@ def mask_with_color(
             vmax=max(mask_categories),
             vmin=min(mask_categories),
             interpolation='nearest',
-            **kwargs
+            **kwargs,
         )
 
     ax.set_axis_off()
