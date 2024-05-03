@@ -281,7 +281,7 @@ def dataset(
         print(f'Quantity of annotations: {desc["qtd_annotations"]}')
         for cat_name, qtd in desc['qtd_annotations_categorical'].items():
             dist = desc['dist_annotations'][cat_name]
-            print(f' > Quantity of annotations for {cat_name}: {qtd} - {dist*100:.2f}%')
+            print(f' > Quantity of annotations for {cat_name}: {qtd} - {dist * 100:.2f}%')
         print('Statistics of the area of each category...')
         for cat_name, area_stats in desc['area_stats'].items():
             print(f' > Statistics of area for {cat_name}: {area_stats}')
